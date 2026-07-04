@@ -1,0 +1,2697 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="mainHtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanadak — Educational Platform Dashboard</title>
+    <meta name="description" content="Professional Educational & Recruitment Dashboard System by Sanadak">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fef2f2', 100: '#fee2e2', 200: '#fecaca', 300: '#fca5a5',
+                            400: '#f87171', 500: '#ef4444', 600: '#dc2626', 700: '#b91c1c',
+                            800: '#991b1b', 900: '#7f1d1d', 950: '#450a0a'
+                        }
+                    },
+                    fontFamily: { cairo: ['Cairo', 'sans-serif'] },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                        'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        pulseGlow: { '0%, 100%': { opacity: '0.6', transform: 'scale(1)' }, '50%': { opacity: '1', transform: 'scale(1.08)' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
+        body { font-family: 'Cairo', sans-serif; }
+        
+        .neon-glow-red {
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.2), 0 0 30px rgba(239, 68, 68, 0.1);
+        }
+        .neon-glow-red-strong {
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4), 0 0 40px rgba(239, 68, 68, 0.15);
+        }
+        .neon-text-glow {
+            text-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+        }
+        .neon-border {
+            border-color: rgba(239, 68, 68, 0.2);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.05);
+        }
+        .neon-border:focus-within {
+            border-color: rgba(239, 68, 68, 0.6);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #dc2626; }
+        
+        .sidebar-link.active {
+            background: rgba(239, 68, 68, 0.06);
+            color: #dc2626;
+            border-right: 4px solid #ef4444;
+        }
+        [dir="ltr"] .sidebar-link.active {
+            border-right: none;
+            border-left: 4px solid #ef4444;
+        }
+
+        .dropzone-active {
+            border-color: #ef4444 !important;
+            background: rgba(239, 68, 68, 0.04) !important;
+        }
+        .star-btn { transition: all 0.15s ease; }
+        .star-btn:hover svg, .star-btn.active svg { fill: #ef4444; color: #ef4444; filter: drop-shadow(0 0 5px rgba(239,68,68,0.4)); }
+        .toast-enter { animation: slideUp 0.3s ease-out; }
+        .circular-progress { transform: rotate(-90deg); }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #ef4444;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #e4e4e7;
+            height: 4px;
+            border-radius: 2px;
+        }
+        
+        .modal-backdrop { backdrop-filter: blur(8px); }
+        .quiz-option:hover { border-color: #ef4444; background: rgba(239, 68, 68, 0.03); }
+        .quiz-option.selected { border-color: #ef4444; background: rgba(239, 68, 68, 0.06); }
+        
+        .calendar-cell:hover { background: rgba(239, 68, 68, 0.06); }
+        .calendar-cell.has-event { position: relative; }
+        .calendar-cell.has-event::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: #ef4444;
+            border-radius: 50%;
+        }
+        .chat-bubble-self { border-radius: 16px 16px 4px 16px; }
+        [dir="ltr"] .chat-bubble-self { border-radius: 16px 16px 16px 4px; }
+        .chat-bubble-other { border-radius: 16px 16px 16px 4px; }
+        [dir="ltr"] .chat-bubble-other { border-radius: 16px 16px 4px 16px; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 flex h-screen overflow-hidden transition-colors duration-300">
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-3 items-center pointer-events-none"></div>
+
+    <!-- Schedule Modal -->
+    <div id="scheduleModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop bg-black/30">
+        <div class="bg-white border border-gray-200 rounded-2xl w-full max-w-lg mx-4 p-8 animate-slide-up shadow-2xl">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900" data-i18n="scheduleInterview">جدولة المقابلة</h3>
+                <button onclick="closeModal('scheduleModal')" class="text-gray-400 hover:text-gray-700 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-500 mb-2" data-i18n="applicantNameLabel">اسم المتقدم</label>
+                    <input id="modalApplicantName" type="text" readonly class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-700 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-500 mb-2" data-i18n="interviewDate">تاريخ المقابلة</label>
+                    <input id="interviewDateVal" type="date" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-500 mb-2" data-i18n="interviewTime">وقت المقابلة</label>
+                    <input id="interviewTimeVal" type="time" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-500 mb-2" data-i18n="interviewType">نوع المقابلة</label>
+                    <select id="interviewTypeVal" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500">
+                        <option>Online - Zoom</option>
+                        <option>Online - Google Meet</option>
+                        <option data-i18n="inPerson">حضوري</option>
+                    </select>
+                </div>
+                <button onclick="confirmScheduleInterview()" class="w-full bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-lg font-bold transition-all shadow-lg shadow-brand-600/20 mt-2" data-i18n="confirmSchedule">تأكيد الموعد</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Form Modal -->
+    <div id="applicationModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop bg-black/30">
+        <div class="bg-white border border-gray-200 rounded-2xl w-full max-w-2xl mx-4 p-8 animate-slide-up shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900" data-i18n="applicationForm">نموذج التقديم للتدريس</h3>
+                <button onclick="closeModal('applicationModal')" class="text-gray-400 hover:text-gray-700 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <!-- Step Progress -->
+            <div class="flex items-center justify-center gap-2 mb-8">
+                <div id="step-dot-1" class="w-10 h-10 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-sm shadow-md">1</div>
+                <div class="w-12 h-0.5 bg-gray-200" id="step-line-1"></div>
+                <div id="step-dot-2" class="w-10 h-10 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center font-bold text-sm">2</div>
+                <div class="w-12 h-0.5 bg-gray-200" id="step-line-2"></div>
+                <div id="step-dot-3" class="w-10 h-10 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center font-bold text-sm">3</div>
+                <div class="w-12 h-0.5 bg-gray-200" id="step-line-3"></div>
+                <div id="step-dot-4" class="w-10 h-10 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center font-bold text-sm">4</div>
+            </div>
+            
+            <!-- Step 1: Personal Info -->
+            <div id="formStep1" class="space-y-4">
+                <h4 class="font-bold text-lg text-gray-800 mb-4" data-i18n="personalInfo">المعلومات الشخصية</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-500 mb-2" data-i18n="fullName">الاسم الكامل *</label>
+                        <input id="formName" type="text" placeholder="أدخل اسمك الكامل" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent placeholder-gray-400">
+                        <p id="err-formName" class="text-red-500 text-xs mt-1 hidden">الرجاء إدخال الاسم بالكامل</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-500 mb-2" data-i18n="age">العمر *</label>
+                        <input id="formAge" type="number" min="1" placeholder="25" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent placeholder-gray-400">
+                        <p id="err-formAge" class="text-red-500 text-xs mt-1 hidden">الرجاء إدخال عمر صحيح</p>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-500 mb-2" data-i18n="email">البريد الإلكتروني *</label>
+                    <input id="formEmail" type="email" placeholder="example@email.com" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent placeholder-gray-400" dir="ltr">
+                    <p id="err-formEmail" class="text-red-500 text-xs mt-1 hidden">الرجاء إدخال بريد إلكتروني صحيح</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-500 mb-2" data-i18n="phone">رقم الهاتف * (أرقام فقط)</label>
+                    <input id="formPhone" type="text" placeholder="01XXXXXXXXX" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent placeholder-gray-400" dir="ltr" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    <p id="err-formPhone" class="text-red-500 text-xs mt-1 hidden">الرجاء إدخال رقم هاتف صحيح مكون من أرقام فقط</p>
+                </div>
+                <button onclick="validateStep1()" class="w-full bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-lg font-bold transition-all mt-4 shadow-lg shadow-brand-600/20" data-i18n="nextStep">التالي</button>
+            </div>
+            
+            <!-- Step 2: Experience -->
+            <div id="formStep2" class="space-y-4 hidden">
+                <h4 class="font-bold text-lg text-gray-800 mb-4" data-i18n="experienceInfo">الخبرة والمؤهلات</h4>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-500 mb-2" data-i18n="experienceYears">سنوات الخبرة *</label>
+                    <select id="formExp" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="" data-i18n="selectExp">اختر سنوات الخبرة</option>
+                        <option value="0-1">0 - 1 سنة</option>
+                        <option value="1-3">1 - 3 سنوات</option>
+                        <option value="3-5">3 - 5 سنوات</option>
+                        <option value="5-10">5 - 10 سنوات</option>
+                        <option value="10+">+10 سنوات</option>
+                    </select>
+                    <p id="err-formExp" class="text-red-500 text-xs mt-1 hidden">الرجاء اختيار سنوات الخبرة</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-500 mb-2" data-i18n="specialization">التخصص *</label>
+                    <select id="formSpec" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="">اختر التخصص الرئيسي</option>
+                        <option>Frontend Development</option>
+                        <option>Backend Development</option>
+                        <option>Full Stack Development</option>
+                        <option>UI/UX Design</option>
+                        <option>Data Science</option>
+                        <option>Mobile Development</option>
+                    </select>
+                    <p id="err-formSpec" class="text-red-500 text-xs mt-1 hidden">الرجاء اختيار التخصص</p>
+                </div>
+                <div class="flex gap-3 mt-4">
+                    <button onclick="goToStep(1)" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-bold transition-all" data-i18n="prevStep">السابق</button>
+                    <button onclick="validateStep2()" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-lg font-bold transition-all shadow-md shadow-brand-600/10" data-i18n="nextStep2">التالي</button>
+                </div>
+            </div>
+            
+            <!-- Step 3: CV Upload -->
+            <div id="formStep3" class="space-y-4 hidden">
+                <h4 class="font-bold text-lg text-gray-800 mb-4" data-i18n="cvUpload">رفع السيرة الذاتية</h4>
+                <input type="file" id="cvFileInput" accept=".pdf,.doc,.docx" class="hidden" onchange="handleCvFileSelected(this)">
+                <div id="cvDropzone" class="border-2 border-dashed border-gray-300 rounded-2xl p-12 text-center cursor-pointer hover:border-brand-400 transition-all bg-gray-50/50"
+                    ondragover="event.preventDefault(); this.classList.add('dropzone-active')"
+                    ondragleave="this.classList.remove('dropzone-active')"
+                    ondrop="handleCvDrop(event)"
+                    onclick="document.getElementById('cvFileInput').click()">
+                    <svg class="w-14 h-14 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <p class="font-bold text-gray-600 text-lg" data-i18n="dragDropCV">اسحب السيرة الذاتية هنا أو اضغط للاختيار</p>
+                    <p class="text-sm text-gray-400 mt-2">PDF, DOCX — Max 10MB</p>
+                </div>
+                <div id="uploadProgressBar" class="hidden">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-gray-500 font-semibold" id="uploadFilename">CV_Ahmed_Mahmoud.pdf</span>
+                        <span id="uploadPercent" class="text-sm text-brand-600 font-bold">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div id="uploadBar" class="bg-brand-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+                <p id="err-cvUpload" class="text-red-500 text-xs mt-1 hidden">يرجى رفع ملف السيرة الذاتية للمتابعة</p>
+                <div class="flex gap-3 mt-4">
+                    <button onclick="goToStep(2)" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-bold transition-all">السابق</button>
+                    <button onclick="validateStep3()" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-lg font-bold transition-all shadow-md">التالي</button>
+                </div>
+            </div>
+            
+            <!-- Step 4: Review -->
+            <div id="formStep4" class="space-y-4 hidden">
+                <h4 class="font-bold text-lg text-gray-800 mb-4" data-i18n="reviewSubmit">مراجعة وإرسال</h4>
+                <div class="bg-gray-50 rounded-xl p-6 space-y-3 border border-gray-200">
+                    <div class="flex justify-between"><span class="text-gray-400 text-sm">الاسم</span><span class="font-semibold text-gray-800" id="review-name">-</span></div>
+                    <div class="border-t border-gray-200"></div>
+                    <div class="flex justify-between"><span class="text-gray-400 text-sm">العمر</span><span class="font-semibold text-gray-800" id="review-age">-</span></div>
+                    <div class="border-t border-gray-200"></div>
+                    <div class="flex justify-between"><span class="text-gray-400 text-sm">الهاتف</span><span class="font-semibold text-gray-800" id="review-phone">-</span></div>
+                    <div class="border-t border-gray-200"></div>
+                    <div class="flex justify-between"><span class="text-gray-400 text-sm">الخبرة</span><span class="font-semibold text-gray-800" id="review-exp">-</span></div>
+                    <div class="border-t border-gray-200"></div>
+                    <div class="flex justify-between"><span class="text-gray-400 text-sm">التخصص</span><span class="font-semibold text-gray-800" id="review-spec">-</span></div>
+                    <div class="border-t border-gray-200"></div>
+                    <div class="flex justify-between"><span class="text-gray-400 text-sm">السيرة الذاتية</span><span class="font-semibold text-brand-600" id="review-cv">-</span></div>
+                </div>
+                <div class="flex gap-3 mt-4">
+                    <button onclick="goToStep(3)" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-bold transition-all">السابق</button>
+                    <button onclick="submitApplicationForm()" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-lg font-bold transition-all shadow-lg shadow-brand-600/20" data-i18n="submitApp">إرسال الطلب</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructor Add/Edit Modal -->
+    <div id="instructorModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop bg-black/30">
+        <div class="bg-white border border-gray-200 rounded-2xl w-full max-w-lg mx-4 p-8 animate-slide-up shadow-2xl">
+            <div class="flex items-center justify-between mb-6">
+                <h3 id="instructorModalTitle" class="text-xl font-bold text-gray-900">إضافة محاضر جديد</h3>
+                <button onclick="closeModal('instructorModal')" class="text-gray-400 hover:text-gray-700 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <input type="hidden" id="editInstructorIndex">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-500 mb-2">اسم المحاضر *</label>
+                    <input id="instructorNameVal" type="text" placeholder="مثال: أحمد محمد" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-500 mb-2">الدورة التعليمية *</label>
+                    <input id="instructorCourseVal" type="text" placeholder="مثال: React Basics" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-500 mb-2">طريقة الدفع (النموذج) *</label>
+                    <select id="instructorModelVal" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="Per Student">Per Student</option>
+                        <option value="Per Round">Per Round</option>
+                        <option value="Monthly">Monthly</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-500 mb-2">المبلغ *</label>
+                    <input id="instructorAmountVal" type="text" placeholder="مثال: 25000" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-500 mb-2">الحالة *</label>
+                    <select id="instructorStatusVal" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="تم الدفع">تم الدفع</option>
+                        <option value="معلق">معلق</option>
+                    </select>
+                </div>
+                <button onclick="saveInstructor()" class="w-full bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-lg font-bold transition-all shadow-lg shadow-brand-600/20 mt-2">حفظ المحاضر</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Applicant Add/Edit Modal -->
+    <div id="applicantEditModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop bg-black/30">
+        <div class="bg-white border border-gray-200 rounded-2xl w-full max-w-lg mx-4 p-8 animate-slide-up shadow-2xl">
+            <div class="flex items-center justify-between mb-6">
+                <h3 id="applicantEditTitle" class="text-xl font-bold text-gray-900">تعديل بيانات المرشح</h3>
+                <button onclick="closeModal('applicantEditModal')" class="text-gray-400 hover:text-gray-700 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <input type="hidden" id="editApplicantIndex">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-500 mb-2">اسم المرشح *</label>
+                    <input id="editAppNameVal" type="text" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-500 mb-2">العمر *</label>
+                    <input id="editAppAgeVal" type="text" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-500 mb-2">الخبرة *</label>
+                    <select id="editAppExpVal" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="سنة إلى سنتين">سنة إلى سنتين</option>
+                        <option value="٣ إلى ٥ سنوات">٣ إلى ٥ سنوات</option>
+                        <option value="أكثر من ٥ سنوات">أكثر من ٥ سنوات</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-500 mb-2">الحالة *</label>
+                    <select id="editAppStatusVal" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="pending">قيد المراجعة</option>
+                        <option value="accepted">مقبول مبدئياً</option>
+                        <option value="evaluated">تم التقييم</option>
+                    </select>
+                </div>
+                <div id="editAppEvalBtnContainer" class="hidden">
+                    <button type="button" onclick="closeModal('applicantEditModal'); focusEvaluationForm(parseInt(document.getElementById('editApplicantIndex').value, 10))" class="w-full bg-zinc-800 hover:bg-zinc-900 text-white px-6 py-3 rounded-lg font-bold transition-all shadow-md mt-1">
+                        ✎ تعديل تقييم المقابلة
+                    </button>
+                </div>
+                <button onclick="saveApplicantEdit()" class="w-full bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-lg font-bold transition-all shadow-lg shadow-brand-600/20 mt-2">حفظ التغييرات</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Session Rating Modal -->
+    <div id="sessionRatingModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop bg-black/30">
+        <div class="bg-white border border-gray-200 rounded-2xl w-full max-w-md mx-4 p-8 animate-slide-up shadow-2xl animate-fade-in">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">تقييم الجلسة التعليمية</h3>
+                <button onclick="closeModal('sessionRatingModal')" class="text-gray-400 hover:text-gray-700 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="space-y-6 text-right" dir="rtl">
+                <div>
+                    <p class="text-sm font-semibold text-gray-500 mb-2">اسم الجلسة</p>
+                    <p id="ratingSessionName" class="font-extrabold text-zinc-800 text-base">React Fundamentals & JSX</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-500 mb-3">كيف تقيّم جودة الشرح والمحتوى؟</label>
+                    <div class="flex justify-center gap-2 flex-row-reverse" id="starRatingContainer">
+                        <button type="button" onclick="setSessionStars(1)" class="session-star-btn text-gray-300 hover:text-amber-400 transition-all transform hover:scale-110" data-star="1">
+                            <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        </button>
+                        <button type="button" onclick="setSessionStars(2)" class="session-star-btn text-gray-300 hover:text-amber-400 transition-all transform hover:scale-110" data-star="2">
+                            <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        </button>
+                        <button type="button" onclick="setSessionStars(3)" class="session-star-btn text-gray-300 hover:text-amber-400 transition-all transform hover:scale-110" data-star="3">
+                            <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        </button>
+                        <button type="button" onclick="setSessionStars(4)" class="session-star-btn text-gray-300 hover:text-amber-400 transition-all transform hover:scale-110" data-star="4">
+                            <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        </button>
+                        <button type="button" onclick="setSessionStars(5)" class="session-star-btn text-gray-300 hover:text-amber-400 transition-all transform hover:scale-110" data-star="5">
+                            <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-500 mb-2">ملاحظات إضافية (اختياري)</label>
+                    <textarea id="sessionRatingFeedback" rows="3" placeholder="أدخل رأيك هنا..." class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500 resize-none text-sm"></textarea>
+                </div>
+                <button onclick="submitSessionRating()" class="w-full bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-lg font-bold transition-all shadow-lg shadow-brand-600/20 mt-2">إرسال التقييم</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside id="sidebar" class="w-72 bg-white border-e border-gray-200 flex-shrink-0 flex flex-col z-20 transition-all duration-300 h-screen shadow-lg">
+        <!-- Logo Wrapper (Based on screenshot theme) -->
+        <div class="p-6 pb-4 border-b border-gray-100 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-700 to-brand-500 flex items-center justify-center shadow-lg shadow-brand-600/30 border border-brand-400/20 p-1.5">
+                    <img src="file:///C:/Users/Admin/.gemini/antigravity-ide/brain/3a845bd9-d4ee-4ec8-ad6e-7521a8c460ad/media__1782723649743.png" alt="Sanadak Logo" class="w-full h-full object-contain filter brightness-200">
+                </div>
+                <div>
+                    <h1 class="text-lg font-extrabold text-zinc-900 tracking-tight leading-none neon-text-glow font-cairo">Sanadak</h1>
+                    <p class="text-[11px] font-bold text-brand-600 mt-1 font-cairo">منصة التوظيف والتعليم</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fixed Sidebar Menu Navigation -->
+        <nav id="sidebarNav" class="flex-1 px-4 py-6 space-y-6 overflow-y-auto">
+            <!-- Group 1: إدارة التوظيف -->
+            <div class="space-y-2">
+                <div class="flex items-center justify-between px-3 text-[12px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                    <span data-i18n="navRecruitment">إدارة التوظيف</span>
+                    <svg class="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+                <div class="space-y-1">
+                    <a href="#" onclick="switchRole('recruiter')" id="link-recruiter" class="sidebar-link flex items-center justify-between px-4 py-3 text-zinc-600 hover:text-brand-600 hover:bg-brand-50/50 rounded-xl transition-all text-sm font-bold active shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span data-i18n="roleRecruiterTitle">لوحة تحكم التوظيف</span>
+                        </div>
+                        <span class="w-2.5 h-2.5 rounded-full bg-brand-500 shadow-md shadow-brand-500/50 animate-pulse-glow"></span>
+                    </a>
+                    <a href="#" onclick="openModal('applicationModal'); goToStep(1)" class="sidebar-link flex items-center justify-between px-4 py-3 text-zinc-600 hover:text-brand-600 hover:bg-brand-50/50 rounded-xl transition-all text-sm font-bold">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            <span data-i18n="newApplicationTitle">نموذج تقديم المدربين</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Group 2: بوابة المدرب -->
+            <div class="space-y-2">
+                <div class="flex items-center justify-between px-3 text-[12px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                    <span data-i18n="navInstructor">بوابة المدرب</span>
+                    <svg class="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+                <div class="space-y-1">
+                    <a href="#" onclick="switchRole('instructor')" id="link-instructor" class="sidebar-link flex items-center justify-between px-4 py-3 text-zinc-600 hover:text-brand-600 hover:bg-brand-50/50 rounded-xl transition-all text-sm font-bold">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                            <span data-i18n="instructorWorkspace">مساحة عمل المدرب</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Group 3: شؤون الطلاب -->
+            <div class="space-y-2">
+                <div class="flex items-center justify-between px-3 text-[12px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                    <span data-i18n="navStudents">شؤون الطلاب</span>
+                    <svg class="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+                <div class="space-y-1">
+                    <a href="#" onclick="switchRole('student')" id="link-student" class="sidebar-link flex items-center justify-between px-4 py-3 text-zinc-600 hover:text-brand-600 hover:bg-brand-50/50 rounded-xl transition-all text-sm font-bold">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span data-i18n="studentPortal">بوابة الطالب التعليمية</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Group 4: النظام المالي -->
+            <div class="space-y-2">
+                <div class="flex items-center justify-between px-3 text-[12px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                    <span data-i18n="navFinance">النظام المالي</span>
+                    <svg class="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+                <div class="space-y-1">
+                    <a href="#" onclick="switchRole('admin')" id="link-admin" class="sidebar-link flex items-center justify-between px-4 py-3 text-zinc-600 hover:text-brand-600 hover:bg-brand-50/50 rounded-xl transition-all text-sm font-bold">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span data-i18n="financeStats">الرواتب والإحصائيات</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Sidebar Footer -->
+        <div class="p-4 border-t border-gray-100 bg-gray-50/50">
+            <div class="flex items-center gap-3 px-2 py-1">
+                <div class="w-9 h-9 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center text-sm font-bold text-brand-600 shadow-sm">E</div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-gray-800 truncate">Eng. Mohamed</p>
+                    <p class="text-[11px] text-gray-400 truncate">admin@sanadak.com</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="flex-1 flex flex-col h-screen min-w-0 bg-gray-50">
+        <!-- Header Switcher Bar (Mockup style) -->
+        <header class="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-8 flex-shrink-0 z-10 shadow-sm">
+            <div class="flex items-center gap-6">
+                <!-- Mobile Toggle -->
+                <button onclick="toggleSidebar()" class="lg:hidden text-gray-400 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                
+                <!-- User Role Switcher pills as shown in the mockup -->
+                <div class="hidden lg:flex items-center gap-2 bg-gray-100/70 p-1.5 rounded-2xl border border-gray-200 shadow-sm">
+                    <span class="text-xs font-bold text-gray-500 px-3 py-1" data-i18n="roleSwitcherLabel">تجربة أدوار المستخدمين:</span>
+                    <button onclick="switchRole('recruiter')" id="pill-recruiter" class="px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all duration-300 bg-brand-600 text-white shadow-md shadow-brand-500/20 neon-text-glow">لوحة تحكم التوظيف</button>
+                    <button onclick="switchRole('instructor')" id="pill-instructor" class="px-5 py-2.5 rounded-xl text-xs font-extrabold text-zinc-500 hover:text-zinc-800 transition-all">مساحة عمل المدرب</button>
+                    <button onclick="switchRole('student')" id="pill-student" class="px-5 py-2.5 rounded-xl text-xs font-extrabold text-zinc-500 hover:text-zinc-800 transition-all">بوابة الطالب التعليمية</button>
+                    <button onclick="switchRole('admin')" id="pill-admin" class="px-5 py-2.5 rounded-xl text-xs font-extrabold text-zinc-500 hover:text-zinc-800 transition-all">الرواتب والإحصائيات</button>
+                </div>
+            </div>
+
+            <!-- Left corner Header controls (Mockup style) -->
+            <div class="flex items-center gap-3">
+                <!-- Yellow/Gold badge link to Form -->
+                <button onclick="openModal('applicationModal'); goToStep(1)" class="bg-amber-50 text-amber-700 border border-amber-300 hover:bg-amber-100 px-4 py-2 rounded-xl text-xs font-extrabold transition-all shadow-sm animate-pulse-glow">
+                    إدارة التوظيف
+                </button>
+
+                <!-- Lang Switcher: Red pill shape, white text "English" with a globe/language icon -->
+                <button onclick="toggleLang()" class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl font-extrabold text-xs transition-all shadow-md shadow-brand-500/20 flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 0A18.015 18.015 0 0110 14.5M10 14.5a18.397 18.397 0 01-5 3.5m5-3.5a18.106 18.106 0 005-3.5M10.5 9h-4"/></svg>
+                    <span>English</span>
+                </button>
+
+                <!-- Page Active Role Tag (glowing) -->
+                <div class="flex items-center gap-2 border-s border-gray-200 ps-4">
+                    <span id="headerRoleBadge" class="text-xs font-black tracking-wider text-brand-600 uppercase flex items-center gap-1.5 bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-xl shadow-sm">
+                        <span class="w-2.5 h-2.5 rounded-full bg-brand-500 animate-pulse-glow"></span>
+                        <span id="headerRoleName">RECRUITER DASHBOARD</span>
+                    </span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+            <div class="max-w-7xl mx-auto space-y-6">
+
+                <!-- ========== RECRUITER DASHBOARD ============= -->
+                <div id="view-recruiter" class="role-view space-y-6 animate-fade-in">
+                    <!-- Stats Row -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-all neon-border">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-gray-500 text-sm font-semibold" data-i18n="totalApplicants">إجمالي المتقدمين</span>
+                                <div class="w-9 h-9 rounded-lg bg-brand-50 flex items-center justify-center"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+                            </div>
+                            <p class="text-3xl font-black text-gray-900 neon-text-glow">47</p>
+                            <p class="text-xs text-emerald-600 font-semibold mt-1">+12% <span class="text-gray-400" data-i18n="thisMonth">هذا الشهر</span></p>
+                        </div>
+                        <div class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-all neon-border">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-gray-500 text-sm font-semibold" data-i18n="interviewsScheduled">مقابلات مجدولة</span>
+                                <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center"><svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
+                            </div>
+                            <p class="text-3xl font-black text-gray-900">12</p>
+                            <p class="text-xs text-gray-400 font-semibold mt-1" data-i18n="pendingReview">بانتظار المراجعة</p>
+                        </div>
+                        <div class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-all neon-border">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-gray-500 text-sm font-semibold" data-i18n="accepted">تم القبول</span>
+                                <div class="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center"><svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+                            </div>
+                            <p class="text-3xl font-black text-gray-900">8</p>
+                            <p class="text-xs text-emerald-600 font-semibold mt-1">17% <span class="text-gray-400" data-i18n="acceptRate">نسبة القبول</span></p>
+                        </div>
+                        <div class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-all neon-border">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-gray-500 text-sm font-semibold" data-i18n="rejected">تم الرفض</span>
+                                <div class="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center"><svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+                            </div>
+                            <p class="text-3xl font-black text-gray-900">27</p>
+                            <p class="text-xs text-gray-400 font-semibold mt-1" data-i18n="lastUpdated">آخر تحديث: اليوم</p>
+                        </div>
+                    </div>
+
+                    <!-- Applicants Table Container exactly matching mockup -->
+                    <div class="space-y-4">
+                        <!-- Top search & filter: Search Right, Filter Left -->
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white border border-gray-200 rounded-2xl shadow-sm">
+                            <!-- Search input on the right side of the container (first in DOM for RTL) -->
+                            <div class="relative w-full sm:w-80">
+                                <svg class="w-5 h-5 absolute top-1/2 -translate-y-1/2 start-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                <input id="searchInput" oninput="filterTable()" type="text" placeholder="البحث عن طريق اسم المتقدم أو الخبرة..." class="w-full bg-gray-50 border border-gray-200 rounded-xl ps-11 pe-4 py-2.5 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-brand-500 placeholder-gray-400 font-medium">
+                            </div>
+
+                            <!-- Filter dropdown on the left side of the container -->
+                            <div class="flex items-center gap-3 w-full sm:w-auto">
+                                <select id="filterStatus" onchange="filterTable()" class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 font-bold outline-none focus:ring-2 focus:ring-brand-500">
+                                    <option value="all">جميع الحالات</option>
+                                    <option value="pending">قيد المراجعة</option>
+                                    <option value="accepted">مقبول مبدئياً</option>
+                                    <option value="evaluated">تم التقييم</option>
+                                </select>
+                                <div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Table matching user layout -->
+                        <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-center align-middle" id="applicantsTable">
+                                    <thead>
+                                        <tr class="border-b border-gray-100 bg-gray-50/50 text-gray-400 text-xs font-bold uppercase tracking-wider">
+                                            <th class="px-6 py-4" data-i18n="name">اسم المرشح</th>
+                                            <th class="px-6 py-4" data-i18n="age">العمر</th>
+                                            <th class="px-6 py-4" data-i18n="experience">الخبرة</th>
+                                            <th class="px-6 py-4" data-i18n="cv">السيرة الذاتية</th>
+                                            <th class="px-6 py-4" data-i18n="status">الحالة</th>
+                                            <th class="px-6 py-4" data-i18n="actions">الإجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="applicantsBody" class="text-sm font-semibold text-gray-800 divide-y divide-gray-100">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interview Evaluation Form -->
+                    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm" id="evaluationFormSection">
+                        <div class="p-5 border-b border-gray-100">
+                            <h3 class="font-bold text-lg text-gray-900" data-i18n="evalForm">نموذج تقييم المقابلة</h3>
+                            <p class="text-sm text-gray-400 mt-1" data-i18n="evalDesc">تقييم شامل للمرشح بناءً على الأداء التقني والمهارات الشخصية</p>
+                        </div>
+                        
+                        <!-- Dynamic active candidate indicator -->
+                        <div id="evalCandidateBanner" class="mx-5 mt-4 p-4 bg-brand-50 border border-brand-100 rounded-xl flex items-center justify-between animate-fade-in hidden">
+                            <span class="text-sm font-bold text-brand-900">
+                                اسم المرشح قيد التقييم حالياً: <span id="evalCandidateName" class="underline text-brand-600 font-extrabold">-</span>
+                            </span>
+                            <button type="button" onclick="cancelActiveEvaluation()" class="text-xs text-red-600 hover:text-red-700 font-black transition-colors">
+                                إلغاء التحديد ✗
+                            </button>
+                        </div>
+
+                        <form class="p-5 space-y-6" onsubmit="event.preventDefault(); validateAndSubmitEval()">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-500 mb-3" data-i18n="techScore">التقييم التقني (1-5)</label>
+                                    <div class="flex gap-2">
+                                        <input type="radio" name="techScore" value="1" id="tech1" class="hidden peer/t1">
+                                        <label for="tech1" class="flex-1 text-center py-3 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:border-brand-400 peer-checked/t1:bg-brand-600 peer-checked/t1:border-brand-600 peer-checked/t1:text-white font-bold transition-all text-gray-600">1</label>
+                                        <input type="radio" name="techScore" value="2" id="tech2" class="hidden peer/t2">
+                                        <label for="tech2" class="flex-1 text-center py-3 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:border-brand-400 peer-checked/t2:bg-brand-600 peer-checked/t2:border-brand-600 peer-checked/t2:text-white font-bold transition-all text-gray-600">2</label>
+                                        <input type="radio" name="techScore" value="3" id="tech3" class="hidden peer/t3">
+                                        <label for="tech3" class="flex-1 text-center py-3 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:border-brand-400 peer-checked/t3:bg-brand-600 peer-checked/t3:border-brand-600 peer-checked/t3:text-white font-bold transition-all text-gray-600">3</label>
+                                        <input type="radio" name="techScore" value="4" id="tech4" class="hidden peer/t4">
+                                        <label for="tech4" class="flex-1 text-center py-3 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:border-brand-400 peer-checked/t4:bg-brand-600 peer-checked/t4:border-brand-600 peer-checked/t4:text-white font-bold transition-all text-gray-600">4</label>
+                                        <input type="radio" name="techScore" value="5" id="tech5" class="hidden peer/t5">
+                                        <label for="tech5" class="flex-1 text-center py-3 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:border-brand-400 peer-checked/t5:bg-brand-600 peer-checked/t5:border-brand-600 peer-checked/t5:text-white font-bold transition-all text-gray-600">5</label>
+                                    </div>
+                                    <p id="techError" class="text-red-500 text-xs mt-1 hidden">مطلوب</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-500 mb-3" data-i18n="softScore">المهارات الشخصية (1-5)</label>
+                                    <div class="flex gap-2">
+                                        <input type="radio" name="softScore" value="1" id="soft1" class="hidden peer/s1">
+                                        <label for="soft1" class="flex-1 text-center py-3 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:border-brand-400 peer-checked/s1:bg-brand-600 peer-checked/s1:border-brand-600 peer-checked/s1:text-white font-bold transition-all text-gray-600">1</label>
+                                        <input type="radio" name="softScore" value="2" id="soft2" class="hidden peer/s2">
+                                        <label for="soft2" class="flex-1 text-center py-3 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:border-brand-400 peer-checked/s2:bg-brand-600 peer-checked/s2:border-brand-600 peer-checked/s2:text-white font-bold transition-all text-gray-600">2</label>
+                                        <input type="radio" name="softScore" value="3" id="soft3" class="hidden peer/s3">
+                                        <label for="soft3" class="flex-1 text-center py-3 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:border-brand-400 peer-checked/s3:bg-brand-600 peer-checked/s3:border-brand-600 peer-checked/s3:text-white font-bold transition-all text-gray-600">3</label>
+                                        <input type="radio" name="softScore" value="4" id="soft4" class="hidden peer/s4">
+                                        <label for="soft4" class="flex-1 text-center py-3 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:border-brand-400 peer-checked/s4:bg-brand-600 peer-checked/s4:border-brand-600 peer-checked/s4:text-white font-bold transition-all text-gray-600">4</label>
+                                        <input type="radio" name="softScore" value="5" id="soft5" class="hidden peer/s5">
+                                        <label for="soft5" class="flex-1 text-center py-3 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:border-brand-400 peer-checked/s5:bg-brand-600 peer-checked/s5:border-brand-600 peer-checked/s5:text-white font-bold transition-all text-gray-600">5</label>
+                                    </div>
+                                    <p id="softError" class="text-red-500 text-xs mt-1 hidden">مطلوب</p>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-500 mb-3" data-i18n="passedCats">التصنيفات المجتازة (المهارات الشخصية والناعمة)</label>
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                    <label class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:border-gray-300 transition-colors">
+                                        <input type="checkbox" value="communication" class="w-4 h-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+                                        <span class="text-sm font-semibold text-gray-700" data-i18n="communication">مهارات التواصل</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:border-gray-300 transition-colors">
+                                        <input type="checkbox" value="problemSolving" class="w-4 h-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+                                        <span class="text-sm font-semibold text-gray-700" data-i18n="problemSolving">حل المشكلات</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:border-gray-300 transition-colors">
+                                        <input type="checkbox" value="teamwork" class="w-4 h-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+                                        <span class="text-sm font-semibold text-gray-700" data-i18n="teamwork">العمل الجماعي</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:border-gray-300 transition-colors">
+                                        <input type="checkbox" value="timeManagement" class="w-4 h-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+                                        <span class="text-sm font-semibold text-gray-700">إدارة الوقت</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:border-gray-300 transition-colors">
+                                        <input type="checkbox" value="adaptability" class="w-4 h-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+                                        <span class="text-sm font-semibold text-gray-700">المرونة والتكيف</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:border-gray-300 transition-colors">
+                                        <input type="checkbox" value="criticalThinking" class="w-4 h-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+                                        <span class="text-sm font-semibold text-gray-700">التفكير النقدي</span>
+                                    </label>
+                                </div>
+                                <p id="catError" class="text-red-500 text-xs mt-1 hidden">اختر تصنيف واحد على الأقل</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-500 mb-2" data-i18n="feedback">ملاحظات التقييم</label>
+                                <textarea id="evalFeedback" rows="4" placeholder="اكتب ملاحظات مفصلة عن أداء المرشح..." class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500 resize-none placeholder-gray-400 text-sm"></textarea>
+                                <p id="feedbackError" class="text-red-500 text-xs mt-1 hidden">الملاحظات مطلوبة (10 أحرف على الأقل)</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-500 mb-3" data-i18n="finalDecision">القرار النهائي</label>
+                                <div class="flex gap-3">
+                                    <label class="flex-1"><input type="radio" name="decision" value="pass" class="hidden peer"><div class="text-center py-3 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer peer-checked:bg-emerald-50 peer-checked:border-emerald-500 peer-checked:text-emerald-700 font-bold text-sm transition-all hover:border-gray-300 text-gray-500" data-i18n="passDecision">ناجح ✓</div></label>
+                                    <label class="flex-1"><input type="radio" name="decision" value="review" class="hidden peer"><div class="text-center py-3 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer peer-checked:bg-amber-50 peer-checked:border-amber-500 peer-checked:text-amber-700 font-bold text-sm transition-all hover:border-gray-300 text-gray-500" data-i18n="reviewDecision">يحتاج مراجعة ⟳</div></label>
+                                    <label class="flex-1"><input type="radio" name="decision" value="fail" class="hidden peer"><div class="text-center py-3 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-700 font-bold text-sm transition-all hover:border-gray-300 text-gray-500" data-i18n="failDecision">غير ناجح ✗</div></label>
+                                </div>
+                            </div>
+                            <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-bold transition-all shadow-lg shadow-brand-600/20 flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span data-i18n="saveEval">حفظ التقييم</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- ========== INSTRUCTOR DASHBOARD ============ -->
+                <div id="view-instructor" class="role-view hidden space-y-6 animate-fade-in">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-all neon-border">
+                            <p class="text-gray-500 text-sm font-semibold mb-1" data-i18n="activeCourses">الدورات النشطة</p>
+                            <p class="text-3xl font-black text-gray-900 neon-text-glow">3</p>
+                        </div>
+                        <div class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-all neon-border">
+                            <p class="text-gray-500 text-sm font-semibold mb-1" data-i18n="totalStudents">عدد الطلاب</p>
+                            <p class="text-3xl font-black text-gray-900 neon-text-glow">87</p>
+                        </div>
+                        <div class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-all neon-border">
+                            <p class="text-gray-500 text-sm font-semibold mb-1" data-i18n="nextSession">الجلسة القادمة</p>
+                            <p class="text-lg font-bold text-brand-600">غداً، 8:00 م</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg></div>
+                                <div><h3 class="font-bold text-gray-900" data-i18n="uploadRoadmap">رفع مسار التعلم (Roadmap)</h3><p class="text-xs text-gray-400">PDF, DOCX, PPTX</p></div>
+                            </div>
+                            <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-brand-400 transition-all bg-gray-50/50" ondragover="event.preventDefault(); this.classList.add('dropzone-active')" ondragleave="this.classList.remove('dropzone-active')" ondrop="event.preventDefault(); this.classList.remove('dropzone-active'); showToast('تم رفع ملف Roadmap بنجاح ✓', 'success')">
+                                <svg class="w-10 h-10 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                <p class="text-gray-500 font-semibold text-sm" data-i18n="dropzoneText">اسحب وأفلت الملفات هنا</p>
+                            </div>
+                            <div class="mt-4 space-y-2">
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                    <div class="flex items-center gap-3"><div class="w-8 h-8 rounded bg-red-50 flex items-center justify-center text-xs font-bold text-red-500">PDF</div><div><p class="text-sm font-semibold text-gray-800">React_Roadmap_v2.pdf</p><p class="text-xs text-gray-400">2.4 MB • منذ يومين</p></div></div>
+                                    <span class="text-emerald-600 text-xs font-semibold bg-emerald-50 px-2 py-1 rounded">✓ تم الرفع</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center"><svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg></div>
+                                <div><h3 class="font-bold text-gray-900" data-i18n="uploadContent">رفع المحتوى التعليمي</h3><p class="text-xs text-gray-400">Videos, PDFs, Resources</p></div>
+                            </div>
+                            <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-blue-400 transition-all bg-gray-50/50" ondragover="event.preventDefault(); this.classList.add('dropzone-active')" ondragleave="this.classList.remove('dropzone-active')" ondrop="event.preventDefault(); this.classList.remove('dropzone-active'); showToast('تم رفع المحتوى بنجاح ✓', 'success')">
+                                <svg class="w-10 h-10 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                <p class="text-gray-500 font-semibold text-sm">اسحب ملفات المحتوى هنا</p>
+                            </div>
+                            <div class="mt-4 space-y-2">
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                    <div class="flex items-center gap-3"><div class="w-8 h-8 rounded bg-blue-50 flex items-center justify-center text-xs font-bold text-blue-500">MP4</div><div><p class="text-sm font-semibold text-gray-800">Session_01_Intro.mp4</p><p class="text-xs text-gray-400">156 MB • منذ 3 أيام</p></div></div>
+                                    <span class="text-emerald-600 text-xs font-semibold bg-emerald-50 px-2 py-1 rounded">✓ تم الرفع</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                            <div class="flex items-center justify-between mb-5">
+                                <h3 class="font-bold text-gray-900" data-i18n="simulationCalendar">جدول المحاكاة والجلسات</h3>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="changeCalendarMonth(-1)" class="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center hover:bg-gray-200 transition-colors"><svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button>
+                                    <span id="calendarMonth" class="text-sm font-bold text-gray-700 min-w-[120px] text-center">يوليو 2026</span>
+                                    <button onclick="changeCalendarMonth(1)" class="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center hover:bg-gray-200 transition-colors"><svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-7 gap-1 mb-2">
+                                <div class="text-center text-xs font-semibold text-gray-400 py-2">أحد</div>
+                                <div class="text-center text-xs font-semibold text-gray-400 py-2">اثنين</div>
+                                <div class="text-center text-xs font-semibold text-gray-400 py-2">ثلاثاء</div>
+                                <div class="text-center text-xs font-semibold text-gray-400 py-2">أربعاء</div>
+                                <div class="text-center text-xs font-semibold text-gray-400 py-2">خميس</div>
+                                <div class="text-center text-xs font-semibold text-gray-400 py-2">جمعة</div>
+                                <div class="text-center text-xs font-semibold text-gray-400 py-2">سبت</div>
+                            </div>
+                            <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
+                            <div class="mt-4 flex gap-3 flex-wrap">
+                                <input type="date" id="newSessionDate" class="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-brand-500">
+                                <input type="time" id="newSessionTime" class="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-brand-500">
+                                <button onclick="proposeNewSession()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all shadow-md shadow-brand-600/20" data-i18n="proposeSession">اقتراح موعد جلسة</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-gray-200 rounded-xl flex flex-col h-[480px] shadow-sm">
+                            <div class="p-4 border-b border-gray-100 flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center"><svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></div>
+                                <div><h3 class="font-bold text-sm text-gray-900" data-i18n="collabChat">التنسيق مع المنسق</h3><p class="text-[11px] text-emerald-500">متصل الآن</p></div>
+                            </div>
+                            <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3">
+                                <div class="flex justify-start"><div class="chat-bubble-other bg-gray-100 text-gray-800 p-3 max-w-[85%] text-sm">مرحباً، هل يمكنك تحديد موعد الجلسة التجريبية؟</div></div>
+                                <div class="flex justify-end"><div class="chat-bubble-self bg-brand-600 text-white p-3 max-w-[85%] text-sm">نعم، أقترح يوم الخميس القادم الساعة 7 مساءً</div></div>
+                                <div class="flex justify-start"><div class="chat-bubble-other bg-gray-100 text-gray-800 p-3 max-w-[85%] text-sm">مستعد، تم التأكيد. يرجى تجهيز المحتوى قبل الموعد</div></div>
+                                <div class="flex justify-end"><div class="chat-bubble-self bg-brand-600 text-white p-3 max-w-[85%] text-sm">تم رفع ملف الـ Roadmap. هل يمكن تغيير الموعد ليوم السبت؟</div></div>
+                                <div class="flex justify-start"><div class="chat-bubble-other bg-gray-100 text-gray-800 p-3 max-w-[85%] text-sm">سأراجع الجدول وأؤكد لك خلال ساعة ⏳</div></div>
+                            </div>
+                            <div class="p-3 border-t border-gray-100 flex gap-2">
+                                <input id="chatInput" type="text" placeholder="اكتب رسالة..." class="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-brand-500 placeholder-gray-400" onkeypress="if(event.key==='Enter') sendChatMessage()">
+                                <button onclick="sendChatMessage()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg transition-all"><svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== STUDENT DASHBOARD =============== -->
+                <div id="view-student" class="role-view hidden space-y-6 animate-fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white border border-gray-200 rounded-xl p-6 text-center shadow-sm flex flex-col justify-center items-center">
+                            <h3 class="font-bold text-gray-500 text-sm mb-6" data-i18n="courseProgress">نسبة إنجاز الدورة</h3>
+                            <div class="relative w-36 h-36 mx-auto">
+                                <svg class="w-36 h-36 circular-progress" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="45" fill="none" stroke="#f4f4f5" stroke-width="6"/>
+                                    <circle cx="50" cy="50" r="45" fill="none" stroke="#dc2626" stroke-width="6" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="70.75" class="animate-progress"/>
+                                </svg>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-3xl font-black text-gray-900 neon-text-glow">75%</span><span class="text-xs text-gray-400" data-i18n="completed">مكتمل</span></div>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                            <div class="flex items-center justify-between mb-5">
+                                <div>
+                                    <p class="text-[10px] font-bold text-brand-600 uppercase tracking-widest">إحصائيات الحضور</p>
+                                    <h3 class="text-xl font-bold text-gray-900 mt-1">سجل الحضور العام</h3>
+                                </div>
+                                <span class="text-sm font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200">يوليو 2026</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4 mb-6">
+                                <div class="text-center p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                                    <p class="text-2xl font-black text-emerald-600">18</p>
+                                    <p class="text-xs text-emerald-500 font-semibold mt-1">جلسة حضرتها</p>
+                                </div>
+                                <div class="text-center p-4 bg-red-50 rounded-xl border border-red-100">
+                                    <p class="text-2xl font-black text-brand-600">4</p>
+                                    <p class="text-xs text-brand-500 font-semibold mt-1">جلسات غياب</p>
+                                </div>
+                                <div class="text-center p-4 bg-blue-50 rounded-xl border border-blue-100">
+                                    <p class="text-2xl font-black text-blue-600">22</p>
+                                    <p class="text-xs text-blue-500 font-semibold mt-1">إجمالي الجلسات</p>
+                                </div>
+                            </div>
+                            <div class="mb-3 flex items-center justify-between">
+                                <span class="text-sm font-semibold text-gray-600">نسبة الحضور الإجمالية</span>
+                                <span class="text-sm font-black text-emerald-600">82%</span>
+                            </div>
+                            <div class="w-full bg-gray-100 rounded-full h-3 mb-4">
+                                <div class="bg-emerald-500 h-3 rounded-full transition-all duration-700" style="width: 82%"></div>
+                            </div>
+                            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-gray-800">أداء الحضور جيد 👏</p>
+                                    <p class="text-xs text-gray-400">حافظ على نسبة حضور لا تقل عن 80% للحصول على الشهادة</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                        <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+                            <h3 class="font-bold text-gray-900">جدول المحاضرات</h3>
+                            <div class="flex gap-2">
+                                <button id="weeklyViewBtn" onclick="switchScheduleView('weekly')" class="bg-brand-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all">أسبوعي</button>
+                                <button id="monthlyViewBtn" onclick="switchScheduleView('monthly')" class="bg-gray-100 text-gray-500 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-200 transition-colors">شهري</button>
+                            </div>
+                        </div>
+                        <!-- Weekly View -->
+                        <div id="weeklyScheduleView" class="overflow-x-auto">
+                            <table class="w-full text-sm text-right">
+                                <thead>
+                                    <tr class="border-b border-gray-100 bg-gray-50/70 text-gray-400 text-xs font-bold uppercase tracking-wider">
+                                        <th class="px-5 py-3 text-right">التاريخ</th>
+                                        <th class="px-5 py-3 text-right">المحاضرة</th>
+                                        <th class="px-5 py-3 text-right">المحاضر</th>
+                                        <th class="px-5 py-3 text-right">الوقت</th>
+                                        <th class="px-5 py-3 text-center">نوع الحضور</th>
+                                        <th class="px-5 py-3 text-center">الإجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100" id="lecturesTableBody">
+                                    <tr class="hover:bg-gray-50 transition-colors" id="lecture-row-0">
+                                        <td class="px-5 py-4">
+                                            <div class="w-12 h-12 rounded-xl bg-brand-50 flex flex-col items-center justify-center">
+                                                <span class="text-brand-600 text-[10px] font-bold">يوليو</span>
+                                                <span class="text-brand-600 text-base font-black leading-none">01</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-5 py-4">
+                                            <p class="font-bold text-gray-900 text-sm">React State Management</p>
+                                            <p class="text-xs text-gray-400 mt-0.5">الوحدة الثانية</p>
+                                        </td>
+                                        <td class="px-5 py-4 text-gray-600 font-medium text-sm">أ. خالد</td>
+                                        <td class="px-5 py-4 text-gray-500 text-xs font-semibold">8:00 - 10:00 م</td>
+                                        <td class="px-5 py-4">
+                                            <div class="flex items-center justify-center gap-1.5">
+                                                <button onclick="setAttendanceType(this, 'online', 0)" class="attend-btn attend-online px-3 py-1.5 rounded-lg text-xs font-bold border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all duration-200">🌐 أونلاين</button>
+                                                <button onclick="setAttendanceType(this, 'offline', 0)" class="attend-btn attend-offline px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100 transition-all duration-200">🏛 حضوري</button>
+                                            </div>
+                                            <p class="text-center text-[10px] mt-1 font-semibold text-blue-600 attend-status-0">✓ أونلاين</p>
+                                        </td>
+                                        <td class="px-5 py-4 text-center">
+                                            <button onclick="joinSession(0)" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg font-bold text-xs transition-all shadow-md shadow-brand-600/20">انضمام</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 transition-colors" id="lecture-row-1">
+                                        <td class="px-5 py-4">
+                                            <div class="w-12 h-12 rounded-xl bg-blue-50 flex flex-col items-center justify-center">
+                                                <span class="text-blue-500 text-[10px] font-bold">يوليو</span>
+                                                <span class="text-blue-500 text-base font-black leading-none">03</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-5 py-4">
+                                            <p class="font-bold text-gray-900 text-sm">API Integration & Data Fetching</p>
+                                            <p class="text-xs text-gray-400 mt-0.5">الوحدة الثالثة</p>
+                                        </td>
+                                        <td class="px-5 py-4 text-gray-600 font-medium text-sm">أ. خالد</td>
+                                        <td class="px-5 py-4 text-gray-500 text-xs font-semibold">8:00 - 10:00 م</td>
+                                        <td class="px-5 py-4">
+                                            <div class="flex items-center justify-center gap-1.5">
+                                                <button onclick="setAttendanceType(this, 'online', 1)" class="attend-btn attend-online px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all duration-200">🌐 أونلاين</button>
+                                                <button onclick="setAttendanceType(this, 'offline', 1)" class="attend-btn attend-offline px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100 transition-all duration-200">🏛 حضوري</button>
+                                            </div>
+                                            <p class="text-center text-[10px] mt-1 font-semibold text-gray-400 attend-status-1">اختر نوع الحضور</p>
+                                        </td>
+                                        <td class="px-5 py-4 text-center">
+                                            <span class="text-xs text-gray-400 bg-gray-100 px-3 py-1.5 rounded-lg font-semibold">قريباً</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 transition-colors" id="lecture-row-2">
+                                        <td class="px-5 py-4">
+                                            <div class="w-12 h-12 rounded-xl bg-emerald-50 flex flex-col items-center justify-center">
+                                                <span class="text-emerald-500 text-[10px] font-bold">يونيو</span>
+                                                <span class="text-emerald-500 text-base font-black leading-none">28</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-5 py-4">
+                                            <p class="font-bold text-gray-900 text-sm">React Fundamentals & JSX</p>
+                                            <p class="text-xs text-gray-400 mt-0.5">الوحدة الأولى</p>
+                                        </td>
+                                        <td class="px-5 py-4 text-gray-600 font-medium text-sm">أ. خالد</td>
+                                        <td class="px-5 py-4 text-gray-500 text-xs font-semibold">8:00 - 10:00 م</td>
+                                        <td class="px-5 py-4 text-center">
+                                            <span class="text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg font-semibold">✓ تمت (أونلاين)</span>
+                                        </td>
+                                        <td class="px-5 py-4 text-center">
+                                            <button onclick="openSessionRatingModal('React Fundamentals & JSX', 'lecture-row-2')" class="text-brand-600 hover:text-brand-700 text-xs font-bold flex items-center gap-1 transition-colors mx-auto"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>تقييم</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 transition-colors" id="lecture-row-3">
+                                        <td class="px-5 py-4">
+                                            <div class="w-12 h-12 rounded-xl bg-purple-50 flex flex-col items-center justify-center">
+                                                <span class="text-purple-500 text-[10px] font-bold">يوليو</span>
+                                                <span class="text-purple-500 text-base font-black leading-none">07</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-5 py-4">
+                                            <p class="font-bold text-gray-900 text-sm">React Hooks & Context API</p>
+                                            <p class="text-xs text-gray-400 mt-0.5">الوحدة الرابعة</p>
+                                        </td>
+                                        <td class="px-5 py-4 text-gray-600 font-medium text-sm">أ. خالد</td>
+                                        <td class="px-5 py-4 text-gray-500 text-xs font-semibold">8:00 - 10:00 م</td>
+                                        <td class="px-5 py-4">
+                                            <div class="flex items-center justify-center gap-1.5">
+                                                <button onclick="setAttendanceType(this, 'online', 3)" class="attend-btn attend-online px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all duration-200">🌐 أونلاين</button>
+                                                <button onclick="setAttendanceType(this, 'offline', 3)" class="attend-btn attend-offline px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100 transition-all duration-200">🏛 حضوري</button>
+                                            </div>
+                                            <p class="text-center text-[10px] mt-1 font-semibold text-gray-400 attend-status-3">اختر نوع الحضور</p>
+                                        </td>
+                                        <td class="px-5 py-4 text-center">
+                                            <span class="text-xs text-gray-400 bg-gray-100 px-3 py-1.5 rounded-lg font-semibold">قريباً</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Monthly View -->
+                        <div id="monthlyScheduleView" class="hidden p-5">
+                            <div class="flex items-center justify-between mb-4">
+                                <button onclick="changeStudentMonth(-1)" class="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center hover:bg-gray-200 transition-colors"><svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button>
+                                <span id="studentCalMonth" class="text-sm font-bold text-gray-700">يوليو 2026</span>
+                                <button onclick="changeStudentMonth(1)" class="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center hover:bg-gray-200 transition-colors"><svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
+                            </div>
+                            <div class="grid grid-cols-7 gap-1 mb-2">
+                                <div class="text-center text-xs font-semibold text-gray-400 py-2">أحد</div>
+                                <div class="text-center text-xs font-semibold text-gray-400 py-2">اثنين</div>
+                                <div class="text-center text-xs font-semibold text-gray-400 py-2">ثلاثاء</div>
+                                <div class="text-center text-xs font-semibold text-gray-400 py-2">أربعاء</div>
+                                <div class="text-center text-xs font-semibold text-gray-400 py-2">خميس</div>
+                                <div class="text-center text-xs font-semibold text-gray-400 py-2">جمعة</div>
+                                <div class="text-center text-xs font-semibold text-gray-400 py-2">سبت</div>
+                            </div>
+                            <div id="studentCalGrid" class="grid grid-cols-7 gap-1"></div>
+                            <div class="mt-4 flex items-center gap-4 text-xs text-gray-500">
+                                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-brand-500"></span> يوم محاضرة</span>
+                                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> تم الحضور</span>
+                                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-400"></span> غياب</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Weekly Schedule Table (Days of the Week) -->
+                    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                        <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+                            <div>
+                                <h3 class="font-bold text-gray-900">📅 الجدول الأسبوعي الكامل</h3>
+                                <p class="text-xs text-gray-400 mt-1">جميع المحاضرات والأنشطة مرتبة حسب أيام الأسبوع</p>
+                            </div>
+                            <span class="text-xs font-bold text-brand-600 bg-brand-50 px-3 py-1.5 rounded-lg border border-brand-100">الأسبوع الحالي</span>
+                        </div>
+                        <div class="overflow-x-auto p-5">
+                            <table class="w-full min-w-[1250px] border-collapse border border-gray-200 text-right bg-white rounded-xl overflow-hidden shadow-sm table-fixed">
+                                <colgroup>
+                                    <col style="width: 140px;">
+                                    <col style="width: 123px;">
+                                    <col style="width: 123px;">
+                                    <col style="width: 123px;">
+                                    <col style="width: 123px;">
+                                    <col style="width: 123px;">
+                                    <col style="width: 123px;">
+                                    <col style="width: 123px;">
+                                    <col style="width: 123px;">
+                                    <col style="width: 123px;">
+                                </colgroup>
+                                <thead>
+                                    <tr class="bg-gray-50 border-b border-gray-200 text-gray-500 text-xs font-bold uppercase tracking-wider">
+                                        <th class="border border-gray-200 p-4 text-center bg-gray-100/50">اليوم / الوقت</th>
+                                        <th class="border border-gray-200 p-2 text-center text-[11px] font-extrabold text-brand-900">07:00 - 09:00</th>
+                                        <th class="border border-gray-200 p-2 text-center text-[11px] font-extrabold text-brand-900">09:00 - 11:00</th>
+                                        <th class="border border-gray-200 p-2 text-center text-[11px] font-extrabold text-brand-900">11:00 - 13:00</th>
+                                        <th class="border border-gray-200 p-2 text-center text-[11px] font-extrabold text-brand-900">13:00 - 15:00</th>
+                                        <th class="border border-gray-200 p-2 text-center text-[11px] font-extrabold text-brand-900">15:00 - 17:00</th>
+                                        <th class="border border-gray-200 p-2 text-center text-[11px] font-extrabold text-brand-900">17:00 - 19:00</th>
+                                        <th class="border border-gray-200 p-2 text-center text-[11px] font-extrabold text-brand-900">19:00 - 21:00</th>
+                                        <th class="border border-gray-200 p-2 text-center text-[11px] font-extrabold text-brand-900">21:00 - 23:00</th>
+                                        <th class="border border-gray-200 p-2 text-center text-[11px] font-extrabold text-brand-900">23:00 - 00:00</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    <!-- Sunday -->
+                                    <tr class="hover:bg-gray-50/20 transition-colors">
+                                        <td class="border border-gray-200 p-4 text-center bg-gray-50/50">
+                                            <span class="text-sm font-black text-gray-800">الأحد</span>
+                                            <div class="text-[10px] text-gray-400 mt-1">29 يونيو</div>
+                                        </td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-emerald-50/30" colspan="2">
+                                            <div class="bg-emerald-100 text-emerald-950 border border-emerald-300 rounded-lg p-2.5 text-right text-xs leading-relaxed font-semibold shadow-sm hover:shadow transition-shadow">
+                                                <div class="font-bold text-emerald-800 mb-1 flex flex-col gap-1 items-start">
+                                                    <span class="text-[9px] bg-emerald-200 px-1.5 py-0.5 rounded text-emerald-900 border border-emerald-300 w-fit">تم الحضور ✓</span>
+                                                    <span class="font-black text-[11px] leading-tight block mt-0.5">📚 React State Management</span>
+                                                </div>
+                                                <p class="text-[10px] mt-1 text-emerald-900/80">⏰ 20:00 - 22:00</p>
+                                                <p class="text-[10px] text-emerald-900/80">🏷️ الثانية — تطبيقات عملية</p>
+                                                <p class="text-[10px] text-emerald-900/80">🏛️ 🌐 أونلاين | أ. خالد</p>
+                                            </div>
+                                        </td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                    </tr>
+
+                                    <!-- Monday -->
+                                    <tr class="hover:bg-gray-50/20 transition-colors">
+                                        <td class="border border-gray-200 p-4 text-center bg-gray-50/50">
+                                            <span class="text-sm font-black text-gray-800">الاثنين</span>
+                                            <div class="text-[10px] text-gray-400 mt-1">30 يونيو</div>
+                                        </td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-emerald-50/30" colspan="1">
+                                            <div class="bg-emerald-100 text-emerald-950 border border-emerald-300 rounded-lg p-2.5 text-right text-xs leading-relaxed font-semibold shadow-sm hover:shadow transition-shadow">
+                                                <div class="font-bold text-emerald-800 mb-1 flex flex-col gap-1 items-start">
+                                                    <span class="text-[9px] bg-emerald-200 px-1.5 py-0.5 rounded text-emerald-900 border border-emerald-300 w-fit">تم الحضور ✓</span>
+                                                    <span class="font-black text-[11px] leading-tight block mt-0.5">📚 مراجعة وتمارين عملية</span>
+                                                </div>
+                                                <p class="text-[10px] mt-1 text-emerald-900/80">⏰ 19:00 - 21:00</p>
+                                                <p class="text-[10px] text-emerald-900/80">🏷️ تمارين تفاعلية Hooks</p>
+                                                <p class="text-[10px] text-emerald-900/80">🏛️ 🏛 حضوري | أ. خالد</p>
+                                            </div>
+                                        </td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                    </tr>
+
+                                    <!-- Tuesday -->
+                                    <tr class="hover:bg-gray-50/20 transition-colors">
+                                        <td class="border border-gray-200 p-4 text-center bg-gray-50/50">
+                                            <span class="text-sm font-black text-gray-800">الثلاثاء</span>
+                                            <div class="text-[10px] text-gray-400 mt-1">1 يوليو</div>
+                                        </td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-amber-50/30" colspan="2">
+                                            <div class="bg-amber-100 text-amber-950 border border-amber-400 rounded-lg p-2.5 text-right text-xs leading-relaxed font-black shadow-md hover:shadow-lg transition-all ring-2 ring-amber-400/30 animate-pulse">
+                                                <div class="font-black text-amber-900 mb-1 flex flex-col gap-1 items-start">
+                                                    <span class="text-[9px] bg-amber-200 px-1.5 py-0.5 rounded text-amber-900 border border-amber-400 w-fit">اليوم ●</span>
+                                                    <span class="font-black text-[11px] leading-tight block mt-0.5">📚 API Integration & Fetch</span>
+                                                </div>
+                                                <p class="text-[10px] mt-1 text-amber-900/80">⏰ 20:00 - 22:00</p>
+                                                <p class="text-[10px] text-amber-900/80">🏷️ الثالثة — Axios & Fetch</p>
+                                                <p class="text-[10px] text-amber-900/80">🏛️ 🌐 أونلاين | أ. خالد</p>
+                                            </div>
+                                        </td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                    </tr>
+
+                                    <!-- Wednesday -->
+                                    <tr class="hover:bg-gray-50/20 transition-colors bg-gray-50/30">
+                                        <td class="border border-gray-200 p-4 text-center bg-gray-50/50">
+                                            <span class="text-sm font-black text-gray-400">الأربعاء</span>
+                                            <div class="text-[10px] text-gray-400 mt-1">2 يوليو</div>
+                                        </td>
+                                        <td class="border border-gray-200 p-4 text-center text-gray-400 font-bold bg-zinc-50/50" colspan="9">
+                                            — لا توجد محاضرات —
+                                        </td>
+                                    </tr>
+
+                                    <!-- Thursday -->
+                                    <tr class="hover:bg-gray-50/20 transition-colors">
+                                        <td class="border border-gray-200 p-4 text-center bg-gray-50/50">
+                                            <span class="text-sm font-black text-gray-800">الخميس</span>
+                                            <div class="text-[10px] text-gray-400 mt-1">3 يوليو</div>
+                                        </td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-red-50/30" colspan="2">
+                                            <div class="bg-red-100 text-red-950 border border-red-300 rounded-lg p-2.5 text-right text-xs leading-relaxed font-semibold shadow-sm hover:shadow transition-shadow">
+                                                <div class="font-bold text-red-900 mb-1 flex flex-col gap-1 items-start">
+                                                    <span class="text-[9px] bg-red-200 px-1.5 py-0.5 rounded text-red-900 border border-red-300 w-fit">قريباً</span>
+                                                    <span class="font-black text-[11px] leading-tight block mt-0.5">📚 React Router & Navigation</span>
+                                                </div>
+                                                <p class="text-[10px] mt-1 text-red-900/80">⏰ 20:00 - 22:00</p>
+                                                <p class="text-[10px] text-red-900/80">🏷️ الثالثة — التنقل بين الصفحات</p>
+                                                <p class="text-[10px] text-red-900/80">🏛️ 🌐 أونلاين | أ. خالد</p>
+                                            </div>
+                                        </td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                    </tr>
+
+                                    <!-- Friday -->
+                                    <tr class="hover:bg-gray-50/20 transition-colors bg-gray-50/30">
+                                        <td class="border border-gray-200 p-4 text-center bg-gray-50/50">
+                                            <span class="text-sm font-black text-gray-400">الجمعة</span>
+                                            <div class="text-[10px] text-gray-400 mt-1">4 يوليو</div>
+                                        </td>
+                                        <td class="border border-gray-200 p-4 text-center text-gray-400 font-bold bg-zinc-50/50" colspan="9">
+                                            — إجازة أسبوعية —
+                                        </td>
+                                    </tr>
+
+                                    <!-- Saturday -->
+                                    <tr class="hover:bg-gray-50/20 transition-colors">
+                                        <td class="border border-gray-200 p-4 text-center bg-gray-50/50">
+                                            <span class="text-sm font-black text-gray-800">السبت</span>
+                                            <div class="text-[10px] text-gray-400 mt-1">5 يوليو</div>
+                                        </td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-red-50/30" colspan="2">
+                                            <div class="bg-red-100 text-red-950 border border-red-300 rounded-lg p-2.5 text-right text-xs leading-relaxed font-semibold shadow-sm hover:shadow transition-shadow">
+                                                <div class="font-bold text-red-900 mb-1 flex flex-col gap-1 items-start">
+                                                    <span class="text-[9px] bg-red-200 px-1.5 py-0.5 rounded text-red-900 border border-red-300 w-fit">قريباً</span>
+                                                    <span class="font-black text-[11px] leading-tight block mt-0.5">📚 جلسة محاكاة (Mock Interview)</span>
+                                                </div>
+                                                <p class="text-[10px] mt-1 text-red-900/80">⏰ 18:00 - 20:00</p>
+                                                <p class="text-[10px] text-red-900/80">🏷️ تدريب على المقابلات</p>
+                                                <p class="text-[10px] text-red-900/80">🏛️ 🌐 أونلاين | أ. مريم</p>
+                                            </div>
+                                        </td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                        <td class="border border-gray-200 p-2 bg-gray-50/5"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== ADMIN DASHBOARD ================= -->
+                <div id="view-admin" class="role-view hidden space-y-6 animate-fade-in">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-all neon-border">
+                            <p class="text-gray-500 text-sm font-semibold mb-1" data-i18n="totalPayout">إجمالي المدفوعات</p>
+                            <p id="totalPayoutVal" class="text-3xl font-black text-gray-900 neon-text-glow">EGP 75,500</p>
+                            <p class="text-xs text-emerald-600 font-semibold mt-1">+18% من الشهر السابق</p>
+                        </div>
+                        <div class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-all neon-border">
+                            <p class="text-gray-500 text-sm font-semibold mb-1" data-i18n="pendingBal">الرصيد المعلق</p>
+                            <p id="pendingPayoutVal" class="text-3xl font-black text-amber-500">EGP 15,000</p>
+                            <p class="text-xs text-gray-400 font-semibold mt-1">المحاضرين المعلقة مستحقاتهم</p>
+                        </div>
+                        <div class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-all neon-border">
+                            <p class="text-gray-500 text-sm font-semibold mb-1" data-i18n="activeInstructors">المحاضرين النشطين</p>
+                            <p id="activeInstructorsVal" class="text-3xl font-black text-gray-900">3</p>
+                            <p class="text-xs text-gray-400 font-semibold mt-1">في دورات معتمدة</p>
+                        </div>
+                        <div class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-all neon-border">
+                            <p class="text-gray-500 text-sm font-semibold mb-1" data-i18n="totalStudentsAll">إجمالي الطلاب</p>
+                            <p class="text-3xl font-black text-gray-900">342</p>
+                            <p class="text-xs text-emerald-600 font-semibold mt-1">+24 هذا الأسبوع</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Payout Model Setup -->
+                        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                            <h3 class="font-bold text-gray-900 mb-1" data-i18n="payoutModel">نظام الدفع</h3>
+                            <p class="text-xs text-gray-400 mb-5" data-i18n="payoutModelDesc">اختر نموذج الدفع للمحاضرين</p>
+                            <div class="space-y-3" id="payoutRadioGroup">
+                                <label class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:border-gray-300 transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-lg bg-brand-50 flex items-center justify-center"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></div>
+                                        <div><p class="font-bold text-sm text-gray-800">Per Student</p><p class="text-[11px] text-gray-400">لكل طالب مسجل</p></div>
+                                    </div>
+                                    <input type="radio" name="payoutModel" value="per-student" checked class="w-4 h-4 text-brand-600 border-gray-300 focus:ring-brand-500" onchange="updatePayoutModelChart(this.value)">
+                                </label>
+                                <label class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:border-gray-300 transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center"><svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>
+                                        <div><p class="font-bold text-sm text-gray-800">Per Round</p><p class="text-[11px] text-gray-400">لكل دورة مكتملة</p></div>
+                                    </div>
+                                    <input type="radio" name="payoutModel" value="per-round" class="w-4 h-4 text-brand-600 border-gray-300 focus:ring-brand-500" onchange="updatePayoutModelChart(this.value)">
+                                </label>
+                                <label class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:border-gray-300 transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center"><svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
+                                        <div><p class="font-bold text-sm text-gray-800">Monthly</p><p class="text-[11px] text-gray-400">راتب شهري ثابت</p></div>
+                                    </div>
+                                    <input type="radio" name="payoutModel" value="monthly" class="w-4 h-4 text-brand-600 border-gray-300 focus:ring-brand-500" onchange="updatePayoutModelChart(this.value)">
+                                </label>
+                            </div>
+                            <button onclick="savePayoutSettings()" class="w-full bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-lg font-bold text-sm mt-4 transition-all shadow-lg shadow-brand-600/20" data-i18n="saveSettings">حفظ الإعدادات</button>
+                        </div>
+                        
+                        <!-- Financial Line Chart -->
+                        <div class="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                            <div class="flex items-center justify-between mb-5">
+                                <h3 class="font-bold text-gray-900" data-i18n="financeChart">تحليل المدفوعات</h3>
+                                <select class="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-600 outline-none"><option>آخر 6 أشهر</option><option>آخر سنة</option><option>كل الفترات</option></select>
+                            </div>
+                            <canvas id="financeChart" height="120"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Instructors Payment Records with ADD and EDIT functionality -->
+                    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                        <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+                            <h3 class="font-bold text-gray-900" data-i18n="instructorPayments">سجل مدفوعات المحاضرين</h3>
+                            <button onclick="openAddInstructorModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md shadow-brand-500/20">
+                                + إضافة محاضر جديد
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-zinc-700 text-center align-middle">
+                                <thead>
+                                    <tr class="border-b border-gray-100 bg-gray-50/50 text-gray-400 text-xs font-bold uppercase tracking-wider">
+                                        <th class="px-5 py-3">المحاضر</th>
+                                        <th class="px-5 py-3">الدورة</th>
+                                        <th class="px-5 py-3">النموذج</th>
+                                        <th class="px-5 py-3">المبلغ</th>
+                                        <th class="px-5 py-3">الحالة</th>
+                                        <th class="px-5 py-3">الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100" id="instructorsTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+    const store = {
+        state: { currentRole: 'recruiter', currentLang: 'ar', quizStep: 3, totalQuizSteps: 10 },
+        setState(p) { Object.assign(this.state, p); },
+        getState() { return this.state; }
+    };
+
+    // Global helper variables
+    let cvUploadedFile = null;
+    let activeEvaluationCandidateIndex = null;
+
+    // Modal Utility Functions
+    function openModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    }
+
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+    }
+
+    // Multi-step form step transition
+    function goToStep(step) {
+        for (let i = 1; i <= 4; i++) {
+            const dot = document.getElementById(`step-dot-${i}`);
+            const line = document.getElementById(`step-line-${i}`);
+            const stepDiv = document.getElementById(`formStep${i}`);
+            if (stepDiv) {
+                if (i === step) {
+                    stepDiv.classList.remove('hidden');
+                } else {
+                    stepDiv.classList.add('hidden');
+                }
+            }
+            if (dot) {
+                if (i <= step) {
+                    dot.classList.add('bg-brand-600', 'text-white');
+                    dot.classList.remove('bg-gray-200', 'text-gray-400');
+                } else {
+                    dot.classList.remove('bg-brand-600', 'text-white');
+                    dot.classList.add('bg-gray-200', 'text-gray-400');
+                }
+            }
+            if (line) {
+                if (i < step) {
+                    line.classList.add('bg-brand-600');
+                    line.classList.remove('bg-gray-200');
+                } else {
+                    line.classList.remove('bg-brand-600');
+                    line.classList.add('bg-gray-200');
+                }
+            }
+        }
+    }
+
+    const translations = {
+        en: {
+            navRecruitment: "Recruitment Mgmt",
+            roleRecruiterTitle: "Recruiter Dashboard",
+            newApplicationTitle: "Instructors Application",
+            navInstructor: "Instructor Portal",
+            instructorWorkspace: "Instructor Workspace",
+            navStudents: "Student Affairs",
+            studentPortal: "Student Portal",
+            navFinance: "Financial System",
+            financeStats: "Salary & Stats",
+            roleSwitcherLabel: "Test User Roles:",
+            totalApplicants: "Total Applicants", interviewsScheduled: "Interviews Scheduled",
+            accepted: "Accepted", rejected: "Rejected", thisMonth: "this month",
+            pendingReview: "Pending review", acceptRate: "acceptance rate", lastUpdated: "Updated: Today",
+            applicantsList: "Applicants List", name: "Candidate Name", experience: "Experience",
+            specialization2: "Specialization", status: "Status", cv: "CV", actions: "Actions",
+            allStatuses: "All Statuses", statusPending: "Pending Review", statusInterview: "Interview",
+            statusAccepted: "Accepted", statusRejected: "Rejected",
+            evalForm: "Interview Evaluation Form", evalDesc: "Comprehensive assessment based on technical and soft skills",
+            techScore: "Technical Score (1-5)", softScore: "Soft Skills (1-5)",
+            passedCats: "Passed Categories", communication: "Communication", problemSolving: "Problem Solving",
+            teamwork: "Teamwork", feedback: "Evaluation Notes", finalDecision: "Final Decision",
+            passDecision: "Pass ✓", reviewDecision: "Needs Review ⟳", failDecision: "Fail ✗",
+            saveEval: "Save Evaluation", newApplication: "New Application",
+            applicationForm: "Instructor Application Form", personalInfo: "Personal Information",
+            fullName: "Full Name", age: "Age", email: "Email", phone: "Phone",
+            nextStep: "Next", prevStep: "Previous", nextStep2: "Next",
+            experienceInfo: "Experience & Qualifications", experienceYears: "Years of Experience",
+            selectExp: "Select experience", specialization: "Specialization", techStack: "Technologies",
+            cvUpload: "Upload CV", dragDropCV: "Drag & drop your CV here or click to browse",
+            reviewSubmit: "Review & Submit", submitApp: "Submit Application",
+            scheduleInterview: "Schedule Interview", applicantNameLabel: "Applicant Name",
+            interviewDate: "Interview Date", interviewTime: "Interview Time",
+            interviewType: "Interview Type", inPerson: "In Person", confirmSchedule: "Confirm Schedule",
+            activeCourses: "Active Courses", totalStudents: "Total Students", nextSession: "Next Session",
+            uploadRoadmap: "Upload Roadmap", uploadContent: "Upload Content",
+            dropzoneText: "Drag & drop files here",
+            simulationCalendar: "Simulation & Sessions Calendar", proposeSession: "Propose Session",
+            collabChat: "Coordinator Chat",
+            courseProgress: "Course Completion", completed: "Completed",
+            placementAsses: "Placement Assessment", levelTestTitle: "Test your React level",
+            nextQuestion: "Next Question →",
+            studentCal: "Course Schedule", weeklyView: "Weekly", monthlyView: "Monthly",
+            joinBtn: "Join", upcoming: "Upcoming", locked: "Locked", rateStar: "Rate Session",
+            sessionEnded: "Session Ended!", rateSession: "How was this session?", submitFeedback: "Submit Rating",
+            totalPayout: "Total Payout", pendingBal: "Pending Balance",
+            activeInstructors: "Active Instructors", totalStudentsAll: "Total Students",
+            payoutModel: "Payout Model", payoutModelDesc: "Choose the instructor payment model",
+            saveSettings: "Save Settings", financeChart: "Payment Analysis",
+            instructorPayments: "Instructor Payment Records",
+        },
+        ar: {
+            navRecruitment: "إدارة التوظيف",
+            roleRecruiterTitle: "لوحة تحكم التوظيف",
+            newApplicationTitle: "نموذج تقديم المدربين",
+            navInstructor: "بوابة المدرب",
+            instructorWorkspace: "مساحة عمل المدرب",
+            navStudents: "شؤون الطلاب",
+            studentPortal: "بوابة الطالب التعليمية",
+            navFinance: "النظام المالي",
+            financeStats: "الرواتب والإحصائيات",
+            roleSwitcherLabel: "تجربة أدوار المستخدمين:",
+            totalApplicants: "إجمالي المتقدمين", interviewsScheduled: "مقابلات مجدولة",
+            accepted: "تم القبول", rejected: "تم الرفض", thisMonth: "هذا الشهر",
+            pendingReview: "بانتظار المراجعة", acceptRate: "نسبة القبول", lastUpdated: "آخر تحديث: اليوم",
+            applicantsList: "قائمة المتقدمين", name: "اسم المرشح", experience: "الخبرة",
+            specialization2: "التخصص", status: "الحالة", cv: "السيرة الذاتية", actions: "الإجراءات",
+            allStatuses: "جميع الحالات", statusPending: "قيد المراجعة", statusInterview: "مقابلة",
+            statusAccepted: "مقبول مبدئياً", statusRejected: "مرفوض",
+            evalForm: "نموذج تقييم المقابلة", evalDesc: "تقييم شامل للمرشح بناءً على الأداء التقني والمهارات الشخصية",
+            techScore: "التقييم التقني (1-5)", softScore: "المهارات الشخصية (1-5)",
+            passedCats: "التصنيفات المجتازة", communication: "مهارات التواصل", problemSolving: "حل المشكلات",
+            teamwork: "العمل الجماعي", feedback: "ملاحظات التقييم", finalDecision: "القرار النهائي",
+            passDecision: "ناجح ✓", reviewDecision: "يحتاج مراجعة ⟳", failDecision: "غير ناجح ✗",
+            saveEval: "حفظ التقييم", newApplication: "طلب تقديم جديد",
+            applicationForm: "نموذج التقديم للتدريس", personalInfo: "المعلومات الشخصية",
+            fullName: "الاسم الكامل", age: "العمر", email: "البريد الإلكتروني", phone: "رقم الهاتف",
+            nextStep: "التالي", prevStep: "السابق", nextStep2: "التالي",
+            experienceInfo: "الخبرة والمؤهلات", experienceYears: "سنوات الخبرة",
+            selectExp: "اختر سنوات الخبرة", specialization: "التخصص", techStack: "التقنيات المستخدمة",
+            cvUpload: "رفع السيرة الذاتية", dragDropCV: "اسحب السيرة الذاتية هنا أو اضغط للاختيار",
+            reviewSubmit: "مراجعة وإرسال", submitApp: "إرسال الطلب",
+            scheduleInterview: "جدولة المقابلة", applicantNameLabel: "اسم المتقدم",
+            interviewDate: "تاريخ المقابلة", interviewTime: "وقت المقابلة",
+            interviewType: "نوع المقابلة", inPerson: "حضوري", confirmSchedule: "تأكيد الموعد",
+            activeCourses: "الدورات النشطة", totalStudents: "عدد الطلاب", nextSession: "الجلسة القادمة",
+            uploadRoadmap: "رفع مسار التعلم (Roadmap)", uploadContent: "رفع المحتوى التعليمي",
+            dropzoneText: "اسحب وأفلت الملفات هنا",
+            simulationCalendar: "جدول المحاكاة والجلسات", proposeSession: "اقتراح موعد جلسة",
+            collabChat: "التنسيق مع المنسق",
+            courseProgress: "نسبة إنجاز الدورة", completed: "مكتمل",
+            placementAsses: "اختبار تحديد المستوى", levelTestTitle: "اختبر مستواك في React",
+            nextQuestion: "السؤال التالي →",
+            studentCal: "الجدول الدراسي", weeklyView: "أسبوعي", monthlyView: "شهري",
+            joinBtn: "انضمام", upcoming: "قريباً", locked: "مقفل", rateStar: "قيّم الجلسة",
+            sessionEnded: "انتهت الجلسة!", rateSession: "كيف تقيّم هذه الجلسة؟", submitFeedback: "إرسال التقييم",
+            totalPayout: "إجمالي المدفوعات", pendingBal: "الرصيد المعلق",
+            activeInstructors: "المحاضرين النشطين", totalStudentsAll: "إجمالي الطلاب",
+            payoutModel: "نظام الدفع", payoutModelDesc: "اختر نموذج الدفع للمحاضرين",
+            saveSettings: "حفظ الإعدادات", financeChart: "تحليل المدفوعات",
+            instructorPayments: "سجل مدفوعات المحاضرين",
+        }
+    };
+
+    // Applicants Database
+    let applicants = [
+        { name: 'Sarah Connor', date: '6/25/2026', age: '28', exp: '٣ إلى ٥ سنوات', cv: 'sarah_cv.pdf', status: 'pending', actionType: 'quick-actions' },
+        { name: 'John Doe', date: '6/24/2026', age: '32', exp: 'أكثر من ٥ سنوات', cv: 'john_doe_resume.pdf', status: 'accepted', actionType: 'eval-btn' },
+        { name: 'Amir Kamal', date: '6/20/2026', age: '25', exp: 'سنة إلى سنتين', cv: 'amir_cv_en.pdf', status: 'evaluated', actionType: 'score-display', score: '4/5', techScore: 4, softScore: 4, feedback: 'أداء ممتاز وسريع البديهة في الأسئلة المنطقية', passedCats: ['communication', 'problemSolving'], decision: 'pass' },
+    ];
+
+    // Instructors Database
+    let instructors = [
+        { name: 'خالد أحمد', course: 'React Advanced', model: 'Per Student', amount: 32500, status: 'تم الدفع' },
+        { name: 'مريم حسن', course: 'UI/UX Design', model: 'Monthly', amount: 15000, status: 'معلق' },
+        { name: 'عمر فاروق', course: 'Node.js Backend', model: 'Per Round', amount: 28000, status: 'تم الدفع' }
+    ];
+
+    const statusMap = {
+        pending: { ar: 'قيد المراجعة', en: 'Pending Review', class: 'bg-zinc-100 text-zinc-600 border border-zinc-200' },
+        accepted: { ar: 'مقبول مبدئياً', en: 'Provisional Accept', class: 'bg-emerald-50 text-emerald-600 border border-emerald-200' },
+        evaluated: { ar: 'تم التقييم', en: 'Evaluated', class: 'bg-blue-50 text-blue-600 border border-blue-200' },
+    };
+
+    // Global Undo Stack to support undoing edits and deletions anywhere on the dashboard
+    let undoStack = null;
+
+    function pushToUndoStack(actionType, originalData, restoreCallback) {
+        undoStack = {
+            type: actionType,
+            data: originalData,
+            restore: restoreCallback
+        };
+    }
+
+    function triggerUndo() {
+        if (undoStack) {
+            undoStack.restore();
+            showToast('تم التراجع عن الإجراء بنجاح ✓', 'success');
+            undoStack = null;
+        }
+    }
+
+    function renderTranslations() {
+        const lang = store.getState().currentLang;
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (translations[lang][key]) el.innerText = translations[lang][key];
+        });
+    }
+
+    function toggleLang() {
+        const html = document.getElementById('mainHtml');
+        const newLang = store.getState().currentLang === 'en' ? 'ar' : 'en';
+        html.setAttribute('lang', newLang);
+        html.setAttribute('dir', newLang === 'ar' ? 'rtl' : 'ltr');
+        store.setState({ currentLang: newLang });
+        renderTranslations();
+        renderApplicantsTable();
+        renderInstructorsList();
+    }
+
+    function switchRole(role) {
+        store.setState({ currentRole: role });
+        
+        // Update View Display
+        document.querySelectorAll('.role-view').forEach(el => el.classList.add('hidden'));
+        const v = document.getElementById(`view-${role}`);
+        if (v) v.classList.remove('hidden');
+
+        // Update active class on Sidebar Links
+        document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
+        const activeLink = document.getElementById(`link-${role}`);
+        if (activeLink) activeLink.classList.add('active');
+
+        // Update active class on Header Switcher Pills
+        document.querySelectorAll('[id^="pill-"]').forEach(el => {
+            el.className = "px-5 py-2.5 rounded-xl text-xs font-extrabold text-zinc-500 hover:text-zinc-800 transition-all";
+        });
+        const activePill = document.getElementById(`pill-${role}`);
+        if (activePill) {
+            activePill.className = "px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all duration-300 bg-brand-600 text-white shadow-md shadow-brand-500/20 neon-text-glow";
+        }
+
+        // Update Header Role Badge
+        const roleLabelMap = {
+            recruiter: { text: 'RECRUITER DASHBOARD', ar: 'لوحة تحكم التوظيف' },
+            instructor: { text: 'INSTRUCTOR PORTAL', ar: 'بوابة المدرب التعليمية' },
+            student: { text: 'STUDENT PORTAL', ar: 'بوابة الطالب' },
+            admin: { text: 'FINANCE & ADMIN', ar: 'الرواتب والإحصائيات' }
+        };
+        const badgeText = store.getState().currentLang === 'en' ? roleLabelMap[role].text : roleLabelMap[role].ar;
+        document.getElementById('headerRoleName').innerText = badgeText;
+
+        if (role === 'admin') {
+            initChart();
+            renderInstructorsList();
+            recalculateFinanceOverview();
+        }
+    }
+
+    // ============================================================
+    // APPLICANTS MANAGEMENT
+    // ============================================================
+    function renderApplicantsTable() {
+        const lang = store.getState().currentLang;
+        const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
+        const filter = document.getElementById('filterStatus')?.value || 'all';
+        
+        const filtered = applicants.filter(a => {
+            const nm = a.name.toLowerCase().includes(search) || a.exp.toLowerCase().includes(search);
+            const sm = filter === 'all' || a.status === filter;
+            return nm && sm;
+        });
+
+        document.getElementById('applicantsBody').innerHTML = filtered.map((a, index) => `
+            <tr class="hover:bg-gray-50/50 transition-colors">
+                <td class="px-6 py-5">
+                    <div class="flex flex-col items-center">
+                        <span class="font-extrabold text-zinc-900 text-sm tracking-wide leading-tight">${a.name}</span>
+                        <span class="text-[10px] text-gray-400 mt-1 font-medium">تاريخ التقديم: ${a.date}</span>
+                    </div>
+                </td>
+                <td class="px-6 py-5 text-gray-700 text-sm font-bold">${a.age}</td>
+                <td class="px-6 py-5">
+                    <span class="bg-red-50/80 text-brand-600 border border-brand-100 px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm">
+                        ${a.exp}
+                    </span>
+                </td>
+                <td class="px-6 py-5">
+                    <a href="#" class="inline-flex items-center gap-1.5 text-zinc-500 hover:text-brand-600 transition-colors text-xs font-semibold">
+                        <span>${a.cv}</span>
+                        <svg class="w-4.5 h-4.5 text-brand-500" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4a2 2 0 012-2h4.586A1 1 0 0113 2.586L15.414 5A1 1 0 0116 5.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"/></svg>
+                    </a>
+                </td>
+                <td class="px-6 py-5">
+                    <span class="${statusMap[a.status].class} px-3.5 py-1.5 rounded-xl text-xs font-bold">
+                        ${lang === 'ar' ? statusMap[a.status].ar : statusMap[a.status].en}
+                    </span>
+                </td>
+                <td class="px-6 py-5">
+                    <div class="flex items-center justify-center gap-2.5">
+                        <!-- Primary Action (Accept, Evaluation Button, or Score Display) -->
+                        ${a.actionType === 'quick-actions' ? `
+                            <button onclick="acceptApplicant('${a.name}')" class="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors shadow-sm animate-pulse-glow" title="قبول وجدولة مقابلة">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            </button>
+                        ` : ''}
+                        
+                        ${a.actionType === 'eval-btn' ? `
+                            <button onclick="focusEvaluationForm(${index})" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md shadow-brand-500/20 flex items-center gap-1.5 hover:shadow-brand-600/35">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <span>تقييم المقابلة</span>
+                            </button>
+                        ` : ''}
+                        
+                        ${a.actionType === 'score-display' ? `
+                            <span class="text-xs text-brand-600 font-extrabold neon-text-glow">التقييم: ${a.score}</span>
+                        ` : ''}
+
+                        <!-- Delete Button with Undo Toast -->
+                        <button onclick="deleteApplicant(${index})" class="w-8 h-8 rounded-full bg-red-50 border border-red-100 text-brand-600 flex items-center justify-center hover:bg-red-100 transition-colors shadow-sm" title="حذف">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>
+
+                        <!-- Edit Button -->
+                        <button onclick="openEditApplicantModal(${index})" class="w-8 h-8 rounded-full bg-gray-50 border border-gray-200 text-zinc-500 flex items-center justify-center hover:bg-gray-100 transition-colors shadow-sm" title="تعديل">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function openEditApplicantModal(index) {
+        const a = applicants[index];
+        document.getElementById('editApplicantIndex').value = index;
+        document.getElementById('editAppNameVal').value = a.name;
+        document.getElementById('editAppAgeVal').value = a.age;
+        document.getElementById('editAppExpVal').value = a.exp;
+        document.getElementById('editAppStatusVal').value = a.status;
+        
+        const evalBtn = document.getElementById('editAppEvalBtnContainer');
+        if (evalBtn) {
+            if (a.status === 'evaluated') {
+                evalBtn.classList.remove('hidden');
+            } else {
+                evalBtn.classList.add('hidden');
+            }
+        }
+        
+        openModal('applicantEditModal');
+    }
+
+    function saveApplicantEdit() {
+        const index = parseInt(document.getElementById('editApplicantIndex').value, 10);
+        const name = document.getElementById('editAppNameVal').value.trim();
+        const age = document.getElementById('editAppAgeVal').value.trim();
+        const exp = document.getElementById('editAppExpVal').value;
+        const status = document.getElementById('editAppStatusVal').value;
+
+        if (!name || !age) {
+            showToast('يرجى ملء جميع الحقول المطلوبة', 'warning');
+            return;
+        }
+
+        // Save original for Undo action
+        const oldState = JSON.parse(JSON.stringify(applicants[index]));
+        
+        applicants[index].name = name;
+        applicants[index].age = age;
+        applicants[index].exp = exp;
+        applicants[index].status = status;
+
+        if (status === 'evaluated') {
+            applicants[index].actionType = 'score-display';
+            applicants[index].score = applicants[index].score || '4/5';
+            applicants[index].techScore = applicants[index].techScore || 4;
+            applicants[index].softScore = applicants[index].softScore || 4;
+            applicants[index].feedback = applicants[index].feedback || 'تم التقييم بنجاح';
+            applicants[index].passedCats = applicants[index].passedCats || ['communication'];
+            applicants[index].decision = applicants[index].decision || 'pass';
+        } else if (status === 'accepted') {
+            applicants[index].actionType = 'eval-btn';
+        } else {
+            applicants[index].actionType = 'quick-actions';
+        }
+
+        renderApplicantsTable();
+        closeModal('applicantEditModal');
+        
+        // Push to Undo stack
+        pushToUndoStack('editApplicant', oldState, () => {
+            applicants[index] = oldState;
+            renderApplicantsTable();
+        });
+        showToast('تم تعديل بيانات المرشح بنجاح! • [تراجع]', 'success', true);
+    }
+
+    function deleteApplicant(index) {
+        const oldList = [...applicants];
+        const deletedItem = applicants[index];
+        
+        applicants.splice(index, 1);
+        renderApplicantsTable();
+        
+        pushToUndoStack('deleteApplicant', deletedItem, () => {
+            applicants = oldList;
+            renderApplicantsTable();
+        });
+        showToast(`تم حذف المرشح ${deletedItem.name} • [تراجع]`, 'warning', true);
+    }
+
+    function filterTable() { renderApplicantsTable(); }
+    function acceptApplicant(name) { document.getElementById('modalApplicantName').value = name; openModal('scheduleModal'); }
+    function rejectApplicant(name) {
+        const index = applicants.findIndex(a => a.name === name);
+        if (index !== -1) {
+            const oldStatus = applicants[index].status;
+            applicants[index].status = 'rejected';
+            renderApplicantsTable();
+            pushToUndoStack('rejectApplicant', { index, oldStatus }, () => {
+                applicants[index].status = oldStatus;
+                renderApplicantsTable();
+            });
+            showToast(`تم رفض طلب ${name} • [تراجع]`, 'error', true);
+        }
+    }
+    
+    function confirmScheduleInterview() {
+        const name = document.getElementById('modalApplicantName').value;
+        const dateVal = document.getElementById('interviewDateVal').value;
+        const timeVal = document.getElementById('interviewTimeVal').value;
+        if (!dateVal || !timeVal) {
+            showToast('الرجاء اختيار تاريخ ووقت المقابلة', 'warning');
+            return;
+        }
+        
+        const index = applicants.findIndex(a => a.name === name);
+        if (index !== -1) {
+            const oldStatus = applicants[index].status;
+            const oldAction = applicants[index].actionType;
+            
+            applicants[index].status = 'accepted';
+            applicants[index].actionType = 'eval-btn';
+            
+            renderApplicantsTable();
+            closeModal('scheduleModal');
+            
+            pushToUndoStack('scheduleInterview', { index, oldStatus, oldAction }, () => {
+                applicants[index].status = oldStatus;
+                applicants[index].actionType = oldAction;
+                renderApplicantsTable();
+            });
+            showToast('تم جدولة المقابلة بنجاح ✓ • [تراجع]', 'success', true);
+        }
+    }
+
+    // Active candidate evaluation triggers
+    function focusEvaluationForm(index) {
+        activeEvaluationCandidateIndex = index;
+        const candidate = applicants[index];
+        
+        // Show active candidate banner
+        const banner = document.getElementById('evalCandidateBanner');
+        const bannerName = document.getElementById('evalCandidateName');
+        if (banner && bannerName) {
+            bannerName.innerText = candidate.name;
+            banner.classList.remove('hidden');
+        }
+        
+        // Reset inputs to fresh evaluation state first
+        document.querySelectorAll('input[name="techScore"]').forEach(r => r.checked = false);
+        document.querySelectorAll('input[name="softScore"]').forEach(r => r.checked = false);
+        document.querySelectorAll('#view-recruiter input[type="checkbox"]').forEach(c => c.checked = false);
+        document.getElementById('evalFeedback').value = '';
+        document.querySelectorAll('input[name="decision"]').forEach(r => r.checked = false);
+        
+        // If candidate already has evaluation data, pre-fill the form fields for editing
+        if (candidate.status === 'evaluated' && candidate.techScore) {
+            const techRadio = document.querySelector(`input[name="techScore"][value="${candidate.techScore}"]`);
+            if (techRadio) techRadio.checked = true;
+            
+            const softRadio = document.querySelector(`input[name="softScore"][value="${candidate.softScore}"]`);
+            if (softRadio) softRadio.checked = true;
+            
+            if (candidate.passedCats) {
+                candidate.passedCats.forEach(val => {
+                    const chk = document.querySelector(`#view-recruiter input[type="checkbox"][value="${val}"]`);
+                    if (chk) chk.checked = true;
+                });
+            }
+            
+            document.getElementById('evalFeedback').value = candidate.feedback || '';
+            
+            const decRadio = document.querySelector(`input[name="decision"][value="${candidate.decision}"]`);
+            if (decRadio) decRadio.checked = true;
+            
+            showToast(`تعديل التقييم الحالي للمرشح: ${candidate.name}`, 'info');
+        } else {
+            showToast(`بدء تقييم جديد للمرشح: ${candidate.name}`, 'info');
+        }
+        
+        // Hide previous errors
+        document.getElementById('techError').classList.add('hidden');
+        document.getElementById('softError').classList.add('hidden');
+        document.getElementById('catError').classList.add('hidden');
+        document.getElementById('feedbackError').classList.add('hidden');
+        
+        // Scroll smoothly to evaluation form
+        document.getElementById('evaluationFormSection').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelActiveEvaluation() {
+        activeEvaluationCandidateIndex = null;
+        
+        // Hide banner
+        const banner = document.getElementById('evalCandidateBanner');
+        if (banner) banner.classList.add('hidden');
+        
+        // Reset form inputs
+        document.querySelectorAll('input[name="techScore"]').forEach(r => r.checked = false);
+        document.querySelectorAll('input[name="softScore"]').forEach(r => r.checked = false);
+        document.querySelectorAll('#view-recruiter input[type="checkbox"]').forEach(c => c.checked = false);
+        document.getElementById('evalFeedback').value = '';
+        
+        // Hide error messages
+        document.getElementById('techError').classList.add('hidden');
+        document.getElementById('softError').classList.add('hidden');
+        document.getElementById('catError').classList.add('hidden');
+        document.getElementById('feedbackError').classList.add('hidden');
+    }
+
+    // ============================================================
+    // INSTRUCTORS MANAGEMENT & EDITS
+    // ============================================================
+    function renderInstructorsList() {
+        const tbody = document.getElementById('instructorsTableBody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = instructors.map((ins, index) => {
+            const statusClass = ins.status === 'تم الدفع' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600';
+            const modelClass = ins.model === 'Per Student' ? 'bg-red-50 text-brand-600' : ins.model === 'Monthly' ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-600';
+            
+            return `
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-5 py-4">
+                        <div class="flex items-center justify-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center text-xs font-bold text-brand-600">${ins.name.charAt(0)}</div>
+                            <span class="font-semibold text-gray-800">${ins.name}</span>
+                        </div>
+                    </td>
+                    <td class="px-5 py-4 text-gray-500">${ins.course}</td>
+                    <td class="px-5 py-4">
+                        <span class="${modelClass} px-2 py-1 rounded text-xs font-semibold">${ins.model}</span>
+                    </td>
+                    <td class="px-5 py-4 font-bold text-gray-900">EGP ${ins.amount.toLocaleString()}</td>
+                    <td class="px-5 py-4">
+                        <span class="${statusClass} px-2.5 py-1 rounded-lg text-xs font-semibold">${ins.status}</span>
+                    </td>
+                    <td class="px-5 py-4">
+                        <div class="flex items-center justify-center gap-2">
+                            <!-- Edit Button -->
+                            <button onclick="openEditInstructorModal(${index})" class="w-8 h-8 rounded-full bg-gray-50 border border-gray-200 text-zinc-500 flex items-center justify-center hover:bg-gray-100 transition-colors" title="تعديل">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                            </button>
+                            
+                            <!-- Delete Button -->
+                            <button onclick="deleteInstructor(${index})" class="w-8 h-8 rounded-full bg-red-50 border border-red-100 text-brand-600 flex items-center justify-center hover:bg-red-100 transition-colors" title="حذف">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function openAddInstructorModal() {
+        document.getElementById('instructorModalTitle').innerText = "إضافة محاضر جديد";
+        document.getElementById('editInstructorIndex').value = "";
+        document.getElementById('instructorNameVal').value = "";
+        document.getElementById('instructorCourseVal').value = "";
+        document.getElementById('instructorModelVal').value = "Per Student";
+        document.getElementById('instructorAmountVal').value = "";
+        document.getElementById('instructorStatusVal').value = "تم الدفع";
+        openModal('instructorModal');
+    }
+
+    function openEditInstructorModal(index) {
+        const ins = instructors[index];
+        document.getElementById('instructorModalTitle').innerText = "تعديل بيانات المحاضر";
+        document.getElementById('editInstructorIndex').value = index;
+        document.getElementById('instructorNameVal').value = ins.name;
+        document.getElementById('instructorCourseVal').value = ins.course;
+        document.getElementById('instructorModelVal').value = ins.model;
+        document.getElementById('instructorAmountVal').value = ins.amount;
+        document.getElementById('instructorStatusVal').value = ins.status;
+        openModal('instructorModal');
+    }
+
+    function saveInstructor() {
+        const editIndexStr = document.getElementById('editInstructorIndex').value;
+        const name = document.getElementById('instructorNameVal').value.trim();
+        const course = document.getElementById('instructorCourseVal').value.trim();
+        const model = document.getElementById('instructorModelVal').value;
+        const amount = parseInt(document.getElementById('instructorAmountVal').value.trim(), 10);
+        const status = document.getElementById('instructorStatusVal').value;
+
+        if (!name || !course || isNaN(amount)) {
+            showToast('الرجاء إدخال بيانات صحيحة في جميع الحقول الإلزامية', 'warning');
+            return;
+        }
+
+        const newInstructor = { name, course, model, amount, status };
+
+        if (editIndexStr !== "") {
+            // Edit mode
+            const index = parseInt(editIndexStr, 10);
+            const oldState = JSON.parse(JSON.stringify(instructors[index]));
+            instructors[index] = newInstructor;
+            
+            pushToUndoStack('editInstructor', oldState, () => {
+                instructors[index] = oldState;
+                renderInstructorsList();
+                recalculateFinanceOverview();
+            });
+            showToast('تم تعديل بيانات المحاضر بنجاح • [تراجع]', 'success', true);
+        } else {
+            // Add mode
+            instructors.push(newInstructor);
+            const addedIndex = instructors.length - 1;
+            
+            pushToUndoStack('addInstructor', addedIndex, () => {
+                instructors.splice(addedIndex, 1);
+                renderInstructorsList();
+                recalculateFinanceOverview();
+            });
+            showToast('تم إضافة محاضر جديد بنجاح ✓ • [تراجع]', 'success', true);
+        }
+
+        renderInstructorsList();
+        recalculateFinanceOverview();
+        closeModal('instructorModal');
+    }
+
+    function deleteInstructor(index) {
+        const oldList = [...instructors];
+        const deletedItem = instructors[index];
+        
+        instructors.splice(index, 1);
+        renderInstructorsList();
+        recalculateFinanceOverview();
+        
+        pushToUndoStack('deleteInstructor', deletedItem, () => {
+            instructors = oldList;
+            renderInstructorsList();
+            recalculateFinanceOverview();
+        });
+        showToast(`تم حذف المحاضر ${deletedItem.name} • [تراجع]`, 'warning', true);
+    }
+
+    function recalculateFinanceOverview() {
+        let total = 0;
+        let pending = 0;
+        instructors.forEach(ins => {
+            if (ins.status === 'تم الدفع') {
+                total += ins.amount;
+            } else {
+                pending += ins.amount;
+            }
+        });
+        document.getElementById('totalPayoutVal').innerText = "EGP " + total.toLocaleString();
+        document.getElementById('pendingPayoutVal').innerText = "EGP " + pending.toLocaleString();
+        document.getElementById('activeInstructorsVal').innerText = instructors.length;
+    }
+
+    // ============================================================
+    // APPLICATION FORM STEP VALIDATIONS
+    // ============================================================
+    function validateStep1() {
+        let valid = true;
+        const name = document.getElementById('formName').value.trim();
+        const age = document.getElementById('formAge').value.trim();
+        const email = document.getElementById('formEmail').value.trim();
+        const phone = document.getElementById('formPhone').value.trim();
+
+        // Name verification
+        if (name.length < 3) {
+            document.getElementById('err-formName').classList.remove('hidden');
+            valid = false;
+        } else {
+            document.getElementById('err-formName').classList.add('hidden');
+        }
+
+        // Age verification — accepts any positive number
+        const ageNum = parseInt(age, 10);
+        if (!age || isNaN(ageNum) || ageNum < 1) {
+            document.getElementById('err-formAge').classList.remove('hidden');
+            valid = false;
+        } else {
+            document.getElementById('err-formAge').classList.add('hidden');
+        }
+
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            document.getElementById('err-formEmail').classList.remove('hidden');
+            valid = false;
+        } else {
+            document.getElementById('err-formEmail').classList.add('hidden');
+        }
+
+        // Phone validation
+        const phoneRegex = /^[0-9]+$/;
+        if (!phoneRegex.test(phone) || phone.length < 8) {
+            document.getElementById('err-formPhone').classList.remove('hidden');
+            valid = false;
+        } else {
+            document.getElementById('err-formPhone').classList.add('hidden');
+        }
+
+        if (valid) {
+            goToStep(2);
+        } else {
+            showToast('الرجاء تصحيح الأخطاء أولاً للمتابعة', 'warning');
+        }
+    }
+
+    function validateStep2() {
+        let valid = true;
+        const exp = document.getElementById('formExp').value;
+        const spec = document.getElementById('formSpec').value;
+
+        if (!exp) {
+            document.getElementById('err-formExp').classList.remove('hidden');
+            valid = false;
+        } else {
+            document.getElementById('err-formExp').classList.add('hidden');
+        }
+
+        if (!spec) {
+            document.getElementById('err-formSpec').classList.remove('hidden');
+            valid = false;
+        } else {
+            document.getElementById('err-formSpec').classList.add('hidden');
+        }
+
+        if (valid) {
+            goToStep(3);
+        } else {
+            showToast('الرجاء تعبئة الخيارات الإلزامية', 'warning');
+        }
+    }
+
+    function validateStep3() {
+        if (!cvUploadedFile) {
+            document.getElementById('err-cvUpload').classList.remove('hidden');
+            showToast('الرجاء رفع ملف السيرة الذاتية أولاً', 'warning');
+        } else {
+            document.getElementById('err-cvUpload').classList.add('hidden');
+            
+            // Populate review page
+            document.getElementById('review-name').innerText = document.getElementById('formName').value;
+            document.getElementById('review-age').innerText = document.getElementById('formAge').value;
+            document.getElementById('review-phone').innerText = document.getElementById('formPhone').value;
+            document.getElementById('review-exp').innerText = document.getElementById('formExp').value;
+            document.getElementById('review-spec').innerText = document.getElementById('formSpec').value;
+            document.getElementById('review-cv').innerText = cvUploadedFile;
+
+            goToStep(4);
+        }
+    }
+
+    function handleCvFileSelected(input) {
+        const file = input.files[0];
+        if (file) startCvUpload(file);
+    }
+
+    function handleCvDrop(event) {
+        event.preventDefault();
+        document.getElementById('cvDropzone').classList.remove('dropzone-active');
+        const file = event.dataTransfer.files[0];
+        if (file) startCvUpload(file);
+    }
+
+    function startCvUpload(file) {
+        const allowed = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        if (!allowed.includes(file.type) && !file.name.match(/\.(pdf|doc|docx)$/i)) {
+            showToast('يرجى اختيار ملف PDF أو DOCX فقط', 'warning');
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            showToast('حجم الملف يتجاوز 10MB', 'warning');
+            return;
+        }
+        const bar = document.getElementById('uploadProgressBar');
+        const barFill = document.getElementById('uploadBar');
+        const pct = document.getElementById('uploadPercent');
+        bar.classList.remove('hidden');
+        document.getElementById('err-cvUpload').classList.add('hidden');
+        document.getElementById('uploadFilename').innerText = file.name;
+        let p = 0;
+        const iv = setInterval(() => {
+            p += Math.random() * 25;
+            if (p >= 100) {
+                p = 100;
+                clearInterval(iv);
+                cvUploadedFile = file.name;
+                showToast('تم رفع الملف بنجاح ✓', 'success');
+            }
+            barFill.style.width = p + '%';
+            pct.innerText = Math.round(p) + '%';
+        }, 120);
+    }
+
+    function submitApplicationForm() {
+        const name = document.getElementById('formName').value;
+        const age = document.getElementById('formAge').value;
+        const exp = document.getElementById('formExp').value;
+        const spec = document.getElementById('formSpec').value;
+        
+        const expMap = { '10+': 'أكثر من ٥ سنوات', '5-10': 'أكثر من ٥ سنوات', '3-5': '٣ إلى ٥ سنوات', '1-3': '٣ إلى ٥ سنوات', '0-1': 'سنة إلى سنتين' };
+        const newApplicant = {
+            name: name,
+            date: new Date().toLocaleDateString('ar-EG'),
+            age: age,
+            exp: expMap[exp] || exp,
+            cv: cvUploadedFile,
+            status: 'accepted',
+            actionType: 'eval-btn'
+        };
+
+        applicants.push(newApplicant);
+        const addedIndex = applicants.length - 1;
+        
+        renderApplicantsTable();
+        closeModal('applicationModal');
+        
+        pushToUndoStack('submitApplication', addedIndex, () => {
+            applicants.splice(addedIndex, 1);
+            renderApplicantsTable();
+        });
+        showToast('تم إرسال الطلب بنجاح! ✓ • [تراجع]', 'success', true);
+        
+        // Reset form variables
+        cvUploadedFile = null;
+        document.getElementById('uploadProgressBar').classList.add('hidden');
+        document.getElementById('formName').value = '';
+        document.getElementById('formAge').value = '';
+        document.getElementById('formEmail').value = '';
+        document.getElementById('formPhone').value = '';
+    }
+
+    // ============================================================
+    // ATTENDANCE TYPE TOGGLE (ONLINE / OFFLINE PER LECTURE)
+    // ============================================================
+    let lectureAttendance = { 0: 'online', 1: null, 2: 'completed', 3: null };
+
+    function setAttendanceType(clickedBtn, type, lectureIndex) {
+        const row = clickedBtn.closest('tr');
+        const onlineBtn = row.querySelector('.attend-online');
+        const offlineBtn = row.querySelector('.attend-offline');
+        const statusEl = row.querySelector(`.attend-status-${lectureIndex}`);
+        const previousType = lectureAttendance[lectureIndex];
+
+        // Store selection
+        lectureAttendance[lectureIndex] = type;
+
+        // Push to undo stack
+        pushToUndoStack('setAttendanceType', { lectureIndex, previousType }, () => {
+            lectureAttendance[lectureIndex] = previousType;
+            onlineBtn.classList.remove('hidden');
+            offlineBtn.classList.remove('hidden');
+            onlineBtn.className = 'attend-btn attend-online px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all duration-200';
+            offlineBtn.className = 'attend-btn attend-offline px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100 transition-all duration-200';
+            if (statusEl) {
+                statusEl.textContent = 'اختر نوع الحضور';
+                statusEl.className = `text-center text-[10px] mt-1 font-semibold text-gray-400 attend-status-${lectureIndex}`;
+            }
+        });
+
+        if (type === 'online') {
+            onlineBtn.classList.remove('hidden');
+            offlineBtn.classList.add('hidden');
+            onlineBtn.className = 'attend-btn attend-online px-3 py-1.5 rounded-lg text-xs font-bold border-2 border-blue-400 bg-blue-100 text-blue-700 shadow-md shadow-blue-200/50 scale-105';
+            if (statusEl) {
+                statusEl.textContent = '✓ تم اختيار أونلاين';
+                statusEl.className = `text-center text-[10px] mt-1 font-semibold text-blue-600 attend-status-${lectureIndex} animate-fade-in`;
+            }
+            showToast('✓ تم اختيار الحضور أونلاين • [تراجع]', 'success', true);
+        } else {
+            offlineBtn.classList.remove('hidden');
+            onlineBtn.classList.add('hidden');
+            offlineBtn.className = 'attend-btn attend-offline px-3 py-1.5 rounded-lg text-xs font-bold border-2 border-emerald-400 bg-emerald-100 text-emerald-700 shadow-md shadow-emerald-200/50 scale-105';
+            if (statusEl) {
+                statusEl.textContent = '✓ تم اختيار حضوري';
+                statusEl.className = `text-center text-[10px] mt-1 font-semibold text-emerald-600 attend-status-${lectureIndex} animate-fade-in`;
+            }
+            showToast('✓ تم اختيار الحضور الشخصي • [تراجع]', 'success', true);
+        }
+    }
+
+    function joinSession(lectureIndex) {
+        const type = lectureAttendance[lectureIndex];
+        if (!type || type === 'completed') {
+            showToast('الرجاء اختيار نوع الحضور أولاً (أونلاين أو حضوري)', 'warning');
+            return;
+        }
+        if (type === 'online') {
+            showToast('🔗 جاري فتح رابط الجلسة على Zoom... يرجى الانتظار', 'info');
+        } else {
+            showToast('📍 تم تأكيد حضورك الشخصي — المقر: فرع المعادي، الدور الثالث', 'info');
+        }
+    }
+
+    // ============================================================
+    // SESSION RATING MODAL FUNCTIONS
+    // ============================================================
+    let currentSessionRatingStars = 0;
+    let currentRatingRowId = '';
+
+    function openSessionRatingModal(sessionName, rowId) {
+        const modalSessionName = document.getElementById('ratingSessionName');
+        if (modalSessionName) modalSessionName.textContent = sessionName;
+        currentSessionRatingStars = 0;
+        currentRatingRowId = rowId || '';
+        setSessionStars(0);
+        const feedbackArea = document.getElementById('sessionRatingFeedback');
+        if (feedbackArea) feedbackArea.value = '';
+        openModal('sessionRatingModal');
+    }
+
+    function setSessionStars(n) {
+        currentSessionRatingStars = n;
+        document.querySelectorAll('#starRatingContainer .session-star-btn').forEach((btn) => {
+            const starValue = parseInt(btn.getAttribute('data-star'), 10);
+            if (starValue <= n) {
+                btn.classList.add('text-amber-500');
+                btn.classList.remove('text-gray-300');
+            } else {
+                btn.classList.remove('text-amber-500');
+                btn.classList.add('text-gray-300');
+            }
+        });
+    }
+
+    function submitSessionRating() {
+        if (currentSessionRatingStars === 0) {
+            showToast('⚠️ الرجاء اختيار عدد النجوم للتقييم أولاً', 'warning');
+            return;
+        }
+        closeModal('sessionRatingModal');
+
+        // Update the rating display on the main page (table row)
+        if (currentRatingRowId) {
+            const row = document.getElementById(currentRatingRowId);
+            if (row) {
+                const actionCell = row.cells[row.cells.length - 1];
+                if (actionCell) {
+                    let starsHtml = `<div class="flex items-center justify-center gap-0.5 text-amber-500 font-bold text-sm bg-amber-50 px-2 py-1.5 rounded-lg border border-amber-100 w-fit mx-auto animate-fade-in">`;
+                    for (let i = 1; i <= 5; i++) {
+                        if (i <= currentSessionRatingStars) {
+                            starsHtml += `<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>`;
+                        } else {
+                            starsHtml += `<svg class="w-3.5 h-3.5 text-gray-300 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>`;
+                        }
+                    }
+                    starsHtml += ` <span class="text-xs text-amber-700 mr-1">${currentSessionRatingStars}.0</span></div>`;
+                    actionCell.innerHTML = starsHtml;
+                }
+            }
+        }
+
+        showToast('✓ شكراً لتقييمك! تم إرسال التقييم بنجاح', 'success');
+    }
+
+    // ============================================================
+    // SCHEDULE VIEW SWITCHING (WEEKLY / MONTHLY)
+    // ============================================================
+    function switchScheduleView(view) {
+        const weeklyView = document.getElementById('weeklyScheduleView');
+        const monthlyView = document.getElementById('monthlyScheduleView');
+        const weeklyBtn = document.getElementById('weeklyViewBtn');
+        const monthlyBtn = document.getElementById('monthlyViewBtn');
+
+        if (view === 'weekly') {
+            weeklyView.classList.remove('hidden');
+            monthlyView.classList.add('hidden');
+            weeklyBtn.className = 'bg-brand-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-md';
+            monthlyBtn.className = 'bg-gray-100 text-gray-500 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-200 transition-colors';
+            showToast('📋 عرض الجدول الأسبوعي', 'info');
+        } else {
+            weeklyView.classList.add('hidden');
+            monthlyView.classList.remove('hidden');
+            weeklyBtn.className = 'bg-gray-100 text-gray-500 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-200 transition-colors';
+            monthlyBtn.className = 'bg-brand-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-md';
+            renderStudentCalendar();
+            showToast('📅 عرض الجدول الشهري', 'info');
+        }
+    }
+
+    // ============================================================
+    // STUDENT MONTHLY CALENDAR
+    // ============================================================
+    let studentCalCurrentMonth = 6; // July 2026 (0-indexed)
+    let studentCalCurrentYear = 2026;
+    const studentCalMonthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+    const studentLectureDays = { 6: [1, 3, 7, 10, 14, 17, 21, 24, 28, 31] }; // July
+    const studentAttendedDays = { 6: [1, 3, 7, 10] };
+    const studentAbsentDays = { 6: [14] };
+
+    function renderStudentCalendar() {
+        const grid = document.getElementById('studentCalGrid');
+        if (!grid) return;
+        
+        const firstDay = new Date(studentCalCurrentYear, studentCalCurrentMonth, 1).getDay();
+        const daysInMonth = new Date(studentCalCurrentYear, studentCalCurrentMonth + 1, 0).getDate();
+        const today = new Date();
+        const isCurrentMonth = today.getFullYear() === studentCalCurrentYear && today.getMonth() === studentCalCurrentMonth;
+        const todayDate = today.getDate();
+        
+        const lectures = studentLectureDays[studentCalCurrentMonth] || [];
+        const attended = studentAttendedDays[studentCalCurrentMonth] || [];
+        const absent = studentAbsentDays[studentCalCurrentMonth] || [];
+        
+        let html = '';
+        // Empty cells for days before the 1st
+        for (let i = 0; i < firstDay; i++) {
+            html += '<div class="h-10"></div>';
+        }
+        
+        for (let d = 1; d <= daysInMonth; d++) {
+            const isToday = isCurrentMonth && d === todayDate;
+            const isLecture = lectures.includes(d);
+            const isAttended = attended.includes(d);
+            const isAbsent = absent.includes(d);
+            
+            let classes = 'calendar-cell h-10 flex items-center justify-center rounded-lg text-sm cursor-pointer transition-all ';
+            
+            if (isToday) {
+                classes += 'bg-brand-600 text-white font-black shadow-md shadow-brand-500/20 ';
+            } else if (isAttended) {
+                classes += 'bg-emerald-100 text-emerald-700 font-bold border border-emerald-200 ';
+            } else if (isAbsent) {
+                classes += 'bg-red-50 text-red-500 font-bold border border-red-200 ';
+            } else if (isLecture) {
+                classes += 'has-event font-semibold text-gray-800 hover:bg-brand-50 ';
+            } else {
+                classes += 'text-gray-500 hover:bg-gray-100 ';
+            }
+            
+            const tooltip = isAttended ? 'تم الحضور ✓' : isAbsent ? 'غياب ✗' : isLecture ? 'يوم محاضرة' : `يوم ${d}`;
+            html += `<div class="${classes}" onclick="showToast('${tooltip} — يوم ${d} ${studentCalMonthNames[studentCalCurrentMonth]}', 'info')" title="${tooltip}">${d}</div>`;
+        }
+        
+        grid.innerHTML = html;
+        document.getElementById('studentCalMonth').textContent = `${studentCalMonthNames[studentCalCurrentMonth]} ${studentCalCurrentYear}`;
+    }
+
+    function changeStudentMonth(dir) {
+        studentCalCurrentMonth += dir;
+        if (studentCalCurrentMonth > 11) { studentCalCurrentMonth = 0; studentCalCurrentYear++; }
+        if (studentCalCurrentMonth < 0) { studentCalCurrentMonth = 11; studentCalCurrentYear--; }
+        renderStudentCalendar();
+        showToast(`📅 ${studentCalMonthNames[studentCalCurrentMonth]} ${studentCalCurrentYear}`, 'info');
+    }
+
+    // ============================================================
+    // DYNAMIC CHARTS BY PAYOUT MODEL
+    // ============================================================
+    const paymentChartData = {
+        'per-student': [40000, 55000, 48000, 70000, 65000, 90000, 124500],
+        'per-round': [25000, 80000, 30000, 95000, 40000, 110000, 85000],
+        'monthly': [60000, 60000, 60000, 60000, 60000, 60000, 60000]
+    };
+
+    function updatePayoutModelChart(model) {
+        if (!chartInstance) return;
+        chartInstance.data.datasets[0].data = paymentChartData[model];
+        chartInstance.update();
+        showToast(`تم تغيير وضع تحليل المدفوعات إلى: ${model}`, 'info');
+    }
+
+    function savePayoutSettings() {
+        const activeRadio = document.querySelector('input[name="payoutModel"]:checked');
+        if (activeRadio) {
+            const val = activeRadio.value;
+            updatePayoutModelChart(val);
+            showToast('تم تحديث وحفظ نظام الدفع والتحليلات بنجاح ✓', 'success');
+        }
+    }
+
+    // ============================================================
+    // TOAST NOTIFICATIONS
+    // ============================================================
+    function showToast(message, type = 'info', hasUndo = false) {
+        const container = document.getElementById('toastContainer');
+        const colors = { success: 'bg-emerald-600 shadow-emerald-500/10 border border-emerald-500/20', error: 'bg-red-600 shadow-red-500/10 border border-red-500/20', info: 'bg-zinc-800 shadow-zinc-800/10 border border-zinc-700/20', warning: 'bg-amber-500 shadow-amber-500/10 border border-amber-400/20' };
+        const icons = { success: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>', error: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>', info: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>', warning: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>' };
+        const t = document.createElement('div');
+        t.className = `toast-enter pointer-events-auto flex items-center justify-between gap-3 ${colors[type]} text-white px-5 py-3.5 rounded-xl shadow-xl font-bold text-sm min-w-[320px] transition-all duration-300`;
+        
+        let undoBtnHtml = '';
+        if (hasUndo) {
+            undoBtnHtml = `<button onclick="triggerUndo(); this.parentElement.parentElement.remove();" class="bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-lg text-xs font-black transition-colors ms-4 border border-white/20">تراجع (Undo)</button>`;
+        }
+
+        t.innerHTML = `
+            <div class="flex items-center gap-2.5">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">${icons[type]}</svg>
+                <span>${message.split(' • ')[0]}</span>
+            </div>
+            ${undoBtnHtml}
+        `;
+        
+        container.appendChild(t);
+        setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 5000);
+    }
+
+    function setRating(n) {
+        document.querySelectorAll('#starRating .star-btn').forEach((btn, i) => {
+            if (i < n) { btn.classList.add('active'); btn.querySelector('svg').setAttribute('fill', '#ef4444'); }
+            else { btn.classList.remove('active'); btn.querySelector('svg').setAttribute('fill', 'none'); }
+        });
+    }
+
+    function validateAndSubmitEval() {
+        if (activeEvaluationCandidateIndex === null) {
+            showToast('الرجاء اختيار مرشح لتقييمه من جدول المتقدمين أولاً (عن طريق زر تقييم المقابلة)', 'warning');
+            return;
+        }
+
+        let v = true;
+        const tech = document.querySelector('input[name="techScore"]:checked');
+        const soft = document.querySelector('input[name="softScore"]:checked');
+        const cats = document.querySelectorAll('#view-recruiter input[type="checkbox"]:checked');
+        const fb = document.getElementById('evalFeedback').value.trim();
+
+        document.getElementById('techError').classList.toggle('hidden', !!tech);
+        document.getElementById('softError').classList.toggle('hidden', !!soft);
+        document.getElementById('catError').classList.toggle('hidden', cats.length > 0);
+        document.getElementById('feedbackError').classList.toggle('hidden', fb.length >= 10);
+
+        if (!tech || !soft || cats.length === 0 || fb.length < 10) {
+            v = false;
+        }
+
+        if (v) {
+            const index = activeEvaluationCandidateIndex;
+            const candidate = applicants[index];
+            
+            // Save state for undo
+            const oldState = JSON.parse(JSON.stringify(candidate));
+            
+            // Compute average score
+            const techScoreVal = parseInt(tech.value, 10);
+            const softScoreVal = parseInt(soft.value, 10);
+            const avgScore = Math.round((techScoreVal + softScoreVal) / 2) + '/5';
+            
+            // Update candidate
+            candidate.status = 'evaluated';
+            candidate.actionType = 'score-display';
+            candidate.score = avgScore;
+            candidate.techScore = techScoreVal;
+            candidate.softScore = softScoreVal;
+            candidate.feedback = fb;
+            candidate.passedCats = Array.from(cats).map(c => c.value);
+            candidate.decision = document.querySelector('input[name="decision"]:checked')?.value || 'pass';
+            
+            renderApplicantsTable();
+            
+            // Setup undo
+            pushToUndoStack('evaluateCandidate', { index, oldState }, () => {
+                applicants[index] = oldState;
+                renderApplicantsTable();
+            });
+            
+            showToast(`تم حفظ تقييم المرشح ${candidate.name} بنجاح! • [تراجع]`, 'success', true);
+            
+            // Clear and reset evaluation form
+            cancelActiveEvaluation();
+            
+            // Smooth scroll back to applicants table
+            document.getElementById('applicantsTable').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            showToast('يرجى ملء جميع الحقول المطلوبة بالشكل الصحيح', 'warning');
+        }
+    }
+
+    const quizQuestions = [
+        { q: 'ما هو الـ Hook المستخدم لإدارة الحالة في React؟', opts: ['useEffect', 'useState', 'useReducer', 'useContext'] },
+        { q: 'أي مما يلي يُستخدم للتعامل مع الآثار الجانبية؟', opts: ['useState', 'useMemo', 'useEffect', 'useRef'] },
+        { q: 'ما هو Virtual DOM؟', opts: ['نسخة من DOM الحقيقي في الذاكرة', 'عنصر HTML', 'CSS Framework', 'قاعدة بيانات'] },
+    ];
+    let currentQuiz = 0;
+    function selectQuizOption(btn) {
+        document.querySelectorAll('.quiz-option').forEach(b => { b.classList.remove('selected', 'border-brand-500'); b.classList.add('border-gray-200'); });
+        btn.classList.add('selected', 'border-brand-500'); btn.classList.remove('border-gray-200');
+    }
+    function nextQuizQuestion() {
+        currentQuiz = (currentQuiz + 1) % quizQuestions.length;
+        const q = quizQuestions[currentQuiz], labels = ['A', 'B', 'C', 'D'];
+        document.getElementById('quizQuestion').innerText = q.q;
+        document.querySelectorAll('.quiz-option').forEach((opt, i) => {
+            opt.innerHTML = `<span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-200 text-gray-500 text-xs font-bold me-3">${labels[i]}</span>${q.opts[i]}`;
+            opt.classList.remove('selected', 'border-brand-500'); opt.classList.add('border-gray-200');
+        });
+        const step = Math.min(store.getState().quizStep + 1, store.getState().totalQuizSteps);
+        store.setState({ quizStep: step });
+        document.getElementById('quizCounter').innerText = `${step} / ${store.getState().totalQuizSteps}`;
+        document.getElementById('quizProgress').style.width = `${(step / store.getState().totalQuizSteps) * 100}%`;
+    }
+
+    // ============================================================
+    // INSTRUCTOR SIMULATION CALENDAR
+    // ============================================================
+    let calCurrentMonth = 6; // July (0-indexed)
+    let calCurrentYear = 2026;
+    const calMonthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+    let calEventDays = { '2026-6': [3, 7, 10, 15, 21, 28] };
+
+    function getCalEventKey() { return `${calCurrentYear}-${calCurrentMonth}`; }
+
+    function renderCalendar() {
+        const grid = document.getElementById('calendarGrid');
+        if (!grid) return;
+
+        const firstDay = new Date(calCurrentYear, calCurrentMonth, 1).getDay();
+        const daysInMonth = new Date(calCurrentYear, calCurrentMonth + 1, 0).getDate();
+        const today = new Date();
+        const isCurrentMonth = today.getFullYear() === calCurrentYear && today.getMonth() === calCurrentMonth;
+        const todayDate = today.getDate();
+        const events = calEventDays[getCalEventKey()] || [];
+
+        let html = '';
+        for (let i = 0; i < firstDay; i++) {
+            html += '<div class="h-10"></div>';
+        }
+        for (let d = 1; d <= daysInMonth; d++) {
+            const isToday = isCurrentMonth && d === todayDate;
+            const hasEvent = events.includes(d);
+            html += `<div class="calendar-cell h-10 flex items-center justify-center rounded-lg text-sm cursor-pointer transition-all ${isToday ? 'bg-brand-600 text-white font-bold shadow-md shadow-brand-500/20' : ''} ${hasEvent && !isToday ? 'has-event font-semibold text-gray-800' : 'text-gray-500'}" onclick="showCalDayInfo(${d})">${d}</div>`;
+        }
+        grid.innerHTML = html;
+        document.getElementById('calendarMonth').textContent = `${calMonthNames[calCurrentMonth]} ${calCurrentYear}`;
+    }
+
+    function showCalDayInfo(day) {
+        const events = calEventDays[getCalEventKey()] || [];
+        if (events.includes(day)) {
+            showToast(`📌 يوم ${day} ${calMonthNames[calCurrentMonth]} — يوجد جلسة مجدولة`, 'info');
+        } else {
+            showToast(`يوم ${day} ${calMonthNames[calCurrentMonth]} — لا توجد جلسات`, 'info');
+        }
+    }
+
+    function changeCalendarMonth(dir) {
+        calCurrentMonth += dir;
+        if (calCurrentMonth > 11) { calCurrentMonth = 0; calCurrentYear++; }
+        if (calCurrentMonth < 0) { calCurrentMonth = 11; calCurrentYear--; }
+        renderCalendar();
+    }
+
+    function proposeNewSession() {
+        const dateInput = document.getElementById('newSessionDate');
+        const timeInput = document.getElementById('newSessionTime');
+        const dateVal = dateInput?.value;
+        const timeVal = timeInput?.value;
+
+        if (!dateVal) {
+            showToast('⚠️ الرجاء اختيار تاريخ الجلسة أولاً', 'warning');
+            dateInput?.focus();
+            return;
+        }
+        if (!timeVal) {
+            showToast('⚠️ الرجاء اختيار وقت الجلسة', 'warning');
+            timeInput?.focus();
+            return;
+        }
+
+        const selectedDate = new Date(dateVal);
+        const day = selectedDate.getDate();
+        const month = selectedDate.getMonth();
+        const year = selectedDate.getFullYear();
+        const key = `${year}-${month}`;
+
+        // Add event to calendar data
+        if (!calEventDays[key]) calEventDays[key] = [];
+        if (!calEventDays[key].includes(day)) {
+            calEventDays[key].push(day);
+        }
+
+        // If the selected month is the current calendar view, re-render
+        if (month === calCurrentMonth && year === calCurrentYear) {
+            renderCalendar();
+        }
+
+        const formattedDate = selectedDate.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        showToast(`✓ تم اقتراح موعد جلسة — ${formattedDate} الساعة ${timeVal} — بانتظار تأكيد المنسق`, 'success');
+
+        // Clear inputs
+        dateInput.value = '';
+        timeInput.value = '';
+    }
+
+    function sendChatMessage() {
+        const input = document.getElementById('chatInput'), msg = input.value.trim(); if (!msg) return;
+        const c = document.getElementById('chatMessages');
+        c.innerHTML += `<div class="flex justify-end animate-slide-up"><div class="chat-bubble-self bg-brand-600 text-white p-3 max-w-[85%] text-sm shadow-md">${msg}</div></div>`;
+        input.value = ''; c.scrollTop = c.scrollHeight;
+        setTimeout(() => { c.innerHTML += `<div class="flex justify-start animate-slide-up"><div class="chat-bubble-other bg-gray-100 text-gray-800 p-3 max-w-[85%] text-sm border border-gray-200">تم استلام رسالتك، سأرد قريباً 👍</div></div>`; c.scrollTop = c.scrollHeight; }, 1500);
+    }
+
+    let chartInstance = null;
+    function initChart() {
+        if (chartInstance) return;
+        const ctx = document.getElementById('financeChart'); if (!ctx) return;
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: { labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو'],
+                datasets: [{ label: 'المدفوعات', data: paymentChartData['per-student'],
+                    borderColor: '#dc2626',
+                    backgroundColor: (ctx) => { const c = ctx.chart, { ctx: x, chartArea } = c; if (!chartArea) return 'transparent'; const g = x.createLinearGradient(0, chartArea.top, 0, chartArea.bottom); g.addColorStop(0, 'rgba(220,38,38,0.15)'); g.addColorStop(1, 'rgba(220,38,38,0)'); return g; },
+                    borderWidth: 2.5, pointBackgroundColor: '#fff', pointBorderColor: '#dc2626', pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6, fill: true, tension: 0.4 }] },
+            options: { responsive: true, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#18181b', titleColor: '#a1a1aa', bodyColor: '#fafafa', borderColor: '#e4e4e7', borderWidth: 1, padding: 12, displayColors: false, callbacks: { label: c => `EGP ${c.parsed.y.toLocaleString()}` } } }, scales: { y: { beginAtZero: true, grid: { color: '#f4f4f5', drawBorder: false }, ticks: { color: '#a1a1aa', font: { family: 'Cairo' }, callback: v => `${(v/1000)}K` } }, x: { grid: { display: false }, ticks: { color: '#a1a1aa', font: { family: 'Cairo' } } } } }
+        });
+    }
+
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
+
+    window.onload = () => {
+        renderTranslations();
+        renderApplicantsTable();
+        renderCalendar();
+        switchRole('recruiter');
+    };
+    </script>
+</body>
+</html>

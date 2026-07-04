@@ -1,0 +1,89 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
+
+body {
+  font-family: 'Cairo', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f9fafb;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d4d4d8;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #dc2626;
+}
+
+/* Neon Glows */
+.neon-glow-red {
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.2), 0 0 30px rgba(239, 68, 68, 0.1);
+}
+.neon-glow-red-strong {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.4), 0 0 40px rgba(239, 68, 68, 0.15);
+}
+.neon-text-glow {
+  text-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
+.neon-border {
+  border-color: rgba(239, 68, 68, 0.2);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.05);
+}
+.neon-border:focus-within {
+  border-color: rgba(239, 68, 68, 0.6);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+}
+
+/* Sidebar Active Class */
+.sidebar-link.active {
+  background: rgba(239, 68, 68, 0.06);
+  color: #dc2626;
+  border-right: 4px solid #ef4444;
+}
+[dir="ltr"] .sidebar-link.active {
+  border-right: none;
+  border-left: 4px solid #ef4444;
+}
+
+.dropzone-active {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.04) !important;
+}
+
+.star-btn {
+  transition: all 0.15s ease;
+}
+.star-btn:hover svg,
+.star-btn.active svg {
+  fill: #ef4444;
+  color: #ef4444;
+  filter: drop-shadow(0 0 5px rgba(239,68,68,0.4));
+}
+
+/* Custom range inputs */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ef4444;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #e4e4e7;
+  height: 4px;
+  border-radius: 2px;
+}

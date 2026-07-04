@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDevModuleStore } from '../../store/devModuleStore';
+import { useAppSelector } from '../../store';
 import { 
   ArrowLeft, Info, Calendar, DollarSign, Users, CheckSquare,
-  RefreshCw, AlertOctagon, CheckCircle2, Play, AlertCircle, Trash
+  RefreshCw, AlertOctagon, CheckCircle2, Play, AlertCircle, Trash,
+  UserPlus, Save
 } from 'lucide-react';
 
 export const DevProjectDetails: React.FC = () => {
@@ -12,11 +14,69 @@ export const DevProjectDetails: React.FC = () => {
   
   const { 
     projects, tasks, developers, bugs, changeRequests,
-    addBug, addChangeRequest
+    addBug, addChangeRequest, updateProject, currentRole
   } = useDevModuleStore();
+
+  const { user: loggedInUser } = useAppSelector((state) => state.auth);
 
   const project = projects.find(p => p.id === id);
   const [activeTab, setActiveTab] = useState<'overview' | 'stages' | 'team' | 'tasks' | 'cr' | 'bugs'>('overview');
+
+  const [localDevs, setLocalDevs] = useState<string[]>([]);
+  const [selectedDevToAdd, setSelectedDevToAdd] = useState('');
+
+  useEffect(() => {
+    if (project) {
+      setLocalDevs(project.assignedDevelopers);
+    }
+  }, [project]);
+
+  const cleanLoggedInName = (loggedInUser?.name || '').split(' (')[0].trim();
+  const cleanProjectTechLead = (project?.techLeadName || '').split(' (')[0].trim();
+  const isAssignedTechLead = cleanProjectTechLead && cleanProjectTechLead === cleanLoggedInName;
+  
+  const canManageTeam = 
+    currentRole === 'CEO' || 
+    currentRole === 'Team Manager' || 
+    (currentRole === 'Tech Lead' && isAssignedTechLead);
+
+  const isChanged = project ? JSON.stringify(localDevs) !== JSON.stringify(project.assignedDevelopers) : false;
+
+  const handleAddMember = () => {
+    if (selectedDevToAdd && !localDevs.includes(selectedDevToAdd)) {
+      setLocalDevs([...localDevs, selectedDevToAdd]);
+      setSelectedDevToAdd('');
+    }
+  };
+
+  const handleRemoveMember = (nameToRemove: string) => {
+    setLocalDevs(localDevs.filter(name => name !== nameToRemove));
+  };
+
+  const handleReplaceMember = (oldName: string, newName: string) => {
+    if (newName) {
+      setLocalDevs(localDevs.map(name => name === oldName ? newName : name));
+    }
+  };
+
+  const handleCancelChanges = () => {
+    if (project) {
+      setLocalDevs(project.assignedDevelopers);
+    }
+  };
+
+  const handleSaveChanges = () => {
+    if (!project) return;
+    if (!canManageTeam) {
+      alert('خطأ في الصلاحيات: غير مصرح لك بتعديل أعضاء فريق هذا المشروع.');
+      return;
+    }
+    updateProject({
+      ...project,
+      assignedDevelopers: localDevs
+    });
+    alert('تم حفظ تشكيل الفريق بنجاح!');
+  };
 
   // Modal control states
   const [isBugModalOpen, setIsBugModalOpen] = useState(false);
@@ -272,6 +332,39 @@ export const DevProjectDetails: React.FC = () => {
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-extrabold text-sm text-gray-900">أعضاء الفريق والتحميل الحالي للعمل</h3>
             </div>
+
+            {canManageTeam && (
+              <div className="bg-red-50/20 border border-red-100/50 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <h4 className="text-xs font-black text-red-950">إدارة أعضاء الفريق (صلاحية تعديل)</h4>
+                  <p className="text-[10px] text-gray-500">يمكنك إضافة، إزالة، أو استبدال المطورين في هذا المشروع.</p>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <select
+                    value={selectedDevToAdd}
+                    onChange={(e) => setSelectedDevToAdd(e.target.value)}
+                    className="px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-red-100 focus:outline-none"
+                  >
+                    <option value="">اختر مطوراً لإضافته...</option>
+                    {developers
+                      .filter(d => !localDevs.includes(d.name))
+                      .map(d => (
+                        <option key={d.id} value={d.name}>{d.name} ({d.role === 'QA Engineer' ? 'مهندس جودة' : 'مطور برمجيات'})</option>
+                      ))}
+                  </select>
+                  <button
+                    onClick={handleAddMember}
+                    disabled={!selectedDevToAdd}
+                    className="flex items-center gap-1 px-3 py-2 bg-red-600 disabled:bg-gray-300 text-white rounded-xl text-xs font-bold transition-all"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    إضافة عضو
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Manager card */}
               <div className="p-4 bg-red-50/20 border border-red-100 rounded-2xl flex items-center gap-3">
@@ -285,30 +378,74 @@ export const DevProjectDetails: React.FC = () => {
               </div>
 
               {/* Developer cards */}
-              {project.assignedDevelopers.map(devName => {
+              {localDevs.map(devName => {
                 const dev = developers.find(d => d.name === devName);
                 const workload = dev ? Math.round((dev.estimatedHours / 160) * 100) : 60;
                 return (
-                  <div key={devName} className="p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gray-200 text-gray-700 font-extrabold text-xs rounded-xl flex items-center justify-center">
-                        DEV
+                  <div key={devName} className="p-4 bg-gray-50 border border-gray-100 rounded-2xl flex flex-col justify-between">
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gray-200 text-gray-700 font-extrabold text-xs rounded-xl flex items-center justify-center">
+                          DEV
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-extrabold text-gray-900">{devName}</h4>
+                          <span className="text-[9px] text-gray-400 block mt-0.5">{dev?.role === 'QA Engineer' ? 'مهندس جودة' : 'مطور برمجيات'}</span>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-xs font-extrabold text-gray-900">{devName}</h4>
-                        <span className="text-[9px] text-gray-400 block mt-0.5">{dev?.role || 'مطور برمجيات'}</span>
+                      <div className="text-end">
+                        <span className="text-[9px] text-gray-400 block">ضغط العمل</span>
+                        <span className={`text-xs font-black ${workload > 90 ? 'text-red-600' : 'text-gray-900'}`}>
+                          {workload}%
+                        </span>
                       </div>
                     </div>
-                    <div className="text-end">
-                      <span className="text-[9px] text-gray-400 block">ضغط العمل</span>
-                      <span className={`text-xs font-black ${workload > 90 ? 'text-red-600' : 'text-gray-900'}`}>
-                        {workload}%
-                      </span>
-                    </div>
+
+                    {canManageTeam && (
+                      <div className="flex items-center gap-1.5 border-t border-gray-100 pt-3 mt-3 justify-end">
+                        <select
+                          onChange={(e) => handleReplaceMember(devName, e.target.value)}
+                          defaultValue=""
+                          className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-[10px] font-bold focus:outline-none"
+                        >
+                          <option value="" disabled>تغيير العضو...</option>
+                          {developers
+                            .filter(d => !localDevs.includes(d.name))
+                            .map(d => (
+                              <option key={d.id} value={d.name}>{d.name}</option>
+                            ))}
+                        </select>
+                        <button
+                          onClick={() => handleRemoveMember(devName)}
+                          className="p-1 text-red-600 hover:bg-red-50 rounded transition-all"
+                          title="إزالة العضو"
+                        >
+                          <Trash className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
             </div>
+
+            {canManageTeam && isChanged && (
+              <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-50">
+                <button
+                  onClick={handleCancelChanges}
+                  className="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-xs font-bold hover:bg-gray-50 transition-all"
+                >
+                  إلغاء
+                </button>
+                <button
+                  onClick={handleSaveChanges}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold shadow-md transition-all"
+                >
+                  <Save className="w-4 h-4" />
+                  حفظ التعديلات
+                </button>
+              </div>
+            )}
           </div>
         )}
 

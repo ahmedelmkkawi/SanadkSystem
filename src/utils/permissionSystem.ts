@@ -4,7 +4,8 @@ export type DepartmentName =
   | 'HR' 
   | 'Finance' 
   | 'Support' 
-  | 'Operations';
+  | 'Operations'
+  | 'Training';
 
 export type UserRole =
   | 'CEO'
@@ -19,7 +20,10 @@ export type UserRole =
   | 'Marketing Manager'
   | 'Team Leader'
   | 'Employee'
-  | 'Client';
+  | 'Client'
+  | 'Training Manager'
+  | 'Instructor'
+  | 'Student';
 
 // Modules mapping
 export type SystemModule =
@@ -33,7 +37,8 @@ export type SystemModule =
   | 'SoftwareDevelopment'
   | 'Reports'
   | 'Settings'
-  | 'ActivityLogs';
+  | 'ActivityLogs'
+  | 'Training';
 
 export interface DepartmentConfig {
   name: DepartmentName;
@@ -49,7 +54,7 @@ export const DEPARTMENTS: Record<DepartmentName, DepartmentConfig> = {
   },
   SoftwareDevelopment: {
     name: 'SoftwareDevelopment',
-    roles: ['CEO', 'Tech Lead', 'Team Manager', 'Developer', 'Team Leader'],
+    roles: ['Tech Lead', 'Team Manager', 'Developer', 'Team Leader'],
     allowedModules: ['SoftwareDevelopment']
   },
   HR: {
@@ -71,6 +76,11 @@ export const DEPARTMENTS: Record<DepartmentName, DepartmentConfig> = {
     name: 'Operations',
     roles: ['CEO'],
     allowedModules: ['Files']
+  },
+  Training: {
+    name: 'Training',
+    roles: ['Training Manager', 'Instructor', 'Student'],
+    allowedModules: ['Training', 'Tasks', 'Files']
   }
 };
 
@@ -91,8 +101,11 @@ export function getDepartmentsForRole(role: UserRole): DepartmentName[] {
  * Check if a role can access a module
  */
 export function isModuleAllowed(role: UserRole, moduleName: SystemModule): boolean {
-  // CEO has access to everything
-  if (role === 'CEO') return true;
+  // CEO has access to everything EXCEPT SoftwareDevelopment and Training
+  if (role === 'CEO') {
+    if (moduleName === 'SoftwareDevelopment' || moduleName === 'Training') return false;
+    return true;
+  }
   
   const depts = getDepartmentsForRole(role);
   return depts.some((deptName) => DEPARTMENTS[deptName].allowedModules.includes(moduleName));
@@ -102,7 +115,11 @@ export function isModuleAllowed(role: UserRole, moduleName: SystemModule): boole
  * Check if a role can access a path
  */
 export function canAccessPath(role: UserRole, path: string): boolean {
-  if (role === 'CEO') return true;
+  // Protect Training routes
+  if (path.startsWith('/training')) {
+    const trainingRoles: UserRole[] = ['Training Manager', 'Instructor', 'Student'];
+    return trainingRoles.includes(role);
+  }
 
   // Protect Software Development routes
   if (path.startsWith('/dev/')) {
@@ -114,6 +131,8 @@ export function canAccessPath(role: UserRole, path: string): boolean {
     const devRoles: UserRole[] = ['Tech Lead', 'Team Manager', 'Developer', 'Team Leader'];
     return devRoles.includes(role);
   }
+
+  if (role === 'CEO') return true;
 
   // Protect CEO-only system logs
   if (path.startsWith('/ceo/')) {

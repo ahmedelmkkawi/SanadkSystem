@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { useDevModuleStore, type BugIssue } from '../../store/devModuleStore';
-import { AlertTriangle, Plus, Search, Filter, CheckCircle2, RefreshCw, X } from 'lucide-react';
+import { useDevModuleStore } from '../../store/devModuleStore';
+import { useDevTranslation } from './hooks/useDevTranslation';
+import { AlertTriangle, Plus, Search, X } from 'lucide-react';
 
 export const DevBugs: React.FC = () => {
-  const { bugs, projects, developers, addBug, updateBugStatus, currentRole } = useDevModuleStore();
+  const { t } = useDevTranslation();
+  const { bugs, projects, developers, addBug, updateBugStatus } = useDevModuleStore();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [severityFilter, setSeverityFilter] = useState('');
@@ -26,9 +28,9 @@ export const DevBugs: React.FC = () => {
       title: newBugTitle,
       severity: newBugSeverity,
       status: 'Open',
-      assignedTo: newBugAssignee || 'غير معين',
+      assignedTo: newBugAssignee || t('غير معين'),
       projectId: newBugProject,
-      projectName: proj ? proj.name : 'مشروع برمجيات'
+      projectName: proj ? proj.name : t('مشروع برمجيات')
     });
 
     setIsModalOpen(false);
@@ -59,16 +61,16 @@ export const DevBugs: React.FC = () => {
         <div>
           <h1 className="text-2xl font-black text-gray-950 flex items-center gap-2">
             <AlertTriangle className="text-red-600 w-7 h-7" />
-            البلاغات والعيوب البرمجية (Bugs & Issues)
+            {t('البلاغات والعيوب البرمجية (Bugs & Issues)')}
           </h1>
-          <p className="text-xs text-gray-400">تتبع الثغرات والأخطاء التقنية المكتشفة في المشروعات البرمجية</p>
+          <p className="text-xs text-gray-400">{t('تتبع الثغرات والأخطاء التقنية المكتشفة في المشروعات البرمجية')}</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl shadow-lg text-xs"
         >
           <Plus className="w-4 h-4" />
-          تسجيل بلاغ خطأ جديد
+          {t('تسجيل بلاغ خطأ جديد')}
         </button>
       </div>
 
@@ -78,7 +80,7 @@ export const DevBugs: React.FC = () => {
           <Search className="absolute start-3 top-3 w-4 h-4 text-gray-400" />
           <input
             type="text"
-            placeholder="البحث باسم البلاغ أو المشروع..."
+            placeholder={t('البحث باسم البلاغ أو المشروع...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full ps-9 pe-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none"
@@ -90,11 +92,11 @@ export const DevBugs: React.FC = () => {
           onChange={(e) => setSeverityFilter(e.target.value)}
           className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none"
         >
-          <option value="">كل درجات الخطورة</option>
-          <option value="Low">Low (منخفض)</option>
-          <option value="Medium">Medium (متوسط)</option>
-          <option value="High">High (عالي الخطورة)</option>
-          <option value="Critical">Critical (حرج ومعطل)</option>
+          <option value="">{t('كل درجات الخطورة')}</option>
+          <option value="Low">Low ({t('منخفض')})</option>
+          <option value="Medium">Medium ({t('متوسط')})</option>
+          <option value="High">High ({t('عالي الخطورة')})</option>
+          <option value="Critical">Critical ({t('حرج ومعطل')})</option>
         </select>
 
         <select
@@ -102,11 +104,11 @@ export const DevBugs: React.FC = () => {
           onChange={(e) => setStatusFilter(e.target.value)}
           className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none"
         >
-          <option value="">كل الحالات</option>
-          <option value="Open">مفتوح (Open)</option>
-          <option value="In Progress">قيد الإصلاح</option>
-          <option value="Resolved">تم الحل</option>
-          <option value="Closed">مغلق نهائياً</option>
+          <option value="">{t('كل الحالات')}</option>
+          <option value="Open">{t('مفتوح')} (Open)</option>
+          <option value="In Progress">{t('قيد الإصلاح')}</option>
+          <option value="Resolved">{t('تم الحل')}</option>
+          <option value="Closed">{t('مغلق نهائياً')}</option>
         </select>
       </div>
 
@@ -115,13 +117,13 @@ export const DevBugs: React.FC = () => {
         <table className="w-full text-start text-xs border-collapse">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100 text-gray-500 font-extrabold">
-              <th className="p-4 text-start">عنوان المشكلة</th>
-              <th className="p-4 text-start">المشروع</th>
-              <th className="p-4 text-start">الخطورة</th>
-              <th className="p-4 text-start">حالة البلاغ</th>
-              <th className="p-4 text-start">المسؤول عن الحل</th>
-              <th className="p-4 text-start">تاريخ البلاغ</th>
-              <th className="p-4 text-center">تحديث الحالة</th>
+              <th className="p-4 text-start">{t('عنوان المشكلة')}</th>
+              <th className="p-4 text-start">{t('المشروع')}</th>
+              <th className="p-4 text-start">{t('الخطورة')}</th>
+              <th className="p-4 text-start">{t('حالة البلاغ')}</th>
+              <th className="p-4 text-start">{t('المسؤول عن الحل')}</th>
+              <th className="p-4 text-start">{t('تاريخ البلاغ')}</th>
+              <th className="p-4 text-center">{t('تحديث الحالة')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -131,7 +133,7 @@ export const DevBugs: React.FC = () => {
                 <td className="p-4 font-bold text-gray-700">{bug.projectName}</td>
                 <td className="p-4">
                   <span className={`px-2 py-0.5 rounded text-[9px] font-black ${getSeverityStyle(bug.severity)}`}>
-                    {bug.severity}
+                    {t(bug.severity.toLowerCase())}
                   </span>
                 </td>
                 <td className="p-4">
@@ -139,7 +141,7 @@ export const DevBugs: React.FC = () => {
                     bug.status === 'Resolved' ? 'bg-green-100 text-green-700' :
                     bug.status === 'Open' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
                   }`}>
-                    {bug.status}
+                    {t(bug.status.toLowerCase())}
                   </span>
                 </td>
                 <td className="p-4 font-semibold text-gray-600">{bug.assignedTo}</td>
@@ -163,7 +165,7 @@ export const DevBugs: React.FC = () => {
             {filteredBugs.length === 0 && (
               <tr>
                 <td colSpan={7} className="p-8 text-center text-gray-400">
-                  لا توجد بلاغات مسجلة مطابقة للبحث.
+                  {t('لا توجد بلاغات مسجلة مطابقة للبحث.')}
                 </td>
               </tr>
             )}
@@ -176,18 +178,18 @@ export const DevBugs: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
             <div className="px-5 py-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
-              <span className="font-extrabold text-sm text-gray-900">تسجيل بلاغ خطأ جديد</span>
+              <span className="font-extrabold text-sm text-gray-900">{t('تسجيل بلاغ خطأ جديد')}</span>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleCreateBug} className="p-5 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">عنوان المشكلة</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t('عنوان المشكلة')}</label>
                 <input
                   type="text"
                   required
-                  placeholder="مثال: تعطل الصفحة عند الضغط على حفظ"
+                  placeholder={t('مثال: تعطل الصفحة عند الضغط على حفظ')}
                   value={newBugTitle}
                   onChange={(e) => setNewBugTitle(e.target.value)}
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs focus:outline-none"
@@ -195,14 +197,14 @@ export const DevBugs: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">المشروع المرتبط</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t('المشروع المرتبط')}</label>
                 <select
                   required
                   value={newBugProject}
                   onChange={(e) => setNewBugProject(e.target.value)}
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs focus:outline-none"
                 >
-                  <option value="">اختر المشروع</option>
+                  <option value="">{t('اختر المشروع')}</option>
                   {projects.map(p => (
                     <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
@@ -210,7 +212,7 @@ export const DevBugs: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">الخطورة</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t('الخطورة')}</label>
                 <select
                   value={newBugSeverity}
                   onChange={(e) => setNewBugSeverity(e.target.value as any)}
@@ -224,13 +226,13 @@ export const DevBugs: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">المطور المسؤول عن الحل</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t('المطور المسؤول عن الحل')}</label>
                 <select
                   value={newBugAssignee}
                   onChange={(e) => setNewBugAssignee(e.target.value)}
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs focus:outline-none"
                 >
-                  <option value="">اختر المطور</option>
+                  <option value="">{t('اختر المطور')}</option>
                   {developers.map(d => (
                     <option key={d.id} value={d.name}>{d.name}</option>
                   ))}
@@ -243,13 +245,13 @@ export const DevBugs: React.FC = () => {
                   onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-50"
                 >
-                  إلغاء
+                  {t('إلغاء')}
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-2 bg-red-600 text-white rounded-lg text-xs font-bold shadow-md"
                 >
-                  حفظ البلاغ
+                  {t('حفظ البلاغ')}
                 </button>
               </div>
             </form>

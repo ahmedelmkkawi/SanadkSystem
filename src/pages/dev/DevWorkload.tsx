@@ -1,9 +1,11 @@
 import React from 'react';
 import { useDevModuleStore } from '../../store/devModuleStore';
+import { useDevTranslation } from './hooks/useDevTranslation';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Users, AlertTriangle, Calendar, Award, CheckCircle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 
 export const DevWorkload: React.FC = () => {
+  const { t } = useDevTranslation();
   const { developers, tasks, updateDeveloperAvailability, currentRole } = useDevModuleStore();
 
   const data = developers.map(dev => {
@@ -37,7 +39,7 @@ export const DevWorkload: React.FC = () => {
 
   const handleAvailabilityChange = (devId: string, value: any) => {
     if (currentRole !== 'CEO' && currentRole !== 'Tech Lead' && currentRole !== 'Team Manager') {
-      alert('غير مصرح لك بتغيير حالة المطورين');
+      alert(t('غير مصرح لك بتغيير حالة المطورين'));
       return;
     }
     updateDeveloperAvailability(devId, value);
@@ -47,13 +49,13 @@ export const DevWorkload: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-black text-gray-950">إدارة حجم وضغط العمل</h1>
-        <p className="text-xs text-gray-400">تتبع استغلال طاقة المطورين وساعات العمل المتبقية لحل المشاكل بشكل متزن</p>
+        <h1 className="text-2xl font-black text-gray-950">{t('إدارة حجم وضغط العمل')}</h1>
+        <p className="text-xs text-gray-400">{t('تتبع استغلال طاقة المطورين وساعات العمل المتبقية لحل المشاكل بشكل متزن')}</p>
       </div>
 
       {/* Capacity Chart */}
       <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-        <h3 className="font-extrabold text-sm text-gray-900 mb-4">مخطط الطاقة الاستيعابية والتحميل (%)</h3>
+        <h3 className="font-extrabold text-sm text-gray-900 mb-4">{t('مخطط الطاقة الاستيعابية والتحميل (%)')}</h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>
@@ -94,7 +96,7 @@ export const DevWorkload: React.FC = () => {
               <div className="p-2.5 bg-red-50 border border-red-100 text-red-700 rounded-xl flex items-start gap-1.5 animate-pulse">
                 <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span className="text-[9px] font-bold leading-normal">
-                  تحذير: لقد تجاوز المطور 90% من طاقته الاستيعابية المقررة شهرياً.
+                  {t('تحذير: لقد تجاوز المطور 90% من طاقته الاستيعابية المقررة شهرياً.')}
                 </span>
               </div>
             )}
@@ -102,23 +104,23 @@ export const DevWorkload: React.FC = () => {
             {/* Statistics */}
             <div className="grid grid-cols-3 gap-2 text-center border-t border-b border-gray-50 py-3">
               <div>
-                <span className="text-[9px] text-gray-400 block font-semibold">المهمات النشطة</span>
+                <span className="text-[9px] text-gray-400 block font-semibold">{t('المهمات النشطة')}</span>
                 <span className="text-xs font-black text-gray-900 mt-0.5 block">{dev.activeTasksCount}</span>
               </div>
               <div>
-                <span className="text-[9px] text-gray-400 block font-semibold">ساعات مقدرة</span>
-                <span className="text-xs font-black text-gray-900 mt-0.5 block">{dev.estimated}س</span>
+                <span className="text-[9px] text-gray-400 block font-semibold">{t('ساعات مقدرة')}</span>
+                <span className="text-xs font-black text-gray-900 mt-0.5 block">{dev.estimated}{t('س')}</span>
               </div>
               <div>
-                <span className="text-[9px] text-gray-400 block font-semibold">ساعات فعلية</span>
-                <span className="text-xs font-black text-gray-900 mt-0.5 block">{dev.actual}س</span>
+                <span className="text-[9px] text-gray-400 block font-semibold">{t('ساعات فعلية')}</span>
+                <span className="text-xs font-black text-gray-900 mt-0.5 block">{dev.actual}{t('س')}</span>
               </div>
             </div>
 
             {/* Utilization Bar */}
             <div className="space-y-1">
               <div className="flex justify-between items-center text-[10px] font-bold">
-                <span className="text-gray-500">نسبة التحميل الكلي</span>
+                <span className="text-gray-500">{t('نسبة التحميل الكلي')}</span>
                 <span className={dev.utilization > 90 ? 'text-red-600' : 'text-gray-900'}>{dev.utilization}%</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">

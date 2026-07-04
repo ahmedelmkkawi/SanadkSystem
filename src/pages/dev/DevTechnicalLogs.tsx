@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useDevModuleStore } from '../../store/devModuleStore';
-import { Activity, Search, Filter, Calendar } from 'lucide-react';
+import { useDevTranslation } from './hooks/useDevTranslation';
+import { Activity, Search, Calendar } from 'lucide-react';
 
 export const DevTechnicalLogs: React.FC = () => {
+  const { t } = useDevTranslation();
   const { technicalLogs } = useDevModuleStore();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,9 +26,9 @@ export const DevTechnicalLogs: React.FC = () => {
         <div>
           <h1 className="text-2xl font-black text-gray-950 flex items-center gap-2">
             <Activity className="text-red-600 w-7 h-7" />
-            سجل العمليات الفنية والتدقيق (Technical Audit Logs)
+            {t('سجل العمليات الفنية والتدقيق (Technical Audit Logs)')}
           </h1>
-          <p className="text-xs text-gray-400">سجل تدقيق كامل لكل حركة برمجية وتدوير مهام داخل النظام</p>
+          <p className="text-xs text-gray-400">{t('سجل تدقيق كامل لكل حركة برمجية وتدوير مهام داخل النظام')}</p>
         </div>
 
         {/* View Switcher */}
@@ -37,7 +39,7 @@ export const DevTechnicalLogs: React.FC = () => {
               viewType === 'table' ? 'bg-red-600 text-white shadow' : 'text-gray-500 hover:text-gray-900'
             }`}
           >
-            عرض جدول
+            {t('عرض جدول')}
           </button>
           <button
             onClick={() => setViewType('timeline')}
@@ -45,7 +47,7 @@ export const DevTechnicalLogs: React.FC = () => {
               viewType === 'timeline' ? 'bg-red-600 text-white shadow' : 'text-gray-500 hover:text-gray-900'
             }`}
           >
-            عرض مخطط
+            {t('عرض مخطط')}
           </button>
         </div>
       </div>
@@ -56,7 +58,7 @@ export const DevTechnicalLogs: React.FC = () => {
           <Search className="absolute start-3 top-3 w-4 h-4 text-gray-400" />
           <input
             type="text"
-            placeholder="البحث باسم المستخدم، العملية، أو الكيان..."
+            placeholder={t('البحث باسم المستخدم، العملية، أو الكيان...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full ps-9 pe-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none"
@@ -68,13 +70,13 @@ export const DevTechnicalLogs: React.FC = () => {
           onChange={(e) => setEntityFilter(e.target.value)}
           className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none"
         >
-          <option value="">كل أنواع الكيانات</option>
-          <option value="Project">المشروعات (Project)</option>
-          <option value="Team">فرق العمل (Team)</option>
-          <option value="Task">المهمات (Task)</option>
-          <option value="Sprint">السبرنتات (Sprint)</option>
-          <option value="File">الملفات (File)</option>
-          <option value="Bug">البلاغات والأخطاء (Bug)</option>
+          <option value="">{t('كل أنواع الكيانات')}</option>
+          <option value="Project">{t('المشروعات (Project)')}</option>
+          <option value="Team">{t('فرق العمل (Team)')}</option>
+          <option value="Task">{t('المهمات (Task)')}</option>
+          <option value="Sprint">{t('السبرنتات (Sprint)')}</option>
+          <option value="File">{t('الملفات (File)')}</option>
+          <option value="Bug">{t('البلاغات والأخطاء (Bug)')}</option>
         </select>
       </div>
 
@@ -85,13 +87,13 @@ export const DevTechnicalLogs: React.FC = () => {
             <table className="w-full text-start text-xs border-collapse">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100 text-gray-500 font-extrabold">
-                  <th className="p-4 text-start">الوقت والتاريخ</th>
-                  <th className="p-4 text-start">المستخدم</th>
-                  <th className="p-4 text-start">العملية</th>
-                  <th className="p-4 text-start">نوع الكيان</th>
-                  <th className="p-4 text-start">اسم الكيان</th>
-                  <th className="p-4 text-start">القيمة القديمة</th>
-                  <th className="p-4 text-start">القيمة الجديدة</th>
+                  <th className="p-4 text-start">{t('الوقت والتاريخ')}</th>
+                  <th className="p-4 text-start">{t('المستخدم')}</th>
+                  <th className="p-4 text-start">{t('العملية')}</th>
+                  <th className="p-4 text-start">{t('نوع الكيان')}</th>
+                  <th className="p-4 text-start">{t('اسم الكيان')}</th>
+                  <th className="p-4 text-start">{t('القيمة القديمة')}</th>
+                  <th className="p-4 text-start">{t('القيمة الجديدة')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -109,7 +111,7 @@ export const DevTechnicalLogs: React.FC = () => {
                 {filteredLogs.length === 0 && (
                   <tr>
                     <td colSpan={7} className="p-8 text-center text-gray-400">
-                      لا توجد سجلات مطابقة للبحث حالياً.
+                      {t('لا توجد سجلات مطابقة للبحث حالياً.')}
                     </td>
                   </tr>
                 )}
@@ -135,20 +137,20 @@ export const DevTechnicalLogs: React.FC = () => {
                     </span>
                   </div>
                   <p className="text-xs text-gray-500">
-                    بواسطة: <span className="font-extrabold text-gray-800">{log.user}</span> | الكيان: <span className="font-semibold text-gray-700">{log.entityType} ({log.entityName})</span>
+                    {t('بواسطة:')} <span className="font-extrabold text-gray-800">{log.user}</span> | {t('الكيان:')} <span className="font-semibold text-gray-700">{log.entityType} ({log.entityName})</span>
                   </p>
                   {(log.oldValue || log.newValue) && (
                     <div className="p-2 bg-gray-50 rounded-lg text-[10px] font-mono flex flex-col sm:flex-row gap-2">
-                      <span className="text-red-600">من: {log.oldValue || '—'}</span>
+                      <span className="text-red-600">{t('من:')} {log.oldValue || '—'}</span>
                       <span className="text-gray-300">←</span>
-                      <span className="text-green-600">إلى: {log.newValue || '—'}</span>
+                      <span className="text-green-600">{t('إلى:')} {log.newValue || '—'}</span>
                     </div>
                   )}
                 </div>
               </div>
             ))}
             {filteredLogs.length === 0 && (
-              <div className="text-center py-8 text-xs text-gray-400">لا توجد سجلات لعرضها في المخطط الزمني.</div>
+              <div className="text-center py-8 text-xs text-gray-400">{t('لا توجد سجلات لعرضها في المخطط الزمني.')}</div>
             )}
           </div>
         </div>

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../store';
 import { logout, type UserRole as AuthUserRole, rolePermissions } from '../store/authSlice';
 import { markNotificationRead } from '../store/notificationsSlice';
-import { useDevModuleStore, type DevRole } from '../store/devModuleStore';
+import { useDevModuleStore } from '../store/devModuleStore';
 import { isModuleAllowed, type UserRole } from '../utils/permissionSystem';
 import logo from '../assets/logo.webp';
 import {
@@ -15,7 +15,6 @@ import {
   TrendingUp,
   DollarSign,
   Megaphone,
-  FolderOpen,
   Bell,
   BarChart3,
   Globe,
@@ -25,7 +24,8 @@ import {
   Settings,
   LogOut,
   PanelLeft,
-  PanelLeftClose
+  PanelLeftClose,
+  BookOpen
 } from 'lucide-react';
 
 export const Layout: React.FC = () => {
@@ -66,7 +66,7 @@ export const Layout: React.FC = () => {
     navigate('/auth/login');
   };
 
-  const { currentRole, setRole } = useDevModuleStore();
+  const { currentRole } = useDevModuleStore();
   const activeRole: UserRole = currentRole || (user?.role as UserRole) || 'Employee';
 
   // Map sandbox roles to Redux equivalent roles for permission calculations
@@ -166,36 +166,37 @@ export const Layout: React.FC = () => {
     });
   }
 
-  // Files Module
-  if (isModuleAllowed(activeRole, 'Files')) {
-    navItems.push({ path: '/files', label: t('files'), icon: FolderOpen });
+
+  // Training Module
+  if (isModuleAllowed(activeRole, 'Training')) {
+    navItems.push({ path: '/training', label: t('trainingNav'), icon: BookOpen });
   }
 
   // Software Development Module
   if (isModuleAllowed(activeRole, 'SoftwareDevelopment')) {
     if (mappedRole !== 'Client') {
       navItems.push({
-        label: 'تطوير البرمجيات / Dev Dept',
+        label: t('devDeptNav'),
         icon: Briefcase,
         subItems: [
-          { path: '/dev/dashboard', label: 'لوحة التحكم / Dashboard' },
-          { path: '/dev/projects', label: 'المشاريع / Projects' },
-          { path: '/dev/tasks', label: 'المهام / Tasks' },
-          { path: '/dev/teams', label: 'الفرق / Teams' },
-          { path: '/dev/workload', label: 'ضغط العمل / Workload' },
-          { path: '/dev/bugs', label: 'الأخطاء والبلاغات / Bugs' },
-          { path: '/dev/change-requests', label: 'طلبات التعديل / Change Requests' },
-          { path: '/dev/reports', label: 'التقارير / Reports' },
-          { path: '/dev/developer-dashboard', label: 'لوحة المطور / Dev Dashboard' }
+          { path: '/dev/dashboard', label: t('devDashboard') },
+          { path: '/dev/projects', label: t('devProjects') },
+          { path: '/dev/tasks', label: t('devTasks') },
+          { path: '/dev/teams', label: t('devTeams') },
+          { path: '/dev/workload', label: t('devWorkload') },
+          { path: '/dev/bugs', label: t('devBugs') },
+          { path: '/dev/change-requests', label: t('devChangeRequests') },
+          { path: '/dev/reports', label: t('devReports') },
+          { path: '/dev/developer-dashboard', label: t('devDeveloperDashboard') }
         ]
       });
     } else {
       // Client Portal
       navItems.push({
-        label: 'بوابة العميل / Client Portal',
+        label: t('clientPortalNav'),
         icon: Briefcase,
         subItems: [
-          { path: '/dev/client-portal', label: 'متابعة المشروع / Project Progress' }
+          { path: '/dev/client-portal', label: t('devProjectProgress') }
         ]
       });
     }
@@ -208,7 +209,7 @@ export const Layout: React.FC = () => {
 
   // Settings (requires MANAGE_SETTINGS permission)
   if (isModuleAllowed(activeRole, 'Settings') && activePermissions.includes('MANAGE_SETTINGS')) {
-    navItems.push({ path: '/settings', label: 'الإعدادات / Settings', icon: Settings });
+    navItems.push({ path: '/settings', label: t('settingsNav'), icon: Settings });
   }
 
 
@@ -254,27 +255,6 @@ export const Layout: React.FC = () => {
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 sm:gap-4">
-          {/* Sandbox Role Switcher Dropdown */}
-          <div className="flex items-center gap-1.5 border border-yellow-200 bg-yellow-50/50 rounded-xl p-1 px-2.5 shadow-sm">
-            <span className="text-[10px] font-black text-yellow-800 uppercase hidden lg:inline">Sandbox:</span>
-            <select
-              value={activeRole}
-              onChange={(e) => {
-                const newRole = e.target.value as DevRole;
-                setRole(newRole);
-                navigate('/');
-              }}
-              className="bg-transparent text-xs font-bold text-yellow-900 border-none outline-none cursor-pointer focus:ring-0 focus:outline-none"
-            >
-              <option value="CEO">CEO</option>
-              <option value="Tech Lead">Tech Lead</option>
-              <option value="Team Manager">Team Manager</option>
-              <option value="Developer">Developer</option>
-              <option value="Sales Manager">Sales Manager</option>
-              <option value="Sales Employee">Sales Employee</option>
-            </select>
-          </div>
-
           {/* Language Toggle */}
           <button
             onClick={toggleLanguage}
