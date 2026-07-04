@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type DevRole = 'CEO' | 'Tech Lead' | 'Team Manager' | 'Developer' | 'Client' | 'Sales Manager' | 'Sales Employee';
+export type DevRole = 'CEO' | 'Tech Lead' | 'Team Manager' | 'Developer' | 'Client' | 'Sales Manager' | 'Sales Employee' | 'Training Manager' | 'Instructor' | 'Student';
 
 export interface ProjectStage {
   name: string;
@@ -27,6 +27,7 @@ export interface DevProject {
   clientName: string;
   teamManagerId: string;
   teamManagerName: string;
+  techLeadName?: string; // assigned Tech Leader
   priority: 'Low' | 'Medium' | 'High' | 'Critical';
   status: 'To Do' | 'In Progress' | 'Blocked' | 'Code Review' | 'Testing' | 'Done';
   progress: number;
@@ -232,6 +233,7 @@ const initialProjects: DevProject[] = [
     clientName: 'مجموعة الصاوي العقارية',
     teamManagerId: 'mgr-1',
     teamManagerName: 'طارق حامد',
+    techLeadName: 'أنس العمري',
     priority: 'Critical',
     status: 'In Progress',
     progress: 45,
@@ -256,6 +258,7 @@ const initialProjects: DevProject[] = [
     clientName: 'النور للاستيراد والتصدير',
     teamManagerId: 'mgr-2',
     teamManagerName: 'رنا سليم',
+    techLeadName: 'أنس العمري',
     priority: 'High',
     status: 'In Progress',
     progress: 75,
@@ -280,6 +283,7 @@ const initialProjects: DevProject[] = [
     clientName: 'تكنو سوفت',
     teamManagerId: 'mgr-1',
     teamManagerName: 'طارق حامد',
+    techLeadName: 'طارق حامد', // Not assigned to Tech Lead أنس العمري
     priority: 'Medium',
     status: 'Blocked',
     progress: 15,
@@ -635,6 +639,25 @@ export const useDevModuleStore = create<DevModuleState>((set) => ({
 
   updateProject: (updatedProj) => set((state) => {
     const oldProj = state.projects.find(p => p.id === updatedProj.id);
+    
+    // BACKEND PERMISSION VALIDATION
+    if (state.currentRole === 'Tech Lead') {
+      const userJson = localStorage.getItem('auth_user');
+      let loggedInName = '';
+      if (userJson) {
+        try {
+          loggedInName = JSON.parse(userJson).name;
+        } catch (e) {}
+      }
+      const cleanLoggedInName = loggedInName.split(' (')[0].trim();
+      const cleanProjectTechLead = (oldProj?.techLeadName || '').split(' (')[0].trim();
+      
+      if (!cleanProjectTechLead || cleanProjectTechLead !== cleanLoggedInName) {
+        alert('خطأ في الصلاحيات (الخلفية): لا يمكنك تعديل هذا المشروع لأنه غير مسند إليك كقائد تقني.');
+        return {};
+      }
+    }
+
     const newLog: TechnicalLog = {
       id: `log-${Date.now()}`,
       user: 'المستخدم الحالي',

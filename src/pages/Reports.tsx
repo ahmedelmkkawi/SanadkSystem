@@ -50,10 +50,34 @@ export const Reports: React.FC = () => {
   const [searchUploader, setSearchUploader] = useState('');
   const [filterDept, setFilterDept] = useState('All');
 
+  const getMappedDept = (dept: string | undefined, rtl: boolean) => {
+    if (!dept) return rtl ? 'المبيعات' : 'Sales';
+    if (rtl) {
+      if (dept === 'Software Development') return 'تطوير البرمجيات';
+      if (dept === 'Training') return 'التدريب';
+      if (dept === 'Sales') return 'المبيعات';
+      if (dept === 'Marketing') return 'التسويق';
+      if (dept === 'HR') return 'الموارد البشرية';
+      if (dept === 'Finance') return 'الإدارة المالية';
+      if (dept === 'Operations') return 'التشغيل';
+      if (dept === 'IT') return 'IT';
+      return dept;
+    } else {
+      if (dept === 'تطوير البرمجيات') return 'Software Development';
+      if (dept === 'التدريب') return 'Training';
+      if (dept === 'المبيعات') return 'Sales';
+      if (dept === 'التسويق') return 'Marketing';
+      if (dept === 'الموارد البشرية') return 'HR';
+      if (dept === 'الإدارة المالية') return 'Finance';
+      if (dept === 'التشغيل') return 'Operations';
+      return dept;
+    }
+  };
+
   // Upload Report Form State
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploaderName, setUploaderName] = useState(user?.name || '');
-  const [department, setDepartment] = useState(user?.department || (isRtl ? 'المبيعات' : 'Sales'));
+  const [department, setDepartment] = useState(() => getMappedDept(user?.department, isRtl));
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [serverTime, setServerTime] = useState<string>('');
 
@@ -159,7 +183,7 @@ export const Reports: React.FC = () => {
             onClick={() => {
               if (user) {
                 setUploaderName(user.name);
-                setDepartment(user.department || (isRtl ? 'المبيعات' : 'Sales'));
+                setDepartment(getMappedDept(user.department, isRtl));
               }
               setUploadOpen(true);
             }}
@@ -634,6 +658,8 @@ export const Reports: React.FC = () => {
                   <option value={isRtl ? 'الإدارة المالية' : 'Finance'}>{isRtl ? 'الإدارة المالية' : 'Finance'}</option>
                   <option value={isRtl ? 'التشغيل' : 'Operations'}>{isRtl ? 'التشغيل' : 'Operations'}</option>
                   <option value={isRtl ? 'IT' : 'IT'}>{isRtl ? 'تكنولوجيا المعلومات (IT)' : 'IT'}</option>
+                  <option value={isRtl ? 'تطوير البرمجيات' : 'Software Development'}>{isRtl ? 'تطوير البرمجيات (Software Development)' : 'Software Development'}</option>
+                  <option value={isRtl ? 'التدريب' : 'Training'}>{isRtl ? 'التدريب (Training)' : 'Training'}</option>
                 </select>
               </div>
 

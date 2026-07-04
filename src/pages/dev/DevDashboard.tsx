@@ -1,24 +1,22 @@
 import React from 'react';
 import { useDevModuleStore } from '../../store/devModuleStore';
+import { useDevTranslation } from './hooks/useDevTranslation';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
   PieChart, Pie, Cell 
 } from 'recharts';
 import { 
   Briefcase, CheckCircle, Clock, AlertTriangle, Play, RefreshCw,
-  Users, UserCheck, ShieldAlert, ArrowRightLeft, Sparkles, Activity
+  Users, UserCheck, ShieldAlert, ArrowRightLeft, Activity
 } from 'lucide-react';
 
 export const DevDashboard: React.FC = () => {
   const { 
     projects, tasks, teams, developers,
-    currentRole, setRole 
+    currentRole 
   } = useDevModuleStore();
 
-  // Role switching helper
-  const roles: ('CEO' | 'Tech Lead' | 'Team Manager' | 'Developer' | 'Sales Manager' | 'Sales Employee')[] = [
-    'CEO', 'Tech Lead', 'Team Manager', 'Developer', 'Sales Manager', 'Sales Employee'
-  ];
+  const { t } = useDevTranslation();
 
   // Colors
   const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
@@ -77,47 +75,21 @@ export const DevDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Role Switcher Toolbar */}
-      <div className="bg-gradient-to-r from-red-900 to-slate-900 text-white p-4 rounded-2xl shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-2.5">
-          <Sparkles className="w-5 h-5 text-yellow-400 animate-pulse" />
-          <div>
-            <h4 className="font-extrabold text-sm tracking-wide">Developer Sandbox Tools / أدوات محاكاة الصلاحيات</h4>
-            <p className="text-xs text-gray-300">Switch roles to test page access & permissions / غير الدور لعرض صلاحيات الصفحات</p>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {roles.map((r) => (
-            <button
-              key={r}
-              onClick={() => setRole(r)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${
-                currentRole === r
-                  ? 'bg-red-600 text-white shadow-lg ring-2 ring-white/50'
-                  : 'bg-white/10 hover:bg-white/20 text-gray-200'
-              }`}
-            >
-              {r}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Welcome Title */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">
             <Activity className="text-red-600 w-7 h-7" />
-            {currentRole === 'CEO' ? 'لوحة القيادة التنفيذية للمدير العام' : 'لوحة تحكم قسم البرمجيات والتطوير'}
+            {currentRole === 'CEO' ? t('ceoDashboard') : t('devDashboard')}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
             {currentRole === 'CEO' 
-              ? 'متابعة أداء الموارد، استغلال القدرات البرمجية، والمشروعات قيد التنفيذ' 
-              : 'نظام إدارة المشاريع البرمجية، السبرنتات، البلاغات والمهمات'}
+              ? t('ceoSubtitle') 
+              : t('devSubtitle')}
           </p>
         </div>
         <div className="text-xs font-semibold text-gray-400 bg-white border border-gray-100 px-3 py-1.5 rounded-xl shadow-sm">
-          الدور النشط الحالي: <span className="text-red-600 font-bold font-mono">{currentRole}</span>
+          {t('الدور النشط الحالي:')} <span className="text-red-600 font-bold font-mono">{t(currentRole)}</span>
         </div>
       </div>
 
@@ -134,7 +106,7 @@ export const DevDashboard: React.FC = () => {
                 <CheckCircle className="w-6 h-6" />
               </div>
               <div>
-                <span className="text-xs text-gray-400 block font-semibold">المشاريع المكتملة</span>
+                <span className="text-xs text-gray-400 block font-semibold">{t('completedProjects')}</span>
                 <span className="text-2xl font-black text-gray-900">{completedProjects}</span>
               </div>
             </div>
@@ -144,7 +116,7 @@ export const DevDashboard: React.FC = () => {
                 <Play className="w-6 h-6" />
               </div>
               <div>
-                <span className="text-xs text-gray-400 block font-semibold">مشاريع قيد التنفيذ</span>
+                <span className="text-xs text-gray-400 block font-semibold">{t('inProgressProjects')}</span>
                 <span className="text-2xl font-black text-gray-900">{activeProjects}</span>
               </div>
             </div>
@@ -154,7 +126,7 @@ export const DevDashboard: React.FC = () => {
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div>
-                <span className="text-xs text-gray-400 block font-semibold">مشاريع في خطر</span>
+                <span className="text-xs text-gray-400 block font-semibold">{t('atRiskProjects')}</span>
                 <span className="text-2xl font-black text-gray-900">{projects.filter(p => p.health === 'At Risk').length}</span>
               </div>
             </div>
@@ -164,7 +136,7 @@ export const DevDashboard: React.FC = () => {
                 <ShieldAlert className="w-6 h-6" />
               </div>
               <div>
-                <span className="text-xs text-gray-400 block font-semibold">مشاريع حرجة جداً</span>
+                <span className="text-xs text-gray-400 block font-semibold">{t('criticalProjects')}</span>
                 <span className="text-2xl font-black text-gray-900">{projects.filter(p => p.health === 'Critical').length}</span>
               </div>
             </div>
@@ -174,7 +146,7 @@ export const DevDashboard: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Project Health Distribution Pie */}
             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-              <h3 className="font-extrabold text-sm text-gray-900 mb-4">توزيع سلامة المشاريع البرمجية</h3>
+              <h3 className="font-extrabold text-sm text-gray-900 mb-4">{t('توزيع سلامة المشاريع البرمجية')}</h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -200,7 +172,7 @@ export const DevDashboard: React.FC = () => {
 
             {/* Resource Utilization Bar */}
             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-              <h3 className="font-extrabold text-sm text-gray-900 mb-4">نسب استغلال المطورين والقدرة الاستيعابية</h3>
+              <h3 className="font-extrabold text-sm text-gray-900 mb-4">{t('نسب استغلال المطورين والقدرة الاستيعابية')}</h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={resourceData}>
@@ -225,22 +197,22 @@ export const DevDashboard: React.FC = () => {
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm col-span-1">
               <h3 className="font-extrabold text-sm text-gray-900 mb-3 flex items-center gap-2">
                 <Users className="text-red-500 w-4 h-4" />
-                فرق عمل تجاوزت 90% استغلال
+                {t('فرق عمل تجاوزت 90% استغلال')}
               </h3>
               <div className="space-y-3">
                 {developers.filter(d => d.estimatedHours > 140).map(dev => (
                   <div key={dev.id} className="flex justify-between items-center p-3 bg-red-50/50 border border-red-100 rounded-xl">
                     <div>
                       <span className="text-xs font-bold text-gray-900 block">{dev.name}</span>
-                      <span className="text-[10px] text-gray-400 font-mono">المهام: {tasks.filter(t => t.assigneeName === dev.name && t.status !== 'Done').length} مهمة</span>
+                      <span className="text-[10px] text-gray-400 font-mono">{t('المهام:')} {tasks.filter(t => t.assigneeName === dev.name && t.status !== 'Done').length} {t('مهمة')}</span>
                     </div>
                     <span className="px-2.5 py-1 text-[10px] font-black bg-red-600 text-white rounded-lg">
-                      {Math.round((dev.estimatedHours / 160) * 100)}% حمولة
+                      {Math.round((dev.estimatedHours / 160) * 100)}% {t('حمولة')}
                     </span>
                   </div>
                 ))}
                 {developers.filter(d => d.estimatedHours > 140).length === 0 && (
-                  <div className="text-center py-6 text-xs text-gray-400">لا توجد فرق عمل محملة فوق طاقتها حالياً.</div>
+                  <div className="text-center py-6 text-xs text-gray-400">{t('لا توجد فرق عمل محملة فوق طاقتها حالياً.')}</div>
                 )}
               </div>
             </div>
@@ -249,14 +221,14 @@ export const DevDashboard: React.FC = () => {
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm col-span-2">
               <h3 className="font-extrabold text-sm text-gray-900 mb-3 flex items-center gap-2">
                 <ShieldAlert className="text-red-600 w-4 h-4" />
-                مشروعات حرجة تتطلب تدخل الإدارة
+                {t('مشروعات حرجة تتطلب تدخل الإدارة')}
               </h3>
               <div className="space-y-3">
                 {projects.filter(p => p.health === 'Critical' || p.health === 'At Risk').map(proj => (
                   <div key={proj.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 bg-gray-50 border border-gray-100 rounded-xl gap-2">
                     <div>
                       <h4 className="text-xs font-extrabold text-gray-900">{proj.name}</h4>
-                      <p className="text-[10px] text-gray-400 mt-0.5">العميل: {proj.clientName} | المدير: {proj.teamManagerName}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{t('العميل:')} {proj.clientName} | {t('المدير:')} {proj.teamManagerName}</p>
                     </div>
                     <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
                       <div className="w-24 bg-gray-200 rounded-full h-1.5">
@@ -266,7 +238,7 @@ export const DevDashboard: React.FC = () => {
                       <span className={`px-2 py-0.5 rounded text-[9px] font-black ${
                         proj.health === 'Critical' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
                       }`}>
-                        {proj.health === 'Critical' ? 'حرجة جداً' : 'في خطر'}
+                        {proj.health === 'Critical' ? t('حرجة جداً') : t('في خطر')}
                       </span>
                     </div>
                   </div>
@@ -283,7 +255,7 @@ export const DevDashboard: React.FC = () => {
           {/* Executive Stats Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-              <span className="text-[10px] text-gray-400 block font-semibold">إجمالي المشاريع</span>
+              <span className="text-[10px] text-gray-400 block font-semibold">{t('totalProjects')}</span>
               <div className="flex items-center justify-between mt-1">
                 <span className="text-xl font-black text-gray-900">{totalProjects}</span>
                 <Briefcase className="w-5 h-5 text-gray-400" />
@@ -291,7 +263,7 @@ export const DevDashboard: React.FC = () => {
             </div>
 
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-              <span className="text-[10px] text-gray-400 block font-semibold">قيد التنفيذ</span>
+              <span className="text-[10px] text-gray-400 block font-semibold">{t('inProgress')}</span>
               <div className="flex items-center justify-between mt-1">
                 <span className="text-xl font-black text-blue-600">{activeProjects}</span>
                 <Play className="w-5 h-5 text-blue-500" />
@@ -299,7 +271,7 @@ export const DevDashboard: React.FC = () => {
             </div>
 
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-              <span className="text-[10px] text-gray-400 block font-semibold">مشاريع متأخرة</span>
+              <span className="text-[10px] text-gray-400 block font-semibold">{t('delayedProjects')}</span>
               <div className="flex items-center justify-between mt-1">
                 <span className="text-xl font-black text-red-600">{delayedProjects}</span>
                 <Clock className="w-5 h-5 text-red-500" />
@@ -307,7 +279,7 @@ export const DevDashboard: React.FC = () => {
             </div>
 
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-              <span className="text-[10px] text-gray-400 block font-semibold">المكتملة</span>
+              <span className="text-[10px] text-gray-400 block font-semibold">{t('completedProjects')}</span>
               <div className="flex items-center justify-between mt-1">
                 <span className="text-xl font-black text-green-600">{completedProjects}</span>
                 <CheckCircle className="w-5 h-5 text-green-500" />
@@ -315,7 +287,7 @@ export const DevDashboard: React.FC = () => {
             </div>
 
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-              <span className="text-[10px] text-gray-400 block font-semibold">في مرحلة الاختبار</span>
+              <span className="text-[10px] text-gray-400 block font-semibold">{t('inTesting')}</span>
               <div className="flex items-center justify-between mt-1">
                 <span className="text-xl font-black text-yellow-600">{testingProjects}</span>
                 <RefreshCw className="w-5 h-5 text-yellow-500" />
@@ -323,7 +295,7 @@ export const DevDashboard: React.FC = () => {
             </div>
 
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-              <span className="text-[10px] text-gray-400 block font-semibold">تحت الصيانة</span>
+              <span className="text-[10px] text-gray-400 block font-semibold">{t('inMaintenance')}</span>
               <div className="flex items-center justify-between mt-1">
                 <span className="text-xl font-black text-purple-600">{maintenanceProjects}</span>
                 <UserCheck className="w-5 h-5 text-purple-500" />
@@ -335,7 +307,7 @@ export const DevDashboard: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Status Distribution */}
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-              <h3 className="font-extrabold text-sm text-gray-900 mb-4">حالة المشاريع البرمجية</h3>
+              <h3 className="font-extrabold text-sm text-gray-900 mb-4">{t('حالة المشاريع البرمجية')}</h3>
               <div className="h-60">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -361,7 +333,7 @@ export const DevDashboard: React.FC = () => {
 
             {/* Team Performance */}
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm col-span-2">
-              <h3 className="font-extrabold text-sm text-gray-900 mb-4">ساعات العمل التقديرية مقابل الفعلية للفرق</h3>
+              <h3 className="font-extrabold text-sm text-gray-900 mb-4">{t('ساعات العمل التقديرية مقابل الفعلية للفرق')}</h3>
               <div className="h-60">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={teamPerformanceData}>
@@ -384,7 +356,7 @@ export const DevDashboard: React.FC = () => {
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
               <h3 className="font-extrabold text-sm text-red-600 mb-3 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4" />
-                المهمات المعطلة حالياً (Blocked)
+                {t('المهمات المعطلة حالياً (Blocked)')}
               </h3>
               <div className="space-y-3 max-h-[300px] overflow-y-auto">
                 {tasks.filter(t => t.status === 'Blocked').map(task => (
@@ -397,13 +369,13 @@ export const DevDashboard: React.FC = () => {
                     </div>
                     <p className="text-[10px] text-gray-500 mt-1 line-clamp-2">{task.blockedDetails}</p>
                     <div className="flex justify-between items-center mt-2 text-[9px] text-gray-400">
-                      <span>المسؤول: {task.assigneeName}</span>
-                      <span>تاريخ التسليم: {task.deadline}</span>
+                      <span>{t('المسؤول:')} {task.assigneeName}</span>
+                      <span>{t('تاريخ التسليم:')} {task.deadline}</span>
                     </div>
                   </div>
                 ))}
                 {tasks.filter(t => t.status === 'Blocked').length === 0 && (
-                  <div className="text-center py-8 text-xs text-gray-400">لا توجد أي مهمات معطلة!</div>
+                  <div className="text-center py-8 text-xs text-gray-400">{t('لا توجد أي مهمات معطلة!')}</div>
                 )}
               </div>
             </div>
@@ -412,7 +384,7 @@ export const DevDashboard: React.FC = () => {
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
               <h3 className="font-extrabold text-sm text-gray-900 mb-3 flex items-center gap-2">
                 <ArrowRightLeft className="w-4 h-4 text-blue-500" />
-                آخر عمليات نقل وتدوير المهام
+                {t('آخر عمليات نقل وتدوير المهام')}
               </h3>
               <div className="space-y-3 max-h-[300px] overflow-y-auto">
                 {tasks.flatMap(t => t.transferHistory.map(tr => ({ ...tr, taskName: t.name }))).map((tr, idx) => (
@@ -423,11 +395,11 @@ export const DevDashboard: React.FC = () => {
                       <span className="text-[9px] text-gray-400">←</span>
                       <span className="text-[9px] px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-semibold">{tr.to}</span>
                     </div>
-                    <p className="text-[9px] text-gray-400 mt-1.5">السبب: {tr.reason}</p>
+                    <p className="text-[9px] text-gray-400 mt-1.5">{t('السبب:')} {tr.reason}</p>
                   </div>
                 ))}
                 {tasks.flatMap(t => t.transferHistory).length === 0 && (
-                  <div className="text-center py-8 text-xs text-gray-400">لم يتم نقل أي مهام مؤخراً.</div>
+                  <div className="text-center py-8 text-xs text-gray-400">{t('لم يتم نقل أي مهام مؤخراً.')}</div>
                 )}
               </div>
             </div>

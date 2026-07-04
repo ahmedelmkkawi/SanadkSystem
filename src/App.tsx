@@ -26,6 +26,8 @@ import { Files } from './pages/Files';
 import { Notifications } from './pages/Notifications';
 import { Reports } from './pages/Reports';
 import { Settings } from './pages/Settings';
+import { AppProvider } from './pages/training/context/AppContext';
+import { TrainingDashboard } from './pages/training/TrainingDashboard';
 
 // import { Automations } from './pages/Automations';
 
@@ -285,6 +287,14 @@ const router = createBrowserRouter([
       {
         path: '/files',
         element: <Files />
+      },
+      {
+        path: '/training',
+        element: (
+          <AppProvider>
+            <TrainingDashboard />
+          </AppProvider>
+        )
       },
       {
         path: '/notifications',

@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDevModuleStore, type DevProject } from '../../store/devModuleStore';
 import { useAppStore } from '../../store/useAppStore'; // import main store to access clients/leads
+import { useDevTranslation } from './hooks/useDevTranslation';
 import { 
-  FolderPlus, Filter, Search, Eye, Edit3, UserPlus, X, AlertCircle, HeartPulse
+  FolderPlus, Filter, Search, Eye, UserPlus, X, AlertCircle, HeartPulse
 } from 'lucide-react';
 
 export const DevProjects: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useDevTranslation();
   const { 
     projects, addProject, updateProject, currentRole 
   } = useDevModuleStore();
@@ -128,8 +130,8 @@ export const DevProjects: React.FC = () => {
       {/* Header and Quick Add */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-black text-gray-950">المشاريع البرمجية</h1>
-          <p className="text-xs text-gray-400">إدارة المشاريع التكنولوجية وتوزيع المهام وتعيين المسؤولين</p>
+          <h1 className="text-2xl font-black text-gray-950">{t('projectsTitle')}</h1>
+          <p className="text-xs text-gray-400">{t('projectsDesc')}</p>
         </div>
         {canModifyProjects && (
           <button
@@ -137,7 +139,7 @@ export const DevProjects: React.FC = () => {
             className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl shadow-lg transition-all duration-200 text-xs"
           >
             <FolderPlus className="w-4 h-4" />
-            إنشاء مشروع جديد
+            {t('newProjectBtn')}
           </button>
         )}
       </div>
@@ -146,7 +148,7 @@ export const DevProjects: React.FC = () => {
       <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
         <div className="flex items-center gap-2 text-gray-900 font-extrabold text-sm border-b border-gray-50 pb-2">
           <Filter className="w-4 h-4 text-red-600" />
-          تصفية متقدمة للمشاريع
+          {t('advancedFilters')}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
           {/* Search bar */}
@@ -154,7 +156,7 @@ export const DevProjects: React.FC = () => {
             <Search className="absolute start-3 top-3 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="البحث باسم المشروع أو العميل..."
+              placeholder={t('searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full ps-9 pe-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:ring-2 focus:ring-red-100 focus:outline-none"
@@ -167,12 +169,12 @@ export const DevProjects: React.FC = () => {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:ring-2 focus:ring-red-100 focus:outline-none"
           >
-            <option value="">كل الحالات</option>
-            <option value="To Do">قيد الانتظار</option>
-            <option value="In Progress">قيد التنفيذ</option>
-            <option value="Blocked">معطل (Blocked)</option>
-            <option value="Testing">مرحلة الاختبار</option>
-            <option value="Done">مكتمل</option>
+            <option value="">{t('allStatuses')}</option>
+            <option value="To Do">{t('todo')}</option>
+            <option value="In Progress">{t('inProgress')}</option>
+            <option value="Blocked">{t('blocked')}</option>
+            <option value="Testing">{t('testing')}</option>
+            <option value="Done">{t('done')}</option>
           </select>
 
           {/* Priority selector */}
@@ -181,11 +183,11 @@ export const DevProjects: React.FC = () => {
             onChange={(e) => setPriorityFilter(e.target.value)}
             className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:ring-2 focus:ring-red-100 focus:outline-none"
           >
-            <option value="">كل الأولويات</option>
-            <option value="Low">منخفضة</option>
-            <option value="Medium">متوسطة</option>
-            <option value="High">عالية</option>
-            <option value="Critical">حرجة</option>
+            <option value="">{t('allPriorities')}</option>
+            <option value="Low">{t('low')}</option>
+            <option value="Medium">{t('medium')}</option>
+            <option value="High">{t('high')}</option>
+            <option value="Critical">{t('critical')}</option>
           </select>
 
           {/* Manager selector */}
@@ -194,9 +196,9 @@ export const DevProjects: React.FC = () => {
             onChange={(e) => setManagerFilter(e.target.value)}
             className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:ring-2 focus:ring-red-100 focus:outline-none"
           >
-            <option value="">كل مدراء الفرق</option>
-            <option value="طارق حامد">طارق حامد</option>
-            <option value="رنا سليم">رنا سليم</option>
+            <option value="">{t('allManagers')}</option>
+            <option value="طارق حامد">{t('طارق حامد')}</option>
+            <option value="رنا سليم">{t('رنا سليم')}</option>
           </select>
 
           {/* Client selector (CRM integration) */}
@@ -205,9 +207,9 @@ export const DevProjects: React.FC = () => {
             onChange={(e) => setClientFilter(e.target.value)}
             className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:ring-2 focus:ring-red-100 focus:outline-none"
           >
-            <option value="">كل العملاء</option>
+            <option value="">{t('allClients')}</option>
             {existingClients.map((client, idx) => (
-              <option key={idx} value={client}>{client}</option>
+              <option key={idx} value={client}>{t(client)}</option>
             ))}
           </select>
         </div>
@@ -219,15 +221,15 @@ export const DevProjects: React.FC = () => {
           <table className="w-full text-start text-xs border-collapse">
             <thead>
               <tr className="bg-gray-50/50 border-b border-gray-100 text-gray-500 font-extrabold">
-                <th className="p-4 text-start">اسم المشروع / النموذج</th>
-                <th className="p-4 text-start">العميل</th>
-                <th className="p-4 text-start">مدير الفريق</th>
-                <th className="p-4 text-start">الأولوية</th>
-                <th className="p-4 text-start">سلامة المشروع</th>
-                <th className="p-4 text-start">الحالة</th>
-                <th className="p-4 text-start">التقدم</th>
-                <th className="p-4 text-start">تاريخ التسليم</th>
-                <th className="p-4 text-center">الإجراءات</th>
+                <th className="p-4 text-start">{t('projectTemplate')}</th>
+                <th className="p-4 text-start">{t('client')}</th>
+                <th className="p-4 text-start">{t('manager')}</th>
+                <th className="p-4 text-start">{t('priority')}</th>
+                <th className="p-4 text-start">{t('health')}</th>
+                <th className="p-4 text-start">{t('status')}</th>
+                <th className="p-4 text-start">{t('progress')}</th>
+                <th className="p-4 text-start">{t('deadline')}</th>
+                <th className="p-4 text-center">{t('actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -235,26 +237,26 @@ export const DevProjects: React.FC = () => {
                 <tr key={proj.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="p-4">
                     <div>
-                      <span className="font-extrabold text-gray-900 block">{proj.name}</span>
+                      <span className="font-extrabold text-gray-900 block">{t(proj.name)}</span>
                       <span className="text-[10px] text-red-600 font-mono mt-0.5">{proj.template} Template</span>
                     </div>
                   </td>
-                  <td className="p-4 font-bold text-gray-700">{proj.clientName}</td>
-                  <td className="p-4 font-semibold text-gray-600">{proj.teamManagerName}</td>
+                  <td className="p-4 font-bold text-gray-700">{t(proj.clientName)}</td>
+                  <td className="p-4 font-semibold text-gray-600">{t(proj.teamManagerName)}</td>
                   <td className="p-4">
                     <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${getPriorityBadge(proj.priority)}`}>
-                      {proj.priority}
+                      {t(proj.priority.toLowerCase())}
                     </span>
                   </td>
                   <td className="p-4">
                     <span className={`px-2.5 py-1 rounded-xl text-[10px] font-black border flex items-center gap-1 w-fit ${getHealthBadge(proj.health)}`}>
                       <HeartPulse className="w-3.5 h-3.5" />
-                      {proj.health === 'Healthy' ? 'سليم' : proj.health === 'At Risk' ? 'في خطر' : 'حرج جداً'}
+                      {proj.health === 'Healthy' ? t('healthy') : proj.health === 'At Risk' ? t('atRisk') : t('critical')}
                     </span>
                   </td>
                   <td className="p-4">
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${getStatusBadge(proj.status)}`}>
-                      {proj.status}
+                      {t(proj.status === 'Done' ? 'done' : proj.status === 'In Progress' ? 'inProgress' : proj.status === 'Blocked' ? 'blocked' : proj.status === 'Testing' ? 'testing' : proj.status === 'Code Review' ? 'codeReview' : 'todo')}
                     </span>
                   </td>
                   <td className="p-4">
@@ -271,7 +273,7 @@ export const DevProjects: React.FC = () => {
                       <button
                         onClick={() => navigate(`/dev/projects/${proj.id}`)}
                         className="p-1.5 bg-gray-50 hover:bg-red-50 text-gray-600 hover:text-red-600 rounded-lg transition-all"
-                        title="عرض التفاصيل"
+                        title={t('viewDetails')}
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -283,7 +285,7 @@ export const DevProjects: React.FC = () => {
                               setAssignedManager(proj.teamManagerName);
                             }}
                             className="p-1.5 bg-gray-50 hover:bg-blue-50 text-gray-600 hover:text-blue-600 rounded-lg transition-all"
-                            title="تعيين المدير"
+                            title={t('assignManager')}
                           >
                             <UserPlus className="w-4 h-4" />
                           </button>
@@ -296,7 +298,7 @@ export const DevProjects: React.FC = () => {
               {filteredProjects.length === 0 && (
                 <tr>
                   <td colSpan={9} className="p-8 text-center text-gray-400">
-                    لا توجد مشاريع مطابقة لمعايير البحث والتصفية.
+                    {t('noProjectsFound')}
                   </td>
                 </tr>
               )}

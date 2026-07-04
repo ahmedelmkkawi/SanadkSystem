@@ -8,6 +8,7 @@ import logo from '../../assets/logo.webp';
 import { IconButton, Tooltip, Snackbar } from '@mui/material';
 import { Visibility, VisibilityOff, ContentCopy, CheckCircle } from '@mui/icons-material';
 import { useAppStore } from '../../store/useAppStore';
+import { useDevModuleStore } from '../../store/devModuleStore';
 
 const customStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cairo:wght@400;700;900&family=Inter:wght@400;700;900&display=swap');
@@ -50,16 +51,14 @@ const dict = {
     btnL: "LOGIN",
     user: "Email Address",
     pass: "Password",
-    rem: "Remember me",
-    robot: "I'm not a robot"
+    rem: "Remember me"
   },
   ar: {
     title: "تسجيل الدخول",
     btnL: "دخول",
     user: "البريد الإلكتروني",
     pass: "كلمة المرور",
-    rem: "تذكرني",
-    robot: "أنا لست روبوت"
+    rem: "تذكرني"
   }
 };
 
@@ -121,6 +120,9 @@ export const Login: React.FC = () => {
           })
         );
 
+        // Sync dev sandbox role
+        useDevModuleStore.getState().setRole(match.role as any);
+
         addActivityLog(
           'User Login',
           match.name,
@@ -135,6 +137,8 @@ export const Login: React.FC = () => {
             navigate('/dev/dashboard');
           } else if (match.department === 'Sales') {
             navigate('/crm/dashboard');
+          } else if (match.department === 'Training') {
+            navigate('/training');
           } else if (match.role === 'CEO') {
             navigate('/dashboard/ceo');
           } else {
@@ -175,8 +179,13 @@ export const Login: React.FC = () => {
       'marketing@company.com',
       'sales.manager@company.com',
       'teamleader@company.com',
+      'developer@company.com',
+      'techlead@company.com',
       'employee@company.com',
-      'client@company.com'
+      'client@company.com',
+      'training.manager@company.com',
+      'instructor@company.com',
+      'student@company.com'
     ].includes(u.email.toLowerCase())
   );
 
@@ -287,15 +296,6 @@ export const Login: React.FC = () => {
                 </Link>
               </div>
 
-              <div className="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  required
-                  className="w-5 h-5 accent-red-600 rounded cursor-pointer"
-                />
-                <span className="text-white text-sm font-bold">{dict[lang].robot}</span>
-              </div>
-
               <button
                 type="submit"
                 disabled={loading}
@@ -342,10 +342,15 @@ export const Login: React.FC = () => {
                       className="p-3 rounded-2xl bg-white/5 border border-white/5 hover:border-red-500/30 hover:bg-white/10 transition-all cursor-pointer flex justify-between items-start"
                     >
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-bold text-xs text-white">
                             {acc.role}
                           </span>
+                          {acc.department && (
+                            <span className="bg-red-500/10 text-red-300 text-[9px] px-1.5 py-0.5 rounded border border-red-500/20 font-bold">
+                              {acc.department === 'Software Development' ? (isRtl ? 'تطوير البرمجيات' : 'Software Development') : acc.department}
+                            </span>
+                          )}
                           <Tooltip title={acc.permissions.join(', ')} placement="top">
                             <span className="cursor-help bg-white/10 text-white/70 font-mono text-[8px] px-1.5 py-0.5 rounded border border-white/5 select-none">
                               {acc.permissions.length} perms

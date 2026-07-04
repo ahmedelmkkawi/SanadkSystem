@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { useDevModuleStore } from '../../store/devModuleStore';
+import { useDevTranslation } from './hooks/useDevTranslation';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell
+  LineChart, Line
 } from 'recharts';
 import { 
-  BarChart3, Users, Award, Clock, AlertTriangle, FileText, CheckCircle
+  BarChart3, AlertTriangle
 } from 'lucide-react';
 
 export const DevReports: React.FC = () => {
+  const { t } = useDevTranslation();
   const { projects, tasks, developers, teams } = useDevModuleStore();
   const [reportType, setReportType] = useState<'project' | 'team' | 'productivity' | 'delayed'>('project');
-
-  const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6'];
 
   // Project Report Data
   const projectReportData = projects.map(p => ({
@@ -48,9 +48,9 @@ export const DevReports: React.FC = () => {
       <div>
         <h1 className="text-2xl font-black text-gray-950 flex items-center gap-2">
           <BarChart3 className="text-red-600 w-7 h-7" />
-          مركز التقارير الفنية (Technical Reports)
+          {t('مركز التقارير الفنية (Technical Reports)')}
         </h1>
-        <p className="text-xs text-gray-400">تقارير تحليلية متقدمة لأداء المطورين، المشروعات، ومعدلات التسليم</p>
+        <p className="text-xs text-gray-400">{t('تقارير تحليلية متقدمة لأداء المطورين، المشروعات، ومعدلات التسليم')}</p>
       </div>
 
       {/* Tabs */}
@@ -61,7 +61,7 @@ export const DevReports: React.FC = () => {
             reportType === 'project' ? 'bg-red-600 text-white shadow' : 'text-gray-500 hover:text-gray-900'
           }`}
         >
-          تقارير المشاريع
+          {t('تقارير المشاريع')}
         </button>
         <button
           onClick={() => setReportType('team')}
@@ -69,7 +69,7 @@ export const DevReports: React.FC = () => {
             reportType === 'team' ? 'bg-red-600 text-white shadow' : 'text-gray-500 hover:text-gray-900'
           }`}
         >
-          أداء الفرق
+          {t('أداء الفرق')}
         </button>
         <button
           onClick={() => setReportType('productivity')}
@@ -77,7 +77,7 @@ export const DevReports: React.FC = () => {
             reportType === 'productivity' ? 'bg-red-600 text-white shadow' : 'text-gray-500 hover:text-gray-900'
           }`}
         >
-          إنتاجية المطورين
+          {t('إنتاجية المطورين')}
         </button>
         <button
           onClick={() => setReportType('delayed')}
@@ -85,7 +85,7 @@ export const DevReports: React.FC = () => {
             reportType === 'delayed' ? 'bg-red-600 text-white shadow' : 'text-gray-500 hover:text-gray-900'
           }`}
         >
-          المشاريع المتأخرة
+          {t('المشاريع المتأخرة')}
         </button>
       </div>
 
@@ -93,7 +93,7 @@ export const DevReports: React.FC = () => {
       <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
         {reportType === 'project' && (
           <div className="space-y-6">
-            <h3 className="font-extrabold text-sm text-gray-950">تقرير تقدم المشاريع مقابل الميزانية</h3>
+            <h3 className="font-extrabold text-sm text-gray-950">{t('تقرير تقدم المشاريع مقابل الميزانية')}</h3>
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={projectReportData}>
@@ -113,7 +113,7 @@ export const DevReports: React.FC = () => {
 
         {reportType === 'team' && (
           <div className="space-y-6">
-            <h3 className="font-extrabold text-sm text-gray-950">تقرير أداء فرق العمل (النشطة مقابل المنجزة)</h3>
+            <h3 className="font-extrabold text-sm text-gray-950">{t('تقرير أداء فرق العمل (النشطة مقابل المنجزة)')}</h3>
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={teamReportData}>
@@ -132,7 +132,7 @@ export const DevReports: React.FC = () => {
 
         {reportType === 'productivity' && (
           <div className="space-y-6">
-            <h3 className="font-extrabold text-sm text-gray-950">تقرير إنتاجية المطورين (تقديري مقابل فعلي)</h3>
+            <h3 className="font-extrabold text-sm text-gray-950">{t('تقرير إنتاجية المطورين (تقديري مقابل فعلي)')}</h3>
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={developerData}>
@@ -153,25 +153,25 @@ export const DevReports: React.FC = () => {
           <div className="space-y-4">
             <h3 className="font-extrabold text-sm text-red-600 flex items-center gap-1.5">
               <AlertTriangle className="w-4 h-4" />
-              المشروعات المتأخرة أو المعطلة حالياً
+              {t('المشروعات المتأخرة أو المعطلة حالياً')}
             </h3>
             <div className="space-y-2">
               {delayedProjects.map(proj => (
                 <div key={proj.id} className="p-4 border border-red-100 bg-red-50/20 rounded-xl flex justify-between items-center text-xs">
                   <div>
                     <span className="font-extrabold text-gray-900 block">{proj.name}</span>
-                    <span className="text-[10px] text-gray-400 block mt-0.5">العميل: {proj.clientName} | المدير: {proj.teamManagerName}</span>
+                    <span className="text-[10px] text-gray-400 block mt-0.5">{t('العميل:')} {proj.clientName} | {t('المدير:')} {proj.teamManagerName}</span>
                   </div>
                   <div className="text-end">
                     <span className="px-2.5 py-1 text-[9px] bg-red-600 text-white font-black rounded-lg inline-block">
                       {proj.status}
                     </span>
-                    <span className="block mt-1 font-mono font-bold text-gray-500">التقدم: {proj.progress}%</span>
+                    <span className="block mt-1 font-mono font-bold text-gray-500">{t('التقدم:')} {proj.progress}%</span>
                   </div>
                 </div>
               ))}
               {delayedProjects.length === 0 && (
-                <div className="text-center py-8 text-xs text-gray-400">لا توجد أي مشروعات متأخرة حالياً. عمل مذهل!</div>
+                <div className="text-center py-8 text-xs text-gray-400">{t('لا توجد أي مشروعات متأخرة حالياً. عمل مذهل!')}</div>
               )}
             </div>
           </div>

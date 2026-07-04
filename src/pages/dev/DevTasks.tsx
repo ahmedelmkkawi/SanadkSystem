@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDevModuleStore, type DevTask } from '../../store/devModuleStore';
+import { useDevTranslation } from './hooks/useDevTranslation';
 import { 
-  Plus, CheckSquare, Clock, AlertTriangle, AlertCircle, RefreshCw, X, ArrowRightLeft,
-  ChevronRight, AlignLeft, UserCheck, ShieldAlert
+  Plus, CheckSquare, Clock, AlertCircle, X, ArrowRightLeft,
+  ShieldAlert
 } from 'lucide-react';
 
 export const DevTasks: React.FC = () => {
   const navigate = useNavigate();
   const { 
-    tasks, projects, developers, addTask, updateTaskStatus, transferTask, assignTask, currentRole 
+    tasks, projects, developers, addTask, updateTaskStatus, transferTask, currentRole 
   } = useDevModuleStore();
+
+  const { t, lang } = useDevTranslation();
 
   const [viewType, setViewType] = useState<'kanban' | 'list'>('kanban');
 
@@ -41,12 +44,12 @@ export const DevTasks: React.FC = () => {
 
   // Kanban Columns
   const columns: { id: DevTask['status']; label: string; bg: string }[] = [
-    { id: 'To Do', label: 'To Do (قيد الانتظار)', bg: 'bg-slate-100 border-slate-200' },
-    { id: 'In Progress', label: 'In Progress (قيد التنفيذ)', bg: 'bg-blue-50/50 border-blue-100' },
-    { id: 'Blocked', label: 'Blocked (معطل)', bg: 'bg-red-50/50 border-red-100' },
-    { id: 'Code Review', label: 'Code Review (مراجعة الكود)', bg: 'bg-yellow-50/50 border-yellow-100' },
-    { id: 'Testing', label: 'Testing (مرحلة الاختبار)', bg: 'bg-purple-50/50 border-purple-100' },
-    { id: 'Done', label: 'Done (مكتمل)', bg: 'bg-green-50/50 border-green-100' }
+    { id: 'To Do', label: t('To Do (قيد الانتظار)'), bg: 'bg-slate-100 border-slate-200' },
+    { id: 'In Progress', label: t('In Progress (قيد التنفيذ)'), bg: 'bg-blue-50/50 border-blue-100' },
+    { id: 'Blocked', label: t('Blocked (معطل)'), bg: 'bg-red-50/50 border-red-100' },
+    { id: 'Code Review', label: t('Code Review (مراجعة الكود)'), bg: 'bg-yellow-50/50 border-yellow-100' },
+    { id: 'Testing', label: t('Testing (مرحلة الاختبار)'), bg: 'bg-purple-50/50 border-purple-100' },
+    { id: 'Done', label: t('Done (مكتمل)'), bg: 'bg-green-50/50 border-green-100' }
   ];
 
   const handleCreateTask = (e: React.FormEvent) => {
@@ -56,7 +59,11 @@ export const DevTasks: React.FC = () => {
     // Availability validation before assignment
     const dev = developers.find(d => d.name === newTaskAssignee);
     if (dev && dev.availability !== 'Available') {
-      const confirmAssign = window.confirm(`تنبيه: المطور ${newTaskAssignee} غير متاح حالياً (الحالة: ${dev.availability === 'On Leave' ? 'في إجازة' : 'مشغول'}). هل تريد الاستمرار في التعيين؟`);
+      const confirmAssign = window.confirm(
+        lang === 'en'
+          ? `Warning: Developer ${newTaskAssignee} is not currently available (status: ${dev.availability === 'On Leave' ? 'On Leave' : 'Busy'}). Do you want to proceed?`
+          : `تنبيه: المطور ${newTaskAssignee} غير متاح حالياً (الحالة: ${dev.availability === 'On Leave' ? 'في إجازة' : 'مشغول'}). هل تريد الاستمرار في التعيين؟`
+      );
       if (!confirmAssign) return;
     }
 
@@ -67,7 +74,7 @@ export const DevTasks: React.FC = () => {
       description: newTaskDesc,
       priority: newTaskPriority,
       status: 'To Do',
-      assigneeName: newTaskAssignee || 'غير معين',
+      assigneeName: newTaskAssignee || (lang === 'en' ? 'Unassigned' : 'غير معين'),
       deadline: newTaskDeadline,
       estimatedHours: Number(newTaskHours)
     });
@@ -83,7 +90,11 @@ export const DevTasks: React.FC = () => {
       // Availability warning
       const dev = developers.find(d => d.name === transferNewAssignee);
       if (dev && dev.availability !== 'Available') {
-        const confirmAssign = window.confirm(`تنبيه: المطور ${transferNewAssignee} غير متاح حالياً (الحالة: ${dev.availability === 'On Leave' ? 'في إجازة' : 'مشغول'}). هل تريد الاستمرار في التعيين؟`);
+        const confirmAssign = window.confirm(
+          lang === 'en'
+            ? `Warning: Developer ${transferNewAssignee} is not currently available (status: ${dev.availability === 'On Leave' ? 'On Leave' : 'Busy'}). Do you want to proceed?`
+            : `تنبيه: المطور ${transferNewAssignee} غير متاح حالياً (الحالة: ${dev.availability === 'On Leave' ? 'في إجازة' : 'مشغول'}). هل تريد الاستمرار في التعيين؟`
+        );
         if (!confirmAssign) return;
       }
 
@@ -105,7 +116,11 @@ export const DevTasks: React.FC = () => {
   const handleStatusChangeClick = (task: DevTask, newStatus: DevTask['status']) => {
     // Restricted approval workflow validation
     if (newStatus === 'Done' && currentRole === 'Developer') {
-      alert('خطأ: المطور لا يمكنه إغلاق المهام أو نقلها إلى مكتملة مباشرة. يرجى نقلها إلى Code Review ومطالبة مدير الفريق باعتمادها.');
+      alert(
+        lang === 'en'
+          ? 'Error: Developers cannot close tasks or move them to Done directly. Please move to Code Review and request manager approval.'
+          : 'خطأ: المطور لا يمكنه إغلاق المهام أو نقلها إلى مكتملة مباشرة. يرجى نقلها إلى Code Review ومطالبة مدير الفريق باعتمادها.'
+      );
       return;
     }
 
@@ -135,8 +150,8 @@ export const DevTasks: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-black text-gray-950">إدارة المهام البرمجية</h1>
-          <p className="text-xs text-gray-400">تابع تقدم المهام وسبرنتات العمل عبر لوحة كانبان التفاعلية</p>
+          <h1 className="text-2xl font-black text-gray-950">{t('إدارة المهام البرمجية')}</h1>
+          <p className="text-xs text-gray-400">{t('تابع تقدم المهام وسبرنتات العمل عبر لوحة كانبان التفاعلية')}</p>
         </div>
         <div className="flex items-center gap-3">
           {/* View switcher */}
@@ -147,7 +162,7 @@ export const DevTasks: React.FC = () => {
                 viewType === 'kanban' ? 'bg-red-600 text-white shadow' : 'text-gray-500 hover:text-gray-900'
               }`}
             >
-              لوحة كانبان
+              {t('لوحة كانبان')}
             </button>
             <button
               onClick={() => setViewType('list')}
@@ -155,7 +170,7 @@ export const DevTasks: React.FC = () => {
                 viewType === 'list' ? 'bg-red-600 text-white shadow' : 'text-gray-500 hover:text-gray-900'
               }`}
             >
-              جدول المهام
+              {t('جدول المهام')}
             </button>
           </div>
 
@@ -165,7 +180,7 @@ export const DevTasks: React.FC = () => {
               className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl shadow-lg transition-all text-xs"
             >
               <Plus className="w-4 h-4" />
-              إسناد مهمة جديدة
+              {t('إسناد مهمة جديدة')}
             </button>
           )}
         </div>
@@ -209,7 +224,7 @@ export const DevTasks: React.FC = () => {
                             <Clock className="w-3 h-3 text-red-500" />
                             {task.deadline}
                           </span>
-                          <span>التقدير: {task.estimatedHours}س</span>
+                          <span>{t('التقدير:')} {task.estimatedHours}{t('س')}</span>
                         </div>
 
                         {/* Assignee and Actions */}
@@ -224,7 +239,7 @@ export const DevTasks: React.FC = () => {
                                 <span className={`px-1 py-0.5 rounded text-[8px] font-black ${
                                   dev.availability === 'Available' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                                 }`}>
-                                  {dev.availability === 'On Leave' ? 'في إجازة' : dev.availability === 'Busy' ? 'مشغول' : 'متاح'}
+                                  {dev.availability === 'On Leave' ? t('في إجازة') : dev.availability === 'Busy' ? t('مشغول') : t('متاح')}
                                 </span>
                               )}
                             </div>
@@ -238,7 +253,7 @@ export const DevTasks: React.FC = () => {
                                 value={task.status}
                                 className="px-1.5 py-0.5 bg-gray-50 border border-gray-100 rounded text-[9px] font-bold focus:outline-none"
                               >
-                                <option disabled value="">الحالة</option>
+                                <option disabled value="">{t('الحالة')}</option>
                                 <option value="To Do">To Do</option>
                                 <option value="In Progress">In Progress</option>
                                 <option value="Blocked">Blocked</option>
@@ -256,7 +271,7 @@ export const DevTasks: React.FC = () => {
                                   setIsTransferModalOpen(true);
                                 }}
                                 className="p-1 hover:bg-blue-50 text-blue-600 rounded transition-colors"
-                                title="تحويل المهمة لمطور آخر"
+                                title={t('نقل وإعادة تعيين المهمة')}
                               >
                                 <ArrowRightLeft className="w-3.5 h-3.5" />
                               </button>
@@ -268,7 +283,7 @@ export const DevTasks: React.FC = () => {
                         {task.status === 'Blocked' && (
                           <div className="mt-2 p-1.5 bg-red-50 border border-red-100 text-red-700 rounded text-[9px] flex items-start gap-1">
                             <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                            <span>عطل: {task.blockedDetails}</span>
+                            <span>{t('عطل:')} {task.blockedDetails}</span>
                           </div>
                         )}
                       </div>
@@ -276,7 +291,7 @@ export const DevTasks: React.FC = () => {
                   })}
                   {columnTasks.length === 0 && (
                     <div className="py-8 text-center text-[10px] text-gray-400 bg-white/20 border border-dashed border-gray-200 rounded-2xl">
-                      لا توجد مهام حالياً.
+                      {t('لا توجد مهام حالياً.')}
                     </div>
                   )}
                 </div>
@@ -290,13 +305,13 @@ export const DevTasks: React.FC = () => {
           <table className="w-full text-start text-xs border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100 text-gray-500 font-extrabold">
-                <th className="p-4 text-start">اسم المهمة</th>
-                <th className="p-4 text-start">الأولوية</th>
-                <th className="p-4 text-start">الحالة</th>
-                <th className="p-4 text-start">المسؤول</th>
-                <th className="p-4 text-start">تاريخ التسليم</th>
-                <th className="p-4 text-start">التقدير (ساعة)</th>
-                <th className="p-4 text-center">الإجراءات</th>
+                <th className="p-4 text-start">{t('اسم المهمة')}</th>
+                <th className="p-4 text-start">{t('الأولوية')}</th>
+                <th className="p-4 text-start">{t('الحالة')}</th>
+                <th className="p-4 text-start">{t('المسؤول')}</th>
+                <th className="p-4 text-start">{t('تاريخ التسليم')}</th>
+                <th className="p-4 text-start">{t('التقدير (ساعة)')}</th>
+                <th className="p-4 text-center">{t('الإجراءات')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -309,12 +324,12 @@ export const DevTasks: React.FC = () => {
                   </td>
                   <td className="p-4">
                     <span className={`px-2 py-0.5 rounded text-[9px] font-black ${getPrioColor(task.priority)}`}>
-                      {task.priority}
+                      {t(task.priority.toLowerCase())}
                     </span>
                   </td>
                   <td className="p-4">
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-700">
-                      {task.status}
+                      {t(task.status.toLowerCase())}
                     </span>
                   </td>
                   <td className="p-4 font-bold text-gray-700">{task.assigneeName}</td>
@@ -325,7 +340,7 @@ export const DevTasks: React.FC = () => {
                       onClick={() => navigate(`/dev/tasks/${task.id}`)}
                       className="px-2.5 py-1.5 bg-gray-50 hover:bg-red-50 text-gray-600 hover:text-red-600 rounded-lg text-[10px] font-bold"
                     >
-                      عرض التفاصيل
+                      {t('عرض التفاصيل')}
                     </button>
                   </td>
                 </tr>
@@ -342,7 +357,7 @@ export const DevTasks: React.FC = () => {
             <div className="px-5 py-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
               <span className="font-extrabold text-sm text-gray-900 flex items-center gap-2">
                 <CheckSquare className="w-4 h-4 text-red-600" />
-                إسناد مهمة برمجية جديدة
+                {t('إسناد مهمة برمجية جديدة')}
               </span>
               <button onClick={() => setIsCreateModalOpen(false)} className="text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
@@ -350,11 +365,11 @@ export const DevTasks: React.FC = () => {
             </div>
             <form onSubmit={handleCreateTask} className="p-5 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">اسم المهمة</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t('اسم المهمة')}</label>
                 <input
                   type="text"
                   required
-                  placeholder="مثال: برمجة شاشة التحقق بخطوتين"
+                  placeholder={t('مثال: برمجة شاشة التحقق بخطوتين')}
                   value={newTaskName}
                   onChange={(e) => setNewTaskName(e.target.value)}
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:ring-2 focus:ring-red-100 focus:outline-none"
@@ -362,14 +377,14 @@ export const DevTasks: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">المشروع البرمجي المرتبط</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t('المشروع البرمجي المرتبط')}</label>
                 <select
                   required
                   value={newTaskProject}
                   onChange={(e) => setNewTaskProject(e.target.value)}
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:ring-2 focus:ring-red-100 focus:outline-none"
                 >
-                  <option value="">اختر المشروع</option>
+                  <option value="">{t('اختر المشروع')}</option>
                   {projects.map(p => (
                     <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
@@ -377,34 +392,34 @@ export const DevTasks: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">تفاصيل ووصف المهمة</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t('تفاصيل ووصف المهمة')}</label>
                 <textarea
                   value={newTaskDesc}
                   onChange={(e) => setNewTaskDesc(e.target.value)}
-                  placeholder="وصف المطلوب للبرمجة والملاحظات الفنية..."
+                  placeholder={t('وصف المطلوب للبرمجة والملاحظات الفنية...')}
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:ring-2 focus:ring-red-100 focus:outline-none h-20"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">المطور المسؤول</label>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">{t('المطور المسؤول')}</label>
                   <select
                     value={newTaskAssignee}
                     onChange={(e) => setNewTaskAssignee(e.target.value)}
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:ring-2 focus:ring-red-100 focus:outline-none"
                   >
-                    <option value="">اختر المطور</option>
+                    <option value="">{t('اختر المطور')}</option>
                     {developers.map(dev => (
                       <option key={dev.id} value={dev.name}>
-                        {dev.name} ({dev.availability})
+                        {dev.name} ({dev.availability === 'On Leave' ? t('في إجازة') : dev.availability === 'Busy' ? t('مشغول') : t('متاح')})
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">الأولوية</label>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">{t('الأولوية')}</label>
                   <select
                     value={newTaskPriority}
                     onChange={(e) => setNewTaskPriority(e.target.value as any)}
@@ -418,7 +433,7 @@ export const DevTasks: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">ساعات العمل المقدرة (Est Hours)</label>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">{t('ساعات العمل المقدرة (Est Hours)')}</label>
                   <input
                     type="number"
                     value={newTaskHours}
@@ -428,7 +443,7 @@ export const DevTasks: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">تاريخ التسليم النهائي</label>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">{t('تاريخ التسليم النهائي')}</label>
                   <input
                     type="date"
                     value={newTaskDeadline}
@@ -444,13 +459,13 @@ export const DevTasks: React.FC = () => {
                   onClick={() => setIsCreateModalOpen(false)}
                   className="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-50"
                 >
-                  إلغاء
+                  {t('إلغاء')}
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow-md"
                 >
-                  إسناد وتكليف
+                  {t('إسناد وتكليف')}
                 </button>
               </div>
             </form>
@@ -465,7 +480,7 @@ export const DevTasks: React.FC = () => {
             <div className="px-5 py-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
               <span className="font-extrabold text-sm text-gray-900 flex items-center gap-2">
                 <ArrowRightLeft className="w-4 h-4 text-blue-600" />
-                نقل وإعادة تعيين المهمة
+                {t('نقل وإعادة تعيين المهمة')}
               </span>
               <button onClick={() => setIsTransferModalOpen(false)} className="text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
@@ -473,7 +488,7 @@ export const DevTasks: React.FC = () => {
             </div>
             <form onSubmit={handleTransferSubmit} className="p-5 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">المهمة المراد نقلها</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t('المهمة المراد نقلها')}</label>
                 <input
                   type="text"
                   disabled
@@ -483,33 +498,33 @@ export const DevTasks: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">المطور الجديد</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t('المطور الجديد')}</label>
                 <select
                   required
                   value={transferNewAssignee}
                   onChange={(e) => setTransferNewAssignee(e.target.value)}
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none"
                 >
-                  <option value="">اختر المطور الجديد</option>
+                  <option value="">{t('اختر المطور الجديد')}</option>
                   {developers.map(dev => (
                     <option key={dev.id} value={dev.name}>
-                      {dev.name} ({dev.availability})
+                      {dev.name} ({dev.availability === 'On Leave' ? t('في إجازة') : dev.availability === 'Busy' ? t('مشغول') : t('متاح')})
                     </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">سبب التحويل</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t('سبب التحويل')}</label>
                 <select
                   value={transferReason}
                   onChange={(e) => setTransferReason(e.target.value)}
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none"
                 >
-                  <option value="High Workload">ضغط عمل مرتفع (High Workload)</option>
-                  <option value="Developer Leave">إجازة سنوية / مرضية للمطور</option>
-                  <option value="Skill Requirement">تطلب مهارات فنية محددة</option>
-                  <option value="Priority Change">تغير في أولويات الإدارة</option>
+                  <option value="High Workload">{t('ضغط عمل مرتفع (High Workload)')}</option>
+                  <option value="Developer Leave">{t('إجازة سنوية / مرضية للمطور')}</option>
+                  <option value="Skill Requirement">{t('تطلب مهارات فنية محددة')}</option>
+                  <option value="Priority Change">{t('تغير في أولويات الإدارة')}</option>
                 </select>
               </div>
 
@@ -519,13 +534,13 @@ export const DevTasks: React.FC = () => {
                   onClick={() => setIsTransferModalOpen(false)}
                   className="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-50"
                 >
-                  إلغاء
+                  {t('إلغاء')}
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow-md"
                 >
-                  إتمام التحويل
+                  {t('إتمام التحويل')}
                 </button>
               </div>
             </form>
@@ -540,7 +555,7 @@ export const DevTasks: React.FC = () => {
             <div className="px-5 py-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
               <span className="font-extrabold text-sm text-red-600 flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4" />
-                تعطيل المهمة البرمجية (Block Task)
+                {t('تعطيل المهمة البرمجية (Block Task)')}
               </span>
               <button onClick={() => setIsBlockModalOpen(false)} className="text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
@@ -548,26 +563,26 @@ export const DevTasks: React.FC = () => {
             </div>
             <form onSubmit={handleBlockSubmit} className="p-5 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">سبب التعطيل الرئيسي</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t('سبب التعطيل الرئيسي')}</label>
                 <select
                   value={blockedReason}
                   onChange={(e) => setBlockedReason(e.target.value as any)}
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none"
                 >
-                  <option value="Waiting For Design">في انتظار تصاميم UI/UX</option>
-                  <option value="Waiting For API">في انتظار واجهة برمجة التطبيقات (API)</option>
-                  <option value="Waiting For Approval">في انتظار اعتماد الإدارة المالية/العامة</option>
-                  <option value="Waiting For Requirements">توضيح متطلبات العميل</option>
-                  <option value="External Dependency">اعتماد على جهة خارجية (External)</option>
-                  <option value="Other">أسباب فنية أخرى</option>
+                  <option value="Waiting For Design">{t('في انتظار تصاميم UI/UX')}</option>
+                  <option value="Waiting For API">{t('في انتظار واجهة برمجة التطبيقات (API)')}</option>
+                  <option value="Waiting For Approval">{t('في انتظار اعتماد الإدارة المالية/العامة')}</option>
+                  <option value="Waiting For Requirements">{t('توضيح متطلبات العميل')}</option>
+                  <option value="External Dependency">{t('اعتماد على جهة خارجية (External)')}</option>
+                  <option value="Other">{t('أسباب فنية أخرى')}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">وصف تفصيلي للتعطيل</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t('وصف تفصيلي للتعطيل')}</label>
                 <textarea
                   required
-                  placeholder="اكتب بالتفصيل المشكلة لحل التعطيل..."
+                  placeholder={t('اكتب بالتفصيل المشكلة لحل التعطيل...')}
                   value={blockedDetails}
                   onChange={(e) => setBlockedDetails(e.target.value)}
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:ring-2 focus:ring-red-100 focus:outline-none h-20"
@@ -580,13 +595,13 @@ export const DevTasks: React.FC = () => {
                   onClick={() => setIsBlockModalOpen(false)}
                   className="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-50"
                 >
-                  إلغاء
+                  {t('إلغاء')}
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow-md"
                 >
-                  تأكيد التعطيل
+                  {t('تأكيد التعطيل')}
                 </button>
               </div>
             </form>

@@ -167,7 +167,23 @@ const resources = {
       dragOrSelectPdf: "Select PDF report file...",
       successUpload: "Report uploaded successfully!",
       errorPdfOnly: "Please select a PDF file only!",
-      resetFilters: "Reset Filters"
+      resetFilters: "Reset Filters",
+      
+      // Dev and Training Module Navigation
+      trainingNav: "Training & Education",
+      devDeptNav: "Software Development",
+      clientPortalNav: "Client Portal",
+      devDashboard: "Dashboard",
+      devProjects: "Projects",
+      devTasks: "Tasks",
+      devTeams: "Teams",
+      devWorkload: "Workload",
+      devBugs: "Bugs",
+      devChangeRequests: "Change Requests",
+      devReports: "Reports",
+      devDeveloperDashboard: "Developer Dashboard",
+      devProjectProgress: "Project Progress",
+      settingsNav: "Settings"
     }
   },
   ar: {
@@ -334,7 +350,23 @@ const resources = {
       dragOrSelectPdf: "اختر ملف التقرير بصيغة PDF...",
       successUpload: "تم رفع التقرير بنجاح!",
       errorPdfOnly: "يرجى اختيار ملف PDF فقط!",
-      resetFilters: "إعادة ضبط التصفية"
+      resetFilters: "إعادة ضبط التصفية",
+      
+      // Dev and Training Module Navigation
+      trainingNav: "التدريب والتعليم",
+      devDeptNav: "تطوير البرمجيات",
+      clientPortalNav: "بوابة العميل",
+      devDashboard: "لوحة التحكم",
+      devProjects: "المشاريع",
+      devTasks: "المهام",
+      devTeams: "الفرق",
+      devWorkload: "ضغط العمل",
+      devBugs: "الأخطاء والبلاغات",
+      devChangeRequests: "طلبات التعديل",
+      devReports: "التقارير",
+      devDeveloperDashboard: "لوحة المطور",
+      devProjectProgress: "متابعة المشروع",
+      settingsNav: "الإعدادات"
     }
   }
 };
