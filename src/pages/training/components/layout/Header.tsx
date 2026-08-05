@@ -6,20 +6,19 @@ interface HeaderProps {
 }
 
 const pillRoles: { role: Role; label: string }[] = [
-  { role: 'recruiter', label: 'لوحة تحكم التوظيف' },
-  { role: 'instructor', label: 'مساحة عمل المدرب' },
+  { role: 'instructor', label: 'جدول المحاضرات للانستراكتور' },
   { role: 'student', label: 'بوابة الطالب التعليمية' },
   { role: 'admin', label: 'الرواتب والإحصائيات' },
 ];
 
 const roleLabelMap: Record<Role, { en: string; ar: string }> = {
-  recruiter: { en: 'RECRUITER DASHBOARD', ar: 'لوحة تحكم التوظيف' },
-  instructor: { en: 'INSTRUCTOR PORTAL', ar: 'بوابة المدرب التعليمية' },
+  recruiter: { en: 'INSTRUCTOR SCHEDULE', ar: 'جدول المحاضرات للانستراكتور' },
+  instructor: { en: 'INSTRUCTOR SCHEDULE', ar: 'جدول المحاضرات للانستراكتور' },
   student: { en: 'STUDENT PORTAL', ar: 'بوابة الطالب' },
   admin: { en: 'FINANCE & ADMIN', ar: 'الرواتب والإحصائيات' },
 };
 
-export default function Header({ onOpenApplicationModal }: HeaderProps) {
+export default function Header({ onOpenApplicationModal: _onOpenApplicationModal }: HeaderProps) {
   const { role, lang, switchRole, toggleLang } = useApp();
 
   return (
@@ -46,13 +45,6 @@ export default function Header({ onOpenApplicationModal }: HeaderProps) {
 
       {/* Right controls */}
       <div className="flex items-center gap-3">
-        <button
-          onClick={onOpenApplicationModal}
-          className="bg-amber-50 text-amber-700 border border-amber-300 hover:bg-amber-100 px-4 py-2 rounded-xl text-xs font-extrabold transition-all shadow-sm animate-pulse"
-        >
-          إدارة التوظيف
-        </button>
-
         <button
           onClick={toggleLang}
           className="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl font-extrabold text-xs transition-all shadow-md shadow-brand-500/20 flex items-center gap-1.5"

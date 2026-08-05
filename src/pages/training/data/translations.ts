@@ -5,8 +5,8 @@ export const translations: Record<Lang, Record<string, string>> = {
     navRecruitment: "Recruitment Mgmt",
     roleRecruiterTitle: "Recruiter Dashboard",
     newApplicationTitle: "Instructors Application",
-    navInstructor: "Instructor Portal",
-    instructorWorkspace: "Instructor Workspace",
+    navInstructor: "Instructor Schedule",
+    instructorWorkspace: "Instructor Lectures Schedule",
     navStudents: "Student Affairs",
     studentPortal: "Student Portal",
     navFinance: "Financial System",
@@ -190,8 +190,8 @@ export const translations: Record<Lang, Record<string, string>> = {
     navRecruitment: "إدارة التوظيف",
     roleRecruiterTitle: "لوحة تحكم التوظيف",
     newApplicationTitle: "نموذج تقديم المدربين",
-    navInstructor: "بوابة المدرب",
-    instructorWorkspace: "مساحة عمل المدرب",
+    navInstructor: "جدول المحاضرات",
+    instructorWorkspace: "جدول المحاضرات للانستراكتور",
     navStudents: "شؤون الطلاب",
     studentPortal: "بوابة الطالب التعليمية",
     navFinance: "النظام المالي",
@@ -368,7 +368,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     "سنة إلى سنتين": "سنة إلى سنتين",
     "الرواتب والإحصائيات": "الرواتب والإحصائيات",
     "بوابة الطالب التعليمية": "بوابة الطالب التعليمية",
-    "مساحة عمل المدرب": "مساحة عمل المدرب",
+    "مساحة عمل المدرب": "جدول المحاضرات للانستراكتور",
     "لوحة تحكم التوظيف": "لوحة تحكم التوظيف"
   }
 };

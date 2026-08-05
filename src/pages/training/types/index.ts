@@ -36,6 +36,32 @@ export interface ToastItem {
   hasUndo: boolean;
 }
 
+export interface SharedLecture {
+  id: string;
+  courseName: string;
+  topic: string;
+  batch: string;
+  instructorName: string;
+  date: string;
+  time: string;
+  type: 'online' | 'in_person';
+  location: string;
+  studentsCount: number;
+  status: 'live' | 'upcoming' | 'completed';
+}
+
+export interface SharedGroup {
+  id: string;
+  groupName: string;
+  courseName: string;
+  instructorName: string;
+  studentsCount: number;
+  schedule: string;
+  location: string;
+  type: 'online' | 'in_person';
+  status: 'active' | 'upcoming' | 'completed';
+}
+
 export interface AppState {
   currentRole: Role;
   currentLang: Lang;

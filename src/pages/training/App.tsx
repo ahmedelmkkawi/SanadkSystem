@@ -4,8 +4,6 @@ import Sidebar from './components/layout/Sidebar';
 import Header from './components/layout/Header';
 import ToastContainer from './components/ui/ToastContainer';
 
-// Dashboards
-import RecruiterDashboard from './components/views/RecruiterDashboard';
 import InstructorDashboard from './components/views/InstructorDashboard';
 import StudentDashboard from './components/views/StudentDashboard';
 import AdminDashboard from './components/views/AdminDashboard';
@@ -26,8 +24,6 @@ export default function App() {
 
   const renderDashboard = () => {
     switch (role) {
-      case 'recruiter':
-        return <RecruiterDashboard onSchedule={name => setScheduleModalData({ isOpen: true, name })} />;
       case 'instructor':
         return <InstructorDashboard />;
       case 'student':
@@ -40,7 +36,7 @@ export default function App() {
       case 'admin':
         return <AdminDashboard />;
       default:
-        return <RecruiterDashboard onSchedule={name => setScheduleModalData({ isOpen: true, name })} />;
+        return <InstructorDashboard />;
     }
   };
 

@@ -7,7 +7,7 @@ interface StudentDashboardProps {
 }
 
 export default function StudentDashboard({ sessionRatings, onOpenRatingModal }: StudentDashboardProps) {
-  const { showToast, pushToUndoStack, lang, t } = useApp();
+  const { showToast, pushToUndoStack, lang, t, sharedLectures } = useApp();
   const [scheduleView, setScheduleView] = useState<'weekly' | 'monthly'>('weekly');
   const [lectureAttendance, setLectureAttendance] = useState<Record<number, 'online' | 'offline' | 'completed' | null>>({
     0: 'online',
@@ -123,6 +123,63 @@ export default function StudentDashboard({ sessionRatings, onOpenRatingModal }: 
 
   return (
     <div className={`space-y-6 animate-fade-in ${lang === 'ar' ? 'text-right' : 'text-left'}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      {/* Student Enrolled Course & Instructor Alignment Card */}
+      <div className="bg-gradient-to-r from-zinc-900 via-gray-900 to-brand-950 text-white rounded-2xl p-6 shadow-md border border-gray-800 space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-800 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-brand-500/20 border border-brand-500/40 flex items-center justify-center text-brand-400 font-black text-xl shadow-inner">
+              🎓
+            </div>
+            <div>
+              <span className="bg-brand-500/20 text-brand-300 border border-brand-500/30 text-[11px] px-2.5 py-0.5 rounded-full font-bold">
+                {lang === 'ar' ? 'بيانات الطالب والدورة المسجل بها' : 'Enrolled Student Profile'}
+              </span>
+              <h2 className="text-lg font-black text-white mt-1">
+                {lang === 'ar' ? 'تطوير تطبيقات Web (React.js)' : 'Web Development (React.js)'}
+              </h2>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 bg-gray-800/80 px-4 py-2 rounded-xl border border-gray-700">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="text-xs font-bold text-gray-200">
+              {lang === 'ar' ? 'حالة القيد: مستمر بالدراسة' : 'Status: Active Student'}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs pt-1">
+          <div className="bg-gray-800/50 border border-gray-700/60 rounded-xl p-3.5 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-purple-500/20 text-purple-300 flex items-center justify-center text-base font-bold">
+              👨‍🏫
+            </div>
+            <div>
+              <span className="text-gray-400 block text-[11px] font-medium">{lang === 'ar' ? 'المحاضر المسؤول:' : 'Assigned Instructor:'}</span>
+              <span className="font-extrabold text-white text-sm">خالد أحمد</span>
+            </div>
+          </div>
+
+          <div className="bg-gray-800/50 border border-gray-700/60 rounded-xl p-3.5 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-blue-500/20 text-blue-300 flex items-center justify-center text-base font-bold">
+              👥
+            </div>
+            <div>
+              <span className="text-gray-400 block text-[11px] font-medium">{lang === 'ar' ? 'الدفعة والمجموعة:' : 'Group / Batch:'}</span>
+              <span className="font-extrabold text-white text-sm">الدفعة 14 — مجموعة أ</span>
+            </div>
+          </div>
+
+          <div className="bg-gray-800/50 border border-gray-700/60 rounded-xl p-3.5 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-base font-bold">
+              📅
+            </div>
+            <div>
+              <span className="text-gray-400 block text-[11px] font-medium">{lang === 'ar' ? 'مواعيد المحاضرات:' : 'Class Schedule:'}</span>
+              <span className="font-extrabold text-white text-sm">الأحد والأربعاء (06:00 م)</span>
+            </div>
+          </div>
+        </div>
+      </div>
       {/* Top Section: Progress & General Attendance Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Progress Card */}
@@ -225,184 +282,70 @@ export default function StudentDashboard({ sessionRatings, onOpenRatingModal }: 
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {/* Lecture 0 */}
-                <tr className="hover:bg-gray-50 transition-colors">
+              {sharedLectures.map((lec, idx) => (
+                <tr key={lec.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-5 py-4">
                     <div className="w-12 h-12 rounded-xl bg-brand-50 flex flex-col items-center justify-center">
-                      <span className="text-brand-600 text-[10px] font-bold">{t('يوليو')}</span>
-                      <span className="text-brand-600 text-base font-black leading-none">01</span>
+                      <span className="text-brand-600 text-[10px] font-bold">{lec.date}</span>
+                      <span className="text-brand-600 text-xs font-black leading-none">{lec.time.split(' ')[0]}</span>
                     </div>
                   </td>
                   <td className="px-5 py-4">
-                    <p className="font-bold text-gray-900 text-sm">React State Management</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{t('الوحدة الثانية')}</p>
+                    <p className="font-bold text-gray-900 text-sm">{lec.topic}</p>
+                    <p className="text-xs text-brand-600 font-semibold mt-0.5">{lec.courseName} — {lec.batch}</p>
                   </td>
-                  <td className="px-5 py-4 text-gray-600 font-medium text-sm">{t('أ. خالد')}</td>
-                  <td className="px-5 py-4 text-gray-500 text-xs font-semibold">{t('8:00 - 10:00 م')}</td>
+                  <td className="px-5 py-4 text-gray-800 font-bold text-sm">
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-purple-600"></span>
+                      <span>{lec.instructorName}</span>
+                    </span>
+                  </td>
+                  <td className="px-5 py-4 text-gray-500 text-xs font-semibold">{lec.time}</td>
                   <td className="px-5 py-4">
-                    {lectureAttendance[0] === 'online' ? (
+                    {lectureAttendance[idx] === 'online' ? (
                       <div className="flex flex-col items-center">
                         <div className="flex gap-1 justify-center">
-                          <button onClick={() => setAttendanceType(0, 'online')} className="px-3 py-1.5 rounded-lg text-xs font-bold border-2 border-blue-400 bg-blue-100 text-blue-700">🌐 {t('أونلاين')}</button>
-                          <button onClick={() => setAttendanceType(0, 'offline')} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500">🏛 {t('حضوري')}</button>
+                          <button onClick={() => setAttendanceType(idx, 'online')} className="px-3 py-1.5 rounded-lg text-xs font-bold border-2 border-blue-400 bg-blue-100 text-blue-700">🌐 {t('أونلاين')}</button>
+                          <button onClick={() => setAttendanceType(idx, 'offline')} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500">🏛 {t('حضوري')}</button>
                         </div>
                         <span className="text-center text-[10px] mt-1 font-semibold text-blue-600">✓ {t('أونلاين')}</span>
                       </div>
-                    ) : lectureAttendance[0] === 'offline' ? (
+                    ) : lectureAttendance[idx] === 'offline' ? (
                       <div className="flex flex-col items-center">
                         <div className="flex gap-1 justify-center">
-                          <button onClick={() => setAttendanceType(0, 'online')} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500">🌐 {t('أونلاين')}</button>
-                          <button onClick={() => setAttendanceType(0, 'offline')} className="px-3 py-1.5 rounded-lg text-xs font-bold border-2 border-emerald-400 bg-emerald-100 text-emerald-700">🏛 {t('حضوري')}</button>
+                          <button onClick={() => setAttendanceType(idx, 'online')} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500">🌐 {t('أونلاين')}</button>
+                          <button onClick={() => setAttendanceType(idx, 'offline')} className="px-3 py-1.5 rounded-lg text-xs font-bold border-2 border-emerald-400 bg-emerald-100 text-emerald-700">🏛 {t('حضوري')}</button>
                         </div>
                         <span className="text-center text-[10px] mt-1 font-semibold text-emerald-600">✓ {t('حضوري')}</span>
                       </div>
                     ) : (
                       <div className="flex gap-1.5 justify-center">
-                        <button onClick={() => setAttendanceType(0, 'online')} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500 hover:bg-blue-50 hover:text-blue-600">🌐 {t('أونلاين')}</button>
-                        <button onClick={() => setAttendanceType(0, 'offline')} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100">🏛 {t('حضوري')}</button>
+                        <button onClick={() => setAttendanceType(idx, 'online')} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500 hover:bg-blue-50 hover:text-blue-600">🌐 {t('أونلاين')}</button>
+                        <button onClick={() => setAttendanceType(idx, 'offline')} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100">🏛 {t('حضوري')}</button>
                       </div>
                     )}
                   </td>
                   <td className="px-5 py-4 text-center">
-                    <button onClick={() => joinSession(0)} className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg font-bold text-xs transition-all shadow-md shadow-brand-600/20">{t('انضمام')}</button>
+                    {lec.status === 'live' ? (
+                      <button onClick={() => joinSession(idx)} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-extrabold text-xs transition-all shadow-md shadow-red-600/20 animate-pulse flex items-center gap-1 mx-auto">
+                        <span className="w-2 h-2 rounded-full bg-white"></span>
+                        <span>{t('انضمام للبث')}</span>
+                      </button>
+                    ) : lec.status === 'upcoming' ? (
+                      <button onClick={() => joinSession(idx)} className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg font-bold text-xs transition-all shadow-md shadow-brand-600/20">{t('انضمام')}</button>
+                    ) : (
+                      <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1.5 rounded-lg font-bold">{t('مكتملة')}</span>
+                    )}
                   </td>
                   <td className="px-5 py-4 text-center">
-                    {sessionRatings['0'] ? (
-                      <span className="text-xs text-amber-500 font-bold bg-amber-50 px-2 py-1 rounded">⭐ {sessionRatings['0']}/5</span>
+                    {sessionRatings[String(idx)] ? (
+                      <span className="text-xs text-amber-500 font-bold bg-amber-50 px-2 py-1 rounded">⭐ {sessionRatings[String(idx)]}/5</span>
                     ) : (
-                      <button onClick={() => onOpenRatingModal('React State Management', '0')} className="text-brand-600 hover:text-brand-700 text-xs font-bold flex items-center gap-1 mx-auto">{t('تقييم')}</button>
+                      <button onClick={() => onOpenRatingModal(lec.topic, String(idx))} className="text-brand-600 hover:text-brand-700 text-xs font-bold flex items-center gap-1 mx-auto">{t('تقييم')}</button>
                     )}
                   </td>
                 </tr>
-
-                {/* Lecture 1 */}
-                <tr className="hover:bg-gray-50 transition-colors">
-                  <td className="px-5 py-4">
-                    <div className="w-12 h-12 rounded-xl bg-blue-50 flex flex-col items-center justify-center">
-                      <span className="text-blue-500 text-[10px] font-bold">{t('يوليو')}</span>
-                      <span className="text-blue-500 text-base font-black leading-none">03</span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4">
-                    <p className="font-bold text-gray-900 text-sm">API Integration & Data Fetching</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{t('الوحدة الثالثة')}</p>
-                  </td>
-                  <td className="px-5 py-4 text-gray-600 font-medium text-sm">{t('أ. خالد')}</td>
-                  <td className="px-5 py-4 text-gray-500 text-xs font-semibold">{t('8:00 - 10:00 م')}</td>
-                  <td className="px-5 py-4">
-                    {lectureAttendance[1] === 'online' ? (
-                      <div className="flex flex-col items-center">
-                        <div className="flex gap-1 justify-center">
-                          <button onClick={() => setAttendanceType(1, 'online')} className="px-3 py-1.5 rounded-lg text-xs font-bold border-2 border-blue-400 bg-blue-100 text-blue-700">🌐 {t('أونلاين')}</button>
-                          <button onClick={() => setAttendanceType(1, 'offline')} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500">🏛 {t('حضوري')}</button>
-                        </div>
-                        <span className="text-center text-[10px] mt-1 font-semibold text-blue-600">✓ {t('أونلاين')}</span>
-                      </div>
-                    ) : lectureAttendance[1] === 'offline' ? (
-                      <div className="flex flex-col items-center">
-                        <div className="flex gap-1 justify-center">
-                          <button onClick={() => setAttendanceType(1, 'online')} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500">🌐 {t('أونلاين')}</button>
-                          <button onClick={() => setAttendanceType(1, 'offline')} className="px-3 py-1.5 rounded-lg text-xs font-bold border-2 border-emerald-400 bg-emerald-100 text-emerald-700">🏛 {t('حضوري')}</button>
-                        </div>
-                        <span className="text-center text-[10px] mt-1 font-semibold text-emerald-600">✓ {t('حضوري')}</span>
-                      </div>
-                    ) : (
-                      <div className="flex gap-1.5 justify-center">
-                        <button onClick={() => setAttendanceType(1, 'online')} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500 hover:bg-blue-50 hover:text-blue-600">🌐 {t('أونلاين')}</button>
-                        <button onClick={() => setAttendanceType(1, 'offline')} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100">🏛 {t('حضوري')}</button>
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-5 py-4 text-center">
-                    <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1.5 rounded-lg font-semibold">{t('قريباً')}</span>
-                  </td>
-                  <td className="px-5 py-4 text-center">
-                    {sessionRatings['1'] ? (
-                      <span className="text-xs text-amber-500 font-bold bg-amber-50 px-2 py-1 rounded">⭐ {sessionRatings['1']}/5</span>
-                    ) : (
-                      <button onClick={() => onOpenRatingModal('API Integration & Data Fetching', '1')} className="text-brand-600 hover:text-brand-700 text-xs font-bold flex items-center gap-1 mx-auto">{t('تقييم')}</button>
-                    )}
-                  </td>
-                </tr>
-
-                {/* Lecture 2 */}
-                <tr className="hover:bg-gray-50 transition-colors">
-                  <td className="px-5 py-4">
-                    <div className="w-12 h-12 rounded-xl bg-emerald-50 flex flex-col items-center justify-center">
-                      <span className="text-emerald-500 text-[10px] font-bold">{t('يونيو')}</span>
-                      <span className="text-emerald-500 text-base font-black leading-none">28</span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4">
-                    <p className="font-bold text-gray-900 text-sm">React Fundamentals & JSX</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{t('الوحدة الأولى')}</p>
-                  </td>
-                  <td className="px-5 py-4 text-gray-600 font-medium text-sm">{t('أ. خالد')}</td>
-                  <td className="px-5 py-4 text-gray-500 text-xs font-semibold">{t('8:00 - 10:00 م')}</td>
-                  <td className="px-5 py-4 text-center">
-                    <span className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg font-semibold">✓ {t('تمت')} ({t('أونلاين')})</span>
-                  </td>
-                  <td className="px-5 py-4 text-center">
-                    <span className="text-xs text-emerald-600 bg-emerald-50 px-3.5 py-2 rounded-xl font-bold">{t('مكتملة')}</span>
-                  </td>
-                  <td className="px-5 py-4 text-center">
-                    {sessionRatings['2'] ? (
-                      <span className="text-xs text-amber-500 font-bold bg-amber-50 px-2 py-1 rounded">⭐ {sessionRatings['2']}/5</span>
-                    ) : (
-                      <button onClick={() => onOpenRatingModal('React Fundamentals & JSX', '2')} className="text-brand-600 hover:text-brand-700 text-xs font-bold flex items-center gap-1 mx-auto">{t('تقييم')}</button>
-                    )}
-                  </td>
-                </tr>
-
-                {/* Lecture 3 */}
-                <tr className="hover:bg-gray-50 transition-colors">
-                  <td className="px-5 py-4">
-                    <div className="w-12 h-12 rounded-xl bg-purple-50 flex flex-col items-center justify-center">
-                      <span className="text-purple-500 text-[10px] font-bold">{t('يوليو')}</span>
-                      <span className="text-purple-500 text-base font-black leading-none">07</span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4">
-                    <p className="font-bold text-gray-900 text-sm">React Hooks & Context API</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{t('الوحدة الرابعة')}</p>
-                  </td>
-                  <td className="px-5 py-4 text-gray-600 font-medium text-sm">{t('أ. خالد')}</td>
-                  <td className="px-5 py-4 text-gray-500 text-xs font-semibold">{t('8:00 - 10:00 م')}</td>
-                  <td className="px-5 py-4">
-                    {lectureAttendance[3] === 'online' ? (
-                      <div className="flex flex-col items-center">
-                        <div className="flex gap-1 justify-center">
-                          <button onClick={() => setAttendanceType(3, 'online')} className="px-3 py-1.5 rounded-lg text-xs font-bold border-2 border-blue-400 bg-blue-100 text-blue-700">🌐 {t('أونلاين')}</button>
-                          <button onClick={() => setAttendanceType(3, 'offline')} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500">🏛 {t('حضوري')}</button>
-                        </div>
-                        <span className="text-center text-[10px] mt-1 font-semibold text-blue-600">✓ {t('أونلاين')}</span>
-                      </div>
-                    ) : lectureAttendance[3] === 'offline' ? (
-                      <div className="flex flex-col items-center">
-                        <div className="flex gap-1 justify-center">
-                          <button onClick={() => setAttendanceType(3, 'online')} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500">🌐 {t('أونلاين')}</button>
-                          <button onClick={() => setAttendanceType(3, 'offline')} className="px-3 py-1.5 rounded-lg text-xs font-bold border-2 border-emerald-400 bg-emerald-100 text-emerald-700">🏛 {t('حضوري')}</button>
-                        </div>
-                        <span className="text-center text-[10px] mt-1 font-semibold text-emerald-600">✓ {t('حضوري')}</span>
-                      </div>
-                    ) : (
-                      <div className="flex gap-1.5 justify-center">
-                        <button onClick={() => setAttendanceType(3, 'online')} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500 hover:bg-blue-50 hover:text-blue-600">🌐 {t('أونلاين')}</button>
-                        <button onClick={() => setAttendanceType(3, 'offline')} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100">🏛 {t('حضوري')}</button>
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-5 py-4 text-center">
-                    <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1.5 rounded-lg font-semibold">{t('قريباً')}</span>
-                  </td>
-                  <td className="px-5 py-4 text-center">
-                    {sessionRatings['3'] ? (
-                      <span className="text-xs text-amber-500 font-bold bg-amber-50 px-2 py-1 rounded">⭐ {sessionRatings['3']}/5</span>
-                    ) : (
-                      <button onClick={() => onOpenRatingModal('React Hooks & Context API', '3')} className="text-brand-600 hover:text-brand-700 text-xs font-bold flex items-center gap-1 mx-auto">{t('تقييم')}</button>
-                    )}
-                  </td>
-                </tr>
+              ))}
               </tbody>
             </table>
           </div>

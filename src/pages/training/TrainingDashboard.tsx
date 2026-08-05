@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAppSelector } from '../../store';
 import { useApp } from './context/AppContext';
-import RecruiterDashboard from './components/views/RecruiterDashboard';
 import InstructorDashboard from './components/views/InstructorDashboard';
 import StudentDashboard from './components/views/StudentDashboard';
 import AdminDashboard from './components/views/AdminDashboard';
@@ -29,8 +28,8 @@ export const TrainingDashboard: React.FC = () => {
     } else if (activeUserRole === 'Student') {
       switchRole('student');
     } else if (activeUserRole === 'Training Manager') {
-      // Default to recruiter for Training Manager
-      switchRole('recruiter');
+      // Default to instructor schedule for Training Manager
+      switchRole('instructor');
     }
   }, [activeUserRole, switchRole]);
 
@@ -38,11 +37,9 @@ export const TrainingDashboard: React.FC = () => {
   const renderDashboard = () => {
     const targetRole = (activeUserRole === 'CEO' || activeUserRole === 'Training Manager') 
       ? ctxRole 
-      : (activeUserRole === 'Instructor' ? 'instructor' : (activeUserRole === 'Student' ? 'student' : 'recruiter'));
+      : (activeUserRole === 'Instructor' ? 'instructor' : (activeUserRole === 'Student' ? 'student' : 'instructor'));
 
     switch (targetRole) {
-      case 'recruiter':
-        return <RecruiterDashboard onSchedule={name => setScheduleModalData({ isOpen: true, name })} />;
       case 'instructor':
         return <InstructorDashboard />;
       case 'student':
@@ -55,7 +52,7 @@ export const TrainingDashboard: React.FC = () => {
       case 'admin':
         return <AdminDashboard />;
       default:
-        return <RecruiterDashboard onSchedule={name => setScheduleModalData({ isOpen: true, name })} />;
+        return <InstructorDashboard />;
     }
   };
 
@@ -75,7 +72,6 @@ export const TrainingDashboard: React.FC = () => {
           </div>
           <div className="flex flex-wrap gap-2">
             {[
-              { role: 'recruiter', labelKey: 'roleRecruiterTitle' },
               { role: 'instructor', labelKey: 'instructorWorkspace' },
               { role: 'student', labelKey: 'studentPortal' },
               { role: 'admin', labelKey: 'financeStats' }
@@ -92,12 +88,6 @@ export const TrainingDashboard: React.FC = () => {
                 {t(p.labelKey)}
               </button>
             ))}
-            <button
-              onClick={() => setIsAppModalOpen(true)}
-              className="bg-amber-50 text-amber-700 border border-amber-300 hover:bg-amber-100 px-4 py-2 rounded-xl text-xs font-extrabold transition-all shadow-sm"
-            >
-              {t('submitNewApp')}
-            </button>
           </div>
         </div>
       )}

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Role, Lang, ToastItem, Applicant, Instructor } from '../types';
+import type { Role, Lang, ToastItem, Applicant, Instructor, SharedLecture, SharedGroup } from '../types';
 import { initialApplicants, initialInstructors } from '../data/initialData';
 import { translations } from '../data/translations';
 
@@ -8,11 +8,115 @@ interface UndoAction {
   restore: () => void;
 }
 
+const initialSharedLectures: SharedLecture[] = [
+  {
+    id: 'lec-1',
+    courseName: 'تطوير تطبيقات Web (React.js)',
+    topic: 'المحاضرة 08: إدارة الحالة عبر Redux Toolkit & RTK Query',
+    batch: 'الدفعة 14 — مجموعة أ',
+    instructorName: 'خالد أحمد',
+    date: '2026-08-03',
+    time: '06:00 م - 08:30 م',
+    type: 'online',
+    location: 'Zoom Meeting Room #482',
+    studentsCount: 32,
+    status: 'live'
+  },
+  {
+    id: 'lec-2',
+    courseName: 'تطوير تطبيقات Web (React.js)',
+    topic: 'المحاضرة 09: الربط مع REST APIs والتعامل مع Axios',
+    batch: 'الدفعة 14 — مجموعة أ',
+    instructorName: 'خالد أحمد',
+    date: '2026-08-05',
+    time: '06:00 م - 08:30 م',
+    type: 'online',
+    location: 'Zoom Meeting Room #482',
+    studentsCount: 32,
+    status: 'upcoming'
+  },
+  {
+    id: 'lec-3',
+    courseName: 'تطبيقات الهاتف (Flutter)',
+    topic: 'المحاضرة 04: بناء واجهات المستخدم والتجاوب UI/UX',
+    batch: 'الدفعة 09 — مجموعة ب',
+    instructorName: 'مريم حسن',
+    date: '2026-08-06',
+    time: '04:00 م - 07:00 م',
+    type: 'in_person',
+    location: 'مقر الأكاديمية — قاعة 3B',
+    studentsCount: 24,
+    status: 'upcoming'
+  },
+  {
+    id: 'lec-4',
+    courseName: 'أساسيات البرمجة (Python)',
+    topic: 'المحاضرة 12: البرمجة كائنية التوجه OOP & Inheritance',
+    batch: 'الدفعة 21 — المكثفة',
+    instructorName: 'عمر فاروق',
+    date: '2026-08-01',
+    time: '05:00 م - 07:30 م',
+    type: 'online',
+    location: 'Teams Meeting Room #104',
+    studentsCount: 31,
+    status: 'completed'
+  }
+];
+
+const initialSharedGroups: SharedGroup[] = [
+  {
+    id: 'grp-1',
+    groupName: 'الدفعة 14 — مجموعة أ',
+    courseName: 'تطوير تطبيقات Web (React.js)',
+    instructorName: 'خالد أحمد',
+    studentsCount: 32,
+    schedule: 'الأحد والأربعاء (06:00 م - 08:30 م)',
+    location: 'Zoom Meeting Room #482',
+    type: 'online',
+    status: 'active'
+  },
+  {
+    id: 'grp-2',
+    groupName: 'الدفعة 09 — مجموعة ب',
+    courseName: 'تطبيقات الهاتف (Flutter)',
+    instructorName: 'مريم حسن',
+    studentsCount: 24,
+    schedule: 'الإثنين والخميس (04:00 م - 07:00 م)',
+    location: 'مقر الأكاديمية — قاعة 3B',
+    type: 'in_person',
+    status: 'active'
+  },
+  {
+    id: 'grp-3',
+    groupName: 'الدفعة 21 — المكثفة',
+    courseName: 'أساسيات البرمجة (Python)',
+    instructorName: 'عمر فاروق',
+    studentsCount: 31,
+    schedule: 'السبت والثلاثاء (05:00 م - 07:30 م)',
+    location: 'Teams Meeting Room #104',
+    type: 'online',
+    status: 'completed'
+  },
+  {
+    id: 'grp-4',
+    groupName: 'الدفعة 15 — مجموعة ج',
+    courseName: 'تطوير تطبيقات Web (React.js)',
+    instructorName: 'أحمد المصري',
+    studentsCount: 28,
+    schedule: 'السبت والأربعاء (07:00 م - 09:30 م)',
+    location: 'Zoom Meeting Room #501',
+    type: 'online',
+    status: 'upcoming'
+  }
+];
+
 interface AppContextType {
   role: Role;
   lang: Lang;
   applicants: Applicant[];
   instructors: Instructor[];
+  sharedLectures: SharedLecture[];
+  sharedGroups: SharedGroup[];
   toasts: ToastItem[];
   undoStack: UndoAction | null;
   t: (key: string) => string;
@@ -20,6 +124,8 @@ interface AppContextType {
   toggleLang: () => void;
   setApplicants: React.Dispatch<React.SetStateAction<Applicant[]>>;
   setInstructors: React.Dispatch<React.SetStateAction<Instructor[]>>;
+  setSharedLectures: React.Dispatch<React.SetStateAction<SharedLecture[]>>;
+  setSharedGroups: React.Dispatch<React.SetStateAction<SharedGroup[]>>;
   showToast: (message: string, type: ToastItem['type'], hasUndo?: boolean) => void;
   removeToast: (id: number) => void;
   pushToUndoStack: (restore: () => void) => void;
@@ -31,9 +137,11 @@ const AppContext = createContext<AppContextType | null>(null);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const { i18n } = useTranslation();
   const lang: Lang = i18n.language?.startsWith('en') ? 'en' : 'ar';
-  const [role, setRole] = useState<Role>('recruiter');
+  const [role, setRole] = useState<Role>('instructor');
   const [applicants, setApplicants] = useState<Applicant[]>(initialApplicants);
   const [instructors, setInstructors] = useState<Instructor[]>(initialInstructors);
+  const [sharedLectures, setSharedLectures] = useState<SharedLecture[]>(initialSharedLectures);
+  const [sharedGroups, setSharedGroups] = useState<SharedGroup[]>(initialSharedGroups);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const undoStackRef = useRef<UndoAction | null>(null);
   const [, forceUpdate] = useState(0);
@@ -110,10 +218,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AppContext.Provider value={{
-      role, lang, applicants, instructors, toasts,
+      role, lang, applicants, instructors, sharedLectures, sharedGroups, toasts,
       undoStack: undoStackRef.current,
       t, switchRole, toggleLang,
-      setApplicants, setInstructors,
+      setApplicants, setInstructors, setSharedLectures, setSharedGroups,
       showToast, removeToast,
       pushToUndoStack, triggerUndo,
     }}>
