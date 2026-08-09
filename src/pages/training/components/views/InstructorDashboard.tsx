@@ -1,16 +1,28 @@
 import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import AddStudentsModal from '../modals/AddStudentsModal';
+import AddGroupTaskModal from '../modals/AddGroupTaskModal';
+import AddStudentNoteModal from '../modals/AddStudentNoteModal';
+import StudentDetailsModal from '../modals/StudentDetailsModal';
+import InstructorDetailsModal from '../modals/InstructorDetailsModal';
+import type { GroupStudent, SharedGroup, Instructor } from '../../types';
 
 export default function InstructorDashboard() {
-  const { showToast, lang, t, role, sharedLectures, setSharedLectures, sharedGroups, setSharedGroups } = useApp();
+  const { showToast, lang, t, role, setSharedLectures, sharedGroups, setSharedGroups, instructors } = useApp();
 
-  const isAuthorized = role === 'instructor' || role === 'admin';
+  const isManager = role === 'recruiter' || role === 'admin';
+  const isInstructor = role === 'instructor' || role === 'admin';
+
+  // New Modals State
+  const [addStudentsModalData, setAddStudentsModalData] = useState<{ isOpen: boolean; groupId: string; groupName: string; initialTab?: 'form' | 'excel' }>({ isOpen: false, groupId: '', groupName: '', initialTab: 'form' });
+  const [addTaskModalData, setAddTaskModalData] = useState<{ isOpen: boolean; groupId: string; groupName: string; instructorName: string }>({ isOpen: false, groupId: '', groupName: '', instructorName: '' });
+  const [addNoteModalData, setAddNoteModalData] = useState<{ isOpen: boolean; studentId: string; studentName: string; groupId: string; groupName: string; instructorName: string }>({ isOpen: false, studentId: '', studentName: '', groupId: '', groupName: '', instructorName: '' });
+  const [studentDetailsData, setStudentDetailsData] = useState<{ isOpen: boolean; student: GroupStudent | null; group: SharedGroup | null }>({ isOpen: false, student: null, group: null });
+  const [instructorDetailsModalData, setInstructorDetailsModalData] = useState<{ isOpen: boolean; instructor: Instructor | null }>({ isOpen: false, instructor: null });
 
   // Lectures Timetable State
-  const [lectureFilter, setLectureFilter] = useState<'all' | 'live' | 'upcoming' | 'completed'>('all');
-  const [lectureSearch, setLectureSearch] = useState('');
   const [isAddLectureModalOpen, setIsAddLectureModalOpen] = useState(false);
-  
+
   // New Lecture Form State
   const [newLecCourse, setNewLecCourse] = useState('');
   const [newLecTopic, setNewLecTopic] = useState('');
@@ -63,7 +75,7 @@ export default function InstructorDashboard() {
 
   // Selected Instructor Filter
   const [selectedInstructor, setSelectedInstructor] = useState<string>('all');
-  
+
   // Add Group Modal State
   const [isAddGroupModalOpen, setIsAddGroupModalOpen] = useState(false);
   const [newGrpName, setNewGrpName] = useState('');
@@ -82,12 +94,13 @@ export default function InstructorDashboard() {
       return;
     }
 
-    const newGrp = {
+    const newGrp: SharedGroup = {
       id: `grp-${Date.now()}`,
       groupName: newGrpName,
       courseName: newGrpCourse,
       instructorName: newGrpInstructor,
-      studentsCount: parseInt(newGrpStudents) || 20,
+      studentsCount: parseInt(newGrpStudents) || 0,
+      students: [],
       schedule: newGrpSchedule || (lang === 'ar' ? 'الأحد والأربعاء (06:00 م)' : 'Sun & Wed (06:00 PM)'),
       location: newGrpLocation || (newGrpType === 'online' ? 'Zoom Meeting' : (lang === 'ar' ? 'قاعة التدريب 2' : 'Hall 2')),
       type: newGrpType,
@@ -105,195 +118,199 @@ export default function InstructorDashboard() {
 
   return (
     <div className={`space-y-6 animate-fade-in ${lang === 'ar' ? 'text-right' : 'text-left'}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-      {/* Instructor Lectures Timetable */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-5">
-        {/* Header & Controls */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-5">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600 shadow-sm">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <div>
-              <h2 className="text-lg font-black text-gray-900 flex items-center gap-2">
-                <span>{lang === 'ar' ? 'جدول المحاضرات للانستراكتور' : 'Instructor Lectures Schedule'}</span>
-                <span className="bg-brand-100 text-brand-700 text-xs px-2.5 py-0.5 rounded-full font-extrabold">
-                  {sharedLectures.length} {lang === 'ar' ? 'محاضرة' : 'lectures'}
-                </span>
-              </h2>
-              <p className="text-xs text-gray-500 font-semibold mt-0.5">
-                {lang === 'ar' ? 'استعراض المحاضرات المجدولة، البث المباشر، وتفاصيل الجلسات والطلاب' : 'View scheduled lectures, live streams, and session details'}
-              </p>
-            </div>
+      {/* Full Weekly Schedule Table (Instructor / Student View Only - Hidden for Training Manager) */}
+      {role !== 'recruiter' && (
+        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+          <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+          <div>
+            <h3 className="font-bold text-gray-900 flex items-center gap-2">
+              <span>📅</span>
+              <span>{t('الجدول الأسبوعي الكامل')}</span>
+            </h3>
+            <p className="text-xs text-gray-400 mt-1">{t('جميع المحاضرات والأنشطة مرتبة حسب أيام الأسبوع')}</p>
           </div>
-
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Search Input */}
-            <div className="relative min-w-[200px]">
-              <input
-                type="text"
-                value={lectureSearch}
-                onChange={e => setLectureSearch(e.target.value)}
-                placeholder={lang === 'ar' ? 'بحث عن محاضرة أو مادة...' : 'Search lecture or course...'}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-800 outline-none focus:ring-2 focus:ring-brand-500 pe-8"
-              />
-              <svg className="w-4 h-4 text-gray-400 absolute end-2.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-
-            {/* Add Lecture Button */}
-            {isAuthorized && (
-              <button
-                onClick={() => setIsAddLectureModalOpen(true)}
-                className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-extrabold transition-all shadow-md shadow-brand-600/20 flex items-center gap-1.5"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                </svg>
-                <span>{lang === 'ar' ? 'إضافة محاضرة جديدة' : 'Add New Lecture'}</span>
-              </button>
-            )}
-          </div>
+          <span className="text-xs font-bold text-brand-600 bg-brand-50 px-3 py-1.5 rounded-lg border border-brand-100">{t('الأسبوع الحالي')}</span>
         </div>
-
-        {/* Filter Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          {[
-            { key: 'all', label: lang === 'ar' ? 'جميع المحاضرات' : 'All Lectures' },
-            { key: 'live', label: lang === 'ar' ? '🔴 جارية الآن' : '🔴 Live Now' },
-            { key: 'upcoming', label: lang === 'ar' ? 'المحاضرات القادمة' : 'Upcoming' },
-            { key: 'completed', label: lang === 'ar' ? 'المكتملة' : 'Completed' },
-          ].map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setLectureFilter(tab.key as any)}
-              className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-                lectureFilter === tab.key
-                  ? 'bg-zinc-900 text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Lectures Table */}
-        <div className="overflow-x-auto rounded-xl border border-gray-200">
-          <table className="w-full text-xs text-right text-gray-700">
-            <thead className="bg-gray-50/80 text-gray-500 uppercase font-extrabold border-b border-gray-200">
-              <tr>
-                <th className="px-4 py-3.5 text-start">{lang === 'ar' ? 'اسم الدورة / المادة' : 'Course Name'}</th>
-                <th className="px-4 py-3.5 text-start">{lang === 'ar' ? 'عنوان المحاضرة' : 'Lecture Topic'}</th>
-                <th className="px-4 py-3.5 text-start">{lang === 'ar' ? 'الدفعة' : 'Batch'}</th>
-                <th className="px-4 py-3.5 text-start">{lang === 'ar' ? 'التاريخ والوقت' : 'Date & Time'}</th>
-                <th className="px-4 py-3.5 text-start">{lang === 'ar' ? 'نوع الحضور والمكان' : 'Attendance Mode & Location'}</th>
-                <th className="px-4 py-3.5 text-center">{lang === 'ar' ? 'الطلاب' : 'Students'}</th>
-                <th className="px-4 py-3.5 text-center">{lang === 'ar' ? 'الحالة' : 'Status'}</th>
-                <th className="px-4 py-3.5 text-center">{lang === 'ar' ? 'الإجراءات' : 'Actions'}</th>
+        <div className="overflow-x-auto p-5">
+          <table className={`w-full min-w-[1250px] border-collapse border border-gray-200 ${lang === 'ar' ? 'text-right' : 'text-left'} bg-white rounded-xl overflow-hidden shadow-sm table-fixed`}>
+            <colgroup>
+              <col style={{ width: '140px' }} />
+              <col style={{ width: '123px' }} />
+              <col style={{ width: '123px' }} />
+              <col style={{ width: '123px' }} />
+              <col style={{ width: '123px' }} />
+              <col style={{ width: '123px' }} />
+              <col style={{ width: '123px' }} />
+              <col style={{ width: '123px' }} />
+              <col style={{ width: '123px' }} />
+              <col style={{ width: '123px' }} />
+            </colgroup>
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 text-xs font-bold uppercase tracking-wider">
+                <th className="border border-gray-200 p-4 text-center bg-gray-100/50">{t('اليوم / الوقت')}</th>
+                {['07:00 - 09:00', '09:00 - 11:00', '11:00 - 13:00', '13:00 - 15:00', '15:00 - 17:00', '17:00 - 19:00', '19:00 - 21:00', '21:00 - 23:00', '23:00 - 00:00'].map(slot => (
+                  <th key={slot} className="border border-gray-200 p-2 text-center text-[11px] font-extrabold text-brand-900">{slot}</th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
-              {sharedLectures
-                .filter(lec => {
-                  if (lectureFilter === 'live') return lec.status === 'live';
-                  if (lectureFilter === 'upcoming') return lec.status === 'upcoming';
-                  if (lectureFilter === 'completed') return lec.status === 'completed';
-                  return true;
-                })
-                .filter(lec => {
-                  if (!lectureSearch.trim()) return true;
-                  const query = lectureSearch.toLowerCase();
-                  return lec.courseName.toLowerCase().includes(query) || lec.topic.toLowerCase().includes(query) || lec.batch.toLowerCase().includes(query);
-                })
-                .map(lec => (
-                  <tr key={lec.id} className="hover:bg-gray-50/80 transition-colors">
-                    <td className="px-4 py-3.5 font-bold text-gray-900">{lec.courseName}</td>
-                    <td className="px-4 py-3.5 font-medium text-gray-800">{lec.topic}</td>
-                    <td className="px-4 py-3.5 text-gray-500 font-medium">
-                      <span className="bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-md text-[11px]">
-                        {lec.batch}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5 text-gray-600 font-semibold whitespace-nowrap">
-                      <div>{lec.date}</div>
-                      <div className="text-[11px] text-gray-400 font-normal">{lec.time}</div>
-                    </td>
-                    <td className="px-4 py-3.5 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5">
-                        <span className={`w-2 h-2 rounded-full ${lec.type === 'online' ? 'bg-blue-500' : 'bg-amber-500'}`}></span>
-                        <span className="font-bold text-gray-800">{lec.type === 'online' ? (lang === 'ar' ? 'أونلاين' : 'Online') : (lang === 'ar' ? 'حضوري' : 'In-Person')}</span>
-                      </div>
-                      <div className="text-[11px] text-gray-400 font-mono mt-0.5 truncate max-w-[180px]">{lec.location}</div>
-                    </td>
-                    <td className="px-4 py-3.5 text-center font-bold text-gray-700">{lec.studentsCount}</td>
-                    <td className="px-4 py-3.5 text-center whitespace-nowrap">
-                      {lec.status === 'live' && (
-                        <span className="bg-red-50 text-red-600 border border-red-200 px-3 py-1 rounded-full text-[11px] font-extrabold flex items-center justify-center gap-1.5 animate-pulse">
-                          <span className="w-2 h-2 rounded-full bg-red-600"></span>
-                          <span>{lang === 'ar' ? 'جارية الآن' : 'Live Now'}</span>
-                        </span>
-                      )}
-                      {lec.status === 'upcoming' && (
-                        <span className="bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1 rounded-full text-[11px] font-extrabold">
-                          {lang === 'ar' ? 'قادمة' : 'Upcoming'}
-                        </span>
-                      )}
-                      {lec.status === 'completed' && (
-                        <span className="bg-gray-100 text-gray-600 border border-gray-200 px-3 py-1 rounded-full text-[11px] font-bold">
-                          {lang === 'ar' ? 'مكتملة' : 'Completed'}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3.5 text-center whitespace-nowrap">
-                      <div className="flex items-center justify-center gap-1.5">
-                        {lec.status === 'live' && (
-                          <button
-                            onClick={() => showToast(lang === 'ar' ? `🚀 جاري الانضمام للبث المباشر: ${lec.topic}` : `🚀 Joining Live Stream: ${lec.topic}`, 'success')}
-                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] shadow-sm transition-all flex items-center gap-1"
-                          >
-                            <span>{lang === 'ar' ? 'بدء البث' : 'Start Stream'}</span>
-                          </button>
-                        )}
-                        {lec.status === 'upcoming' && (
-                          <button
-                            onClick={() => showToast(lang === 'ar' ? `✓ تم التجهيز لفتح القاعة الإلكترونية للمحاضرة` : `✓ Preparing session room`, 'info')}
-                            className="bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all"
-                          >
-                            <span>{lang === 'ar' ? 'انضمام' : 'Join'}</span>
-                          </button>
-                        )}
-                        <button
-                          onClick={() => showToast(lang === 'ar' ? `📝 فتح سجل تحضير الحضور لـ ${lec.topic}` : `📝 Opening Attendance Sheet for ${lec.topic}`, 'info')}
-                          className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-1.5 rounded-lg font-bold text-[11px] transition-all"
-                          title={lang === 'ar' ? 'تسجيل الحضور' : 'Attendance'}
-                        >
-                          {lang === 'ar' ? 'الحضور' : 'Attendance'}
-                        </button>
-                        {isAuthorized && (
-                          <button
-                            onClick={() => {
-                              setSharedLectures(prev => prev.filter(l => l.id !== lec.id));
-                              showToast(lang === 'ar' ? '✓ تم إزالة المحاضرة من الجدول وتحديث بوابات الطلاب' : '✓ Lecture removed and student portals updated', 'success');
-                            }}
-                            className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-all"
-                            title={lang === 'ar' ? 'حذف' : 'Delete'}
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+            <tbody className="divide-y divide-gray-200 text-xs">
+              {/* Sunday */}
+              <tr className="hover:bg-gray-50/20 transition-colors">
+                <td className="border border-gray-200 p-4 text-center bg-gray-50/50">
+                  <span className="text-sm font-black text-gray-800">{t('الأحد')}</span>
+                  <div className="text-[10px] text-gray-400 mt-1">29 {t('يونيو')}</div>
+                </td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-emerald-50/30" colSpan={2}>
+                  <div className="bg-emerald-100 text-emerald-950 border border-emerald-300 rounded-lg p-2.5 text-start text-xs leading-relaxed font-semibold shadow-sm hover:shadow transition-shadow">
+                    <div className="font-bold text-emerald-800 mb-1 flex flex-col gap-1 items-start">
+                      <span className="text-[9px] bg-emerald-200 px-1.5 py-0.5 rounded text-emerald-900 border border-emerald-300 w-fit">{t('تم الحضور ✓')}</span>
+                      <span className="font-black text-[11px] leading-tight block mt-0.5">📚 React State Management</span>
+                    </div>
+                    <p className="text-[10px] mt-1 text-emerald-900/80">⏰ 20:00 - 22:00</p>
+                    <p className="text-[10px] text-emerald-900/80">🏷️ {t('الوحدة الثانية')} — {t('تطبيقات عملية')}</p>
+                    <p className="text-[10px] text-emerald-900/80">🏛️ 🌐 {t('أونلاين')} | {t('أ. خالد')}</p>
+                  </div>
+                </td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+              </tr>
+
+              {/* Monday */}
+              <tr className="hover:bg-gray-50/20 transition-colors">
+                <td className="border border-gray-200 p-4 text-center bg-gray-50/50">
+                  <span className="text-sm font-black text-gray-800">{t('الاثنين')}</span>
+                  <div className="text-[10px] text-gray-400 mt-1">30 {t('يونيو')}</div>
+                </td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-emerald-50/30" colSpan={1}>
+                  <div className="bg-emerald-100 text-emerald-950 border border-emerald-300 rounded-lg p-2.5 text-start text-xs leading-relaxed font-semibold shadow-sm hover:shadow transition-shadow">
+                    <div className="font-bold text-emerald-800 mb-1 flex flex-col gap-1 items-start">
+                      <span className="text-[9px] bg-emerald-200 px-1.5 py-0.5 rounded text-emerald-900 border border-emerald-300 w-fit">{t('تم الحضور ✓')}</span>
+                      <span className="font-black text-[11px] leading-tight block mt-0.5">📚 {t('مراجعة وتمارين عملية')}</span>
+                    </div>
+                    <p className="text-[10px] mt-1 text-emerald-900/80">⏰ 19:00 - 21:00</p>
+                    <p className="text-[10px] text-emerald-900/80">🏷️ {t('تمارين تفاعلية Hooks')}</p>
+                    <p className="text-[10px] text-emerald-900/80">🏛️ 🏛 {t('حضوري')} | {t('أ. خالد')}</p>
+                  </div>
+                </td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+              </tr>
+
+              {/* Tuesday */}
+              <tr className="hover:bg-gray-50/20 transition-colors">
+                <td className="border border-gray-200 p-4 text-center bg-gray-50/50">
+                  <span className="text-sm font-black text-gray-800">{t('الثلاثاء')}</span>
+                  <div className="text-[10px] text-gray-400 mt-1">1 {t('يوليو')}</div>
+                </td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-amber-50/30" colSpan={2}>
+                  <div className="bg-amber-100 text-amber-950 border border-amber-300 rounded-lg p-2.5 text-start text-xs leading-relaxed font-black shadow-md hover:shadow-lg transition-all ring-2 ring-amber-400/30 animate-pulse">
+                    <div className="font-black text-amber-900 mb-1 flex flex-col gap-1 items-start">
+                      <span className="text-[9px] bg-amber-200 px-1.5 py-0.5 rounded text-amber-900 border border-amber-400 w-fit">{t('اليوم ●')}</span>
+                      <span className="font-black text-[11px] leading-tight block mt-0.5">📚 API Integration & Fetch</span>
+                    </div>
+                    <p className="text-[10px] mt-1 text-amber-900/80">⏰ 20:00 - 22:00</p>
+                    <p className="text-[10px] text-amber-900/80">🏷️ {t('الثالثة')} — Axios & Fetch</p>
+                    <p className="text-[10px] text-amber-900/80">🏛️ 🌐 {t('أونلاين')} | {t('أ. خالد')}</p>
+                  </div>
+                </td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+              </tr>
+
+              {/* Wednesday */}
+              <tr className="hover:bg-gray-50/20 transition-colors bg-gray-50/30">
+                <td className="border border-gray-200 p-4 text-center bg-gray-50/50">
+                  <span className="text-sm font-black text-gray-400">{t('الأربعاء')}</span>
+                  <div className="text-[10px] text-gray-400 mt-1">2 {t('يوليو')}</div>
+                </td>
+                <td className="border border-gray-200 p-4 text-center text-gray-400 font-bold bg-zinc-50/50" colSpan={9}>
+                  {t('— لا توجد محاضرات —')}
+                </td>
+              </tr>
+
+              {/* Thursday */}
+              <tr className="hover:bg-gray-50/20 transition-colors">
+                <td className="border border-gray-200 p-4 text-center bg-gray-50/50">
+                  <span className="text-sm font-black text-gray-800">{t('الخميس')}</span>
+                  <div className="text-[10px] text-gray-400 mt-1">3 {t('يوليو')}</div>
+                </td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-red-50/30" colSpan={2}>
+                  <div className="bg-red-100 text-red-950 border border-red-300 rounded-lg p-2.5 text-start text-xs leading-relaxed font-semibold shadow-sm hover:shadow transition-shadow">
+                    <div className="font-bold text-red-900 mb-1 flex flex-col gap-1 items-start">
+                      <span className="text-[9px] bg-red-200 px-1.5 py-0.5 rounded text-red-900 border border-red-300 w-fit">{t('قريباً')}</span>
+                      <span className="font-black text-[11px] leading-tight block mt-0.5">📚 React Router & Navigation</span>
+                    </div>
+                    <p className="text-[10px] mt-1 text-red-900/80">⏰ 20:00 - 22:00</p>
+                    <p className="text-[10px] text-red-900/80">🏷️ {t('الثالثة')} — {t('التنقل بين الصفحات')}</p>
+                    <p className="text-[10px] text-red-900/80">🏛️ 🌐 {t('أونلاين')} | {t('أ. خالد')}</p>
+                  </div>
+                </td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+              </tr>
+
+              {/* Friday */}
+              <tr className="hover:bg-gray-50/20 transition-colors bg-gray-50/30">
+                <td className="border border-gray-200 p-4 text-center bg-gray-50/50">
+                  <span className="text-sm font-black text-gray-400">{t('الجمعة')}</span>
+                  <div className="text-[10px] text-gray-400 mt-1">4 {t('يوليو')}</div>
+                </td>
+                <td className="border border-gray-200 p-4 text-center text-gray-400 font-bold bg-zinc-50/50" colSpan={9}>
+                  {t('— إجازة أسبوعية —')}
+                </td>
+              </tr>
+
+              {/* Saturday */}
+              <tr className="hover:bg-gray-50/20 transition-colors">
+                <td className="border border-gray-200 p-4 text-center bg-gray-50/50">
+                  <span className="text-sm font-black text-gray-800">{t('السبت')}</span>
+                  <div className="text-[10px] text-gray-400 mt-1">5 {t('يوليو')}</div>
+                </td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-red-50/30" colSpan={2}>
+                  <div className="bg-red-100 text-red-950 border border-red-300 rounded-lg p-2.5 text-start text-xs leading-relaxed font-semibold shadow-sm hover:shadow transition-shadow">
+                    <div className="font-bold text-red-900 mb-1 flex flex-col gap-1 items-start">
+                      <span className="text-[9px] bg-red-200 px-1.5 py-0.5 rounded text-red-900 border border-red-300 w-fit">{t('قريباً')}</span>
+                      <span className="font-black text-[11px] leading-tight block mt-0.5">📚 {t('جلسة محاكاة (Mock Interview)')}</span>
+                    </div>
+                    <p className="text-[10px] mt-1 text-red-900/80">⏰ 18:00 - 20:00</p>
+                    <p className="text-[10px] text-red-900/80">🏷️ {t('تدريب على المقابلات')}</p>
+                    <p className="text-[10px] text-red-900/80">🏛️ 🌐 {t('أونلاين')} | {t('أ. مريم')}</p>
+                  </div>
+                </td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
+              </tr>
             </tbody>
           </table>
         </div>
       </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -314,7 +331,7 @@ export default function InstructorDashboard() {
         {/* Header & Controls */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-5">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-red-50 border border-brand-100 flex items-center justify-center text-brand-600 shadow-sm">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
@@ -322,7 +339,7 @@ export default function InstructorDashboard() {
             <div>
               <h2 className="text-lg font-black text-gray-900 flex items-center gap-2">
                 <span>{lang === 'ar' ? 'مجموعات التدريب للمحاضرين' : 'Instructor Training Groups'}</span>
-                <span className="bg-purple-100 text-purple-700 text-xs px-2.5 py-0.5 rounded-full font-extrabold">
+                <span className="bg-red-50 text-brand-700 text-xs px-2.5 py-0.5 rounded-full font-extrabold border border-red-100">
                   {sharedGroups.filter(g => selectedInstructor === 'all' || g.instructorName === selectedInstructor).length} {lang === 'ar' ? 'مجموعة' : 'groups'}
                 </span>
               </h2>
@@ -341,7 +358,7 @@ export default function InstructorDashboard() {
               <select
                 value={selectedInstructor}
                 onChange={e => setSelectedInstructor(e.target.value)}
-                className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 outline-none focus:ring-2 focus:ring-purple-500"
+                className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 outline-none focus:ring-2 focus:ring-brand-500"
               >
                 <option value="all">{lang === 'ar' ? 'جميع المحاضرين' : 'All Instructors'}</option>
                 {instructorOptions.map(inst => (
@@ -350,11 +367,11 @@ export default function InstructorDashboard() {
               </select>
             </div>
 
-            {/* Add New Group Button */}
-            {isAuthorized && (
+            {/* Add New Group Button (Training Manager Only) */}
+            {isManager && (
               <button
                 onClick={() => setIsAddGroupModalOpen(true)}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-xs font-extrabold transition-all shadow-md shadow-purple-600/20 flex items-center gap-1.5"
+                className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-extrabold transition-all shadow-md shadow-brand-600/20 flex items-center gap-1.5"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
@@ -366,71 +383,246 @@ export default function InstructorDashboard() {
         </div>
 
         {/* Groups Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
           {sharedGroups
             .filter(g => selectedInstructor === 'all' || g.instructorName === selectedInstructor)
             .map(grp => (
-              <div key={grp.id} className="bg-gray-50/70 border border-gray-200 rounded-xl p-5 hover:border-purple-300 hover:shadow-md transition-all space-y-3 relative">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="font-extrabold text-gray-900 text-sm">{grp.groupName}</h3>
-                    <p className="text-xs text-purple-700 font-bold mt-0.5">{grp.courseName}</p>
-                  </div>
-                  <span className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold ${
-                    grp.status === 'active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : (grp.status === 'upcoming' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-gray-100 text-gray-600 border border-gray-200')
-                  }`}>
-                    {grp.status === 'active' ? (lang === 'ar' ? 'نشطة' : 'Active') : (grp.status === 'upcoming' ? (lang === 'ar' ? 'قادمة' : 'Upcoming') : (lang === 'ar' ? 'مكتملة' : 'Completed'))}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-gray-200/80">
-                  <div>
-                    <span className="text-gray-400 font-medium block">{lang === 'ar' ? 'المحاضر المسؤول:' : 'Instructor:'}</span>
-                    <span className="font-bold text-gray-800 flex items-center gap-1 mt-0.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
-                      <span>{grp.instructorName}</span>
+              <div key={grp.id} className="bg-white border border-gray-200 rounded-2xl p-5 hover:border-brand-300 hover:shadow-md transition-all space-y-4 relative flex flex-col justify-between" style={{ boxShadow: '0 0 12px rgba(239,68,68,0.04)' }}>
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between gap-3 border-b border-gray-100 pb-3">
+                    <div>
+                      <h3 className="font-extrabold text-gray-900 text-sm flex items-center gap-2">
+                        <span>{grp.groupName}</span>
+                        <span className="bg-red-50 text-brand-700 text-[10px] px-2 py-0.5 rounded-md font-mono border border-red-100 font-bold">
+                          {grp.studentsCount} {lang === 'ar' ? 'طالب' : 'students'}
+                        </span>
+                      </h3>
+                      <p className="text-xs text-brand-600 font-extrabold mt-0.5">{grp.courseName}</p>
+                    </div>
+                    <span className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold ${grp.status === 'active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : (grp.status === 'upcoming' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-gray-100 text-gray-600 border border-gray-200')
+                      }`}>
+                      {grp.status === 'active' ? (lang === 'ar' ? 'نشطة' : 'Active') : (grp.status === 'upcoming' ? (lang === 'ar' ? 'قادمة' : 'Upcoming') : (lang === 'ar' ? 'مكتملة' : 'Completed'))}
                     </span>
                   </div>
-                  <div>
-                    <span className="text-gray-400 font-medium block">{lang === 'ar' ? 'عدد الطلاب:' : 'Students:'}</span>
-                    <span className="font-bold text-gray-800 mt-0.5 block">{grp.studentsCount} {lang === 'ar' ? 'طالب' : 'students'}</span>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="text-gray-400 font-medium block">{lang === 'ar' ? 'المحاضر المسؤول:' : 'Instructor:'}</span>
+                      <span className="font-bold text-gray-800 flex items-center gap-1 mt-0.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-brand-500"></span>
+                        <span>{grp.instructorName}</span>
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 font-medium block">{lang === 'ar' ? 'المواعيد والمكان:' : 'Schedule & Location:'}</span>
+                      <span className="font-bold text-gray-700 text-[11px] block truncate">{grp.schedule}</span>
+                    </div>
+                  </div>
+
+                  {/* Group Action Buttons Bar */}
+                  <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-gray-100">
+                    {/* Training Manager Action: Add Students via Form or Excel (Separate Buttons) */}
+                    {isManager && (
+                      <>
+                        <button
+                          onClick={() => setAddStudentsModalData({ isOpen: true, groupId: grp.id, groupName: grp.groupName, initialTab: 'form' })}
+                          className="flex-1 bg-brand-600 hover:bg-brand-700 text-white px-2.5 py-1.5 rounded-xl text-xs font-extrabold shadow-sm shadow-brand-600/20 transition-all flex items-center justify-center gap-1"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
+                          <span>{lang === 'ar' ? '+ إضافة طالب (Form)' : '+ Add Student (Form)'}</span>
+                        </button>
+                        <button
+                          onClick={() => setAddStudentsModalData({ isOpen: true, groupId: grp.id, groupName: grp.groupName, initialTab: 'excel' })}
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center justify-center gap-1"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                          <span>{lang === 'ar' ? '📥 رفع طلاب (Excel)' : 'Upload Excel'}</span>
+                        </button>
+                      </>
+                    )}
+
+                    {/* Instructor Action: Add Task for Whole Group */}
+                    {isInstructor && (
+                      <button
+                        onClick={() => setAddTaskModalData({ isOpen: true, groupId: grp.id, groupName: grp.groupName, instructorName: grp.instructorName })}
+                        className="flex-1 bg-brand-600 hover:bg-brand-700 text-white px-3 py-1.5 rounded-xl text-xs font-extrabold shadow-sm shadow-brand-600/20 transition-all flex items-center justify-center gap-1.5"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                        <span>{lang === 'ar' ? 'إضافة تاسك للجروب' : 'Add Group Task'}</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Students Breakdown List Section */}
+                  <div className="bg-gray-50/70 rounded-xl border border-gray-200 p-3 space-y-2">
+                    <div className="flex items-center justify-between text-xs border-b border-gray-200/60 pb-1.5">
+                      <span className="font-extrabold text-gray-800 flex items-center gap-1.5">
+                        <svg className="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <span>{lang === 'ar' ? 'طلاب الجروب:' : 'Group Students:'}</span>
+                      </span>
+                      <span className="text-[11px] font-bold text-gray-400">
+                        {grp.students && grp.students.length > 0 ? `${grp.students.length} ${lang === 'ar' ? 'مسجلين' : 'enrolled'}` : (lang === 'ar' ? 'لا يوجد طلاب بعد' : 'No students yet')}
+                      </span>
+                    </div>
+
+                    {!grp.students || grp.students.length === 0 ? (
+                      <p className="text-[11px] text-gray-400 font-medium text-center py-2">
+                        {lang === 'ar' ? 'اضغط على "إضافة طلاب" لإضافة أعضاء الجروب' : 'Click "Add Students" to add group members'}
+                      </p>
+                    ) : (
+                      <div className="space-y-1.5 max-h-48 overflow-y-auto pe-1">
+                        {grp.students.map(std => (
+                          <div key={std.id} className="flex items-center justify-between gap-2 p-2 bg-white hover:bg-red-50/50 rounded-lg text-xs transition-colors border border-gray-100 shadow-2xs">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div className="w-6 h-6 rounded-md bg-red-50 text-brand-600 font-bold border border-red-100 flex items-center justify-center text-[11px]">
+                                {std.name.charAt(0)}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="font-extrabold text-gray-800 text-[11px] truncate">{std.name}</div>
+                                <div className="text-[10px] text-gray-400 font-mono">{std.code}</div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                              {/* Manager & Instructor: Inspect student profile, notes, and tasks */}
+                              <button
+                                onClick={() => setStudentDetailsData({ isOpen: true, student: std, group: grp })}
+                                className="bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-200 px-2 py-1 rounded-md text-[10px] font-bold transition-all flex items-center gap-1"
+                                title={lang === 'ar' ? 'عرض تفاصيل وملاحظات الطالب' : 'View student notes & tasks'}
+                              >
+                                <span>{lang === 'ar' ? '🔍 التفاصيل' : '🔍 Details'}</span>
+                              </button>
+
+                              {/* Instructor: Add note specifically for student */}
+                              {isInstructor && (
+                                <button
+                                  onClick={() => setAddNoteModalData({
+                                    isOpen: true,
+                                    studentId: std.id,
+                                    studentName: std.name,
+                                    groupId: grp.id,
+                                    groupName: grp.groupName,
+                                    instructorName: grp.instructorName
+                                  })}
+                                  className="bg-red-50 hover:bg-red-100 text-brand-700 border border-red-200 px-2 py-1 rounded-md text-[10px] font-bold transition-all"
+                                  title={lang === 'ar' ? 'إضافة ملاحظة للطالب' : 'Add Note'}
+                                >
+                                  <span>{lang === 'ar' ? '✍️ ملاحظة' : '✍️ Note'}</span>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div className="text-xs space-y-1 bg-white p-2.5 rounded-lg border border-gray-100">
-                  <div className="flex items-center gap-1.5 text-gray-600 font-semibold">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>{grp.schedule}</span>
+                {isManager && (
+                  <div className="flex justify-end pt-2">
+                    <button
+                      onClick={() => {
+                        setSharedGroups(prev => prev.filter(g => g.id !== grp.id));
+                        showToast(lang === 'ar' ? `✓ تم حذف مجموعة ${grp.groupName}` : `✓ Removed ${grp.groupName}`, 'success');
+                      }}
+                      className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1"
+                      title={lang === 'ar' ? 'حذف المجموعة' : 'Delete Group'}
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      <span>{lang === 'ar' ? 'حذف المجموعة' : 'Delete Group'}</span>
+                    </button>
                   </div>
-                  <div className="flex items-center gap-1.5 text-gray-500 font-mono text-[11px]">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span>{grp.location}</span>
-                  </div>
-                </div>
-
-                {isAuthorized && (
-                  <button
-                    onClick={() => {
-                      setSharedGroups(prev => prev.filter(g => g.id !== grp.id));
-                      showToast(lang === 'ar' ? `✓ تم حذف مجموعة ${grp.groupName}` : `✓ Removed ${grp.groupName}`, 'success');
-                    }}
-                    className="absolute bottom-3 end-3 text-gray-400 hover:text-red-600 hover:bg-red-50 p-1 rounded-lg transition-all"
-                    title={lang === 'ar' ? 'حذف المجموعة' : 'Delete Group'}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
                 )}
               </div>
             ))}
         </div>
       </div>
+
+      {/* Instructors & Specializations Table (Training Manager Only) */}
+      {isManager && (
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600 font-bold text-lg">
+                👨‍🏫
+              </div>
+              <div>
+                <h3 className="font-black text-gray-900 text-base">
+                  {lang === 'ar' ? 'جدول المحاضرين والتخصصات' : 'Instructors & Specializations Table'}
+                </h3>
+                <p className="text-xs text-gray-500 font-semibold mt-0.5">
+                  {lang === 'ar' ? 'اضغط على أي محاضر لاستعراض البيانات التفصيلية والمجموعات المسندة له ومواعيد المحاضرات' : 'Click any row to inspect detailed profile, assigned groups, and schedules'}
+                </p>
+              </div>
+            </div>
+            <span className="bg-brand-50 text-brand-700 border border-brand-200 text-xs px-3 py-1 rounded-full font-bold self-start sm:self-center">
+              {instructors.length} {lang === 'ar' ? 'محاضر مسجل' : 'instructors'}
+            </span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-right border-collapse">
+              <thead>
+                <tr className="bg-gray-50/80 text-gray-500 font-extrabold uppercase border-b border-gray-200">
+                  <th className="p-3.5 text-start">{lang === 'ar' ? 'المحاضر' : 'Instructor'}</th>
+                  <th className="p-3.5 text-start">{lang === 'ar' ? 'التخصص / المادة' : 'Specialization'}</th>
+                  <th className="p-3.5 text-center">{lang === 'ar' ? 'المجموعات المسندة' : 'Assigned Groups'}</th>
+                  <th className="p-3.5 text-center">{lang === 'ar' ? 'إجمالي الطلاب' : 'Total Students'}</th>
+                  <th className="p-3.5 text-center">{lang === 'ar' ? 'الإجراء' : 'Action'}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 font-medium">
+                {instructors.map((ins, idx) => {
+                  const assigned = sharedGroups.filter(g => g.instructorName === ins.name);
+                  const totalStds = assigned.reduce((acc, g) => acc + (g.students ? g.students.length : g.studentsCount), 0);
+
+                  return (
+                    <tr
+                      key={idx}
+                      onClick={() => setInstructorDetailsModalData({ isOpen: true, instructor: ins })}
+                      className="hover:bg-brand-50/40 cursor-pointer transition-colors"
+                    >
+                      <td className="p-3.5 font-extrabold text-gray-900 flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 font-bold border border-brand-100 flex items-center justify-center text-xs">
+                          {ins.name.charAt(0)}
+                        </div>
+                        <div>
+                          <div className="font-extrabold text-gray-900">{ins.name}</div>
+                          <div className="text-[10px] text-gray-400 font-semibold">{ins.email || 'instructor@sanadak.edu'}</div>
+                        </div>
+                      </td>
+                      <td className="p-3.5 font-bold text-brand-700">{ins.course}</td>
+                      <td className="p-3.5 text-center font-extrabold text-gray-800">
+                        <span className="bg-gray-100 text-gray-800 px-2.5 py-1 rounded-md border border-gray-200">
+                          {assigned.length} {lang === 'ar' ? 'جروب' : 'groups'}
+                        </span>
+                      </td>
+                      <td className="p-3.5 text-center font-extrabold text-emerald-700">
+                        <span className="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-md border border-emerald-200 font-mono">
+                          {totalStds} {lang === 'ar' ? 'طالب' : 'students'}
+                        </span>
+                      </td>
+                      <td className="p-3.5 text-center">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setInstructorDetailsModalData({ isOpen: true, instructor: ins });
+                          }}
+                          className="bg-white hover:bg-brand-50 text-brand-700 border border-brand-200 px-3 py-1.5 rounded-xl text-[11px] font-extrabold transition-all shadow-2xs"
+                        >
+                          🔍 {lang === 'ar' ? 'التفاصيل' : 'Details'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Add New Lecture Modal */}
       {isAddLectureModalOpen && (
@@ -588,7 +780,7 @@ export default function InstructorDashboard() {
             </button>
 
             <h3 className="font-black text-gray-900 text-sm flex items-center gap-2">
-              <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
               <span>{lang === 'ar' ? 'إضافة مجموعة جديدة وتعيين محاضر' : 'Add New Group & Assign Instructor'}</span>
@@ -603,7 +795,7 @@ export default function InstructorDashboard() {
                   value={newGrpName}
                   onChange={e => setNewGrpName(e.target.value)}
                   placeholder={lang === 'ar' ? 'مثال: الدفعة 16 — مجموعة د' : 'e.g. Batch 16 - Group D'}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </div>
 
@@ -615,7 +807,7 @@ export default function InstructorDashboard() {
                   value={newGrpCourse}
                   onChange={e => setNewGrpCourse(e.target.value)}
                   placeholder={lang === 'ar' ? 'مثال: تطوير تطبيقات React.js' : 'e.g. React.js Dev'}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </div>
             </div>
@@ -626,7 +818,7 @@ export default function InstructorDashboard() {
                 <select
                   value={newGrpInstructor}
                   onChange={e => setNewGrpInstructor(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold text-gray-800 outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold text-gray-800 outline-none focus:ring-2 focus:ring-brand-500"
                 >
                   {instructorOptions.map(inst => (
                     <option key={inst} value={inst}>{inst}</option>
@@ -640,7 +832,7 @@ export default function InstructorDashboard() {
                   type="number"
                   value={newGrpStudents}
                   onChange={e => setNewGrpStudents(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </div>
             </div>
@@ -652,7 +844,7 @@ export default function InstructorDashboard() {
                 value={newGrpSchedule}
                 onChange={e => setNewGrpSchedule(e.target.value)}
                 placeholder={lang === 'ar' ? 'مثال: الأحد والأربعاء (06:00 م - 08:30 م)' : 'e.g. Sun & Wed (06:00 PM)'}
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
 
@@ -662,7 +854,7 @@ export default function InstructorDashboard() {
                 <select
                   value={newGrpType}
                   onChange={e => setNewGrpType(e.target.value as any)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 outline-none focus:ring-2 focus:ring-brand-500"
                 >
                   <option value="online">{lang === 'ar' ? 'أونلاين (Online)' : 'Online'}</option>
                   <option value="in_person">{lang === 'ar' ? 'حضوري (In-Person)' : 'In-Person'}</option>
@@ -674,7 +866,7 @@ export default function InstructorDashboard() {
                 <select
                   value={newGrpStatus}
                   onChange={e => setNewGrpStatus(e.target.value as any)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 outline-none focus:ring-2 focus:ring-brand-500"
                 >
                   <option value="active">{lang === 'ar' ? 'نشطة / مستمرة' : 'Active'}</option>
                   <option value="upcoming">{lang === 'ar' ? 'قادمة' : 'Upcoming'}</option>
@@ -683,19 +875,8 @@ export default function InstructorDashboard() {
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-1">{lang === 'ar' ? 'مكان / رابط المحاضرات' : 'Location / Link'}</label>
-              <input
-                type="text"
-                value={newGrpLocation}
-                onChange={e => setNewGrpLocation(e.target.value)}
-                placeholder={lang === 'ar' ? 'رابط Zoom أو رقم القاعة' : 'Zoom link or Hall number'}
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 outline-none focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
-
             <div className="flex gap-2.5 pt-2">
-              <button type="submit" className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-lg text-xs font-bold shadow-md transition-all">
+              <button type="submit" className="flex-1 bg-brand-600 hover:bg-brand-700 text-white py-2.5 rounded-lg text-xs font-bold shadow-md transition-all">
                 {lang === 'ar' ? 'إضافة المجموعة' : 'Add Group'}
               </button>
               <button
@@ -709,6 +890,46 @@ export default function InstructorDashboard() {
           </form>
         </div>
       )}
+
+      {/* Modals for Group & Student Management */}
+      <AddStudentsModal
+        isOpen={addStudentsModalData.isOpen}
+        onClose={() => setAddStudentsModalData({ isOpen: false, groupId: '', groupName: '' })}
+        groupId={addStudentsModalData.groupId}
+        groupName={addStudentsModalData.groupName}
+        initialTab={addStudentsModalData.initialTab}
+      />
+
+      <AddGroupTaskModal
+        isOpen={addTaskModalData.isOpen}
+        onClose={() => setAddTaskModalData({ isOpen: false, groupId: '', groupName: '', instructorName: '' })}
+        groupId={addTaskModalData.groupId}
+        groupName={addTaskModalData.groupName}
+        instructorName={addTaskModalData.instructorName}
+      />
+
+      <AddStudentNoteModal
+        isOpen={addNoteModalData.isOpen}
+        onClose={() => setAddNoteModalData({ isOpen: false, studentId: '', studentName: '', groupId: '', groupName: '', instructorName: '' })}
+        studentId={addNoteModalData.studentId}
+        studentName={addNoteModalData.studentName}
+        groupId={addNoteModalData.groupId}
+        groupName={addNoteModalData.groupName}
+        instructorName={addNoteModalData.instructorName}
+      />
+
+      <StudentDetailsModal
+        isOpen={studentDetailsData.isOpen}
+        onClose={() => setStudentDetailsData({ isOpen: false, student: null, group: null })}
+        student={studentDetailsData.student}
+        group={studentDetailsData.group}
+      />
+
+      <InstructorDetailsModal
+        isOpen={instructorDetailsModalData.isOpen}
+        onClose={() => setInstructorDetailsModalData({ isOpen: false, instructor: null })}
+        instructor={instructorDetailsModalData.instructor}
+      />
     </div>
   );
 }

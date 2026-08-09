@@ -6,13 +6,13 @@ interface HeaderProps {
 }
 
 const pillRoles: { role: Role; label: string }[] = [
-  { role: 'instructor', label: 'جدول المحاضرات للانستراكتور' },
-  { role: 'student', label: 'بوابة الطالب التعليمية' },
+  { role: 'recruiter', label: 'مسؤول التدريب (Training Manager)' },
+  { role: 'instructor', label: 'المحاضر (Instructor)' },
   { role: 'admin', label: 'الرواتب والإحصائيات' },
 ];
 
 const roleLabelMap: Record<Role, { en: string; ar: string }> = {
-  recruiter: { en: 'INSTRUCTOR SCHEDULE', ar: 'جدول المحاضرات للانستراكتور' },
+  recruiter: { en: 'TRAINING MANAGER', ar: 'مسؤول التدريب' },
   instructor: { en: 'INSTRUCTOR SCHEDULE', ar: 'جدول المحاضرات للانستراكتور' },
   student: { en: 'STUDENT PORTAL', ar: 'بوابة الطالب' },
   admin: { en: 'FINANCE & ADMIN', ar: 'الرواتب والإحصائيات' },

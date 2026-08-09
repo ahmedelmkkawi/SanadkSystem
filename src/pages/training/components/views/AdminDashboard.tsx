@@ -430,11 +430,11 @@ export default function AdminDashboard() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-500 mb-2">{t('instructorName')} *</label>
-                <input type="text" value={formName} onChange={e => setFormName(e.target.value)} placeholder={t('enterFullName')} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500 font-bold" />
+                <input type="text" value={formName} onChange={e => setFormName(e.target.value)} placeholder={t('enterFullName') || (lang === 'ar' ? 'أدخل اسم المحاضر الثلاثي' : 'Enter full name')} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500 font-bold placeholder:text-gray-400 placeholder:font-normal" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-500 mb-2">{t('courseSubject')} *</label>
-                <input type="text" value={formCourse} onChange={e => setFormCourse(e.target.value)} placeholder="React, UI/UX, Node.js" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500 font-bold" />
+                <input type="text" value={formCourse} onChange={e => setFormCourse(e.target.value)} placeholder="React, UI/UX, Node.js" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500 font-bold placeholder:text-gray-400 placeholder:font-normal" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-500 mb-2">{t('model')}</label>
@@ -446,7 +446,7 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-500 mb-2">{t('amountEgp')} *</label>
-                <input type="number" value={formAmount} onChange={e => setFormAmount(e.target.value)} placeholder="15000" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500 font-bold" />
+                <input type="number" value={formAmount} onChange={e => setFormAmount(e.target.value)} placeholder="15000" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-brand-500 font-bold placeholder:text-gray-400 placeholder:font-normal" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-500 mb-2">{t('status')}</label>

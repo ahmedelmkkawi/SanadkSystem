@@ -24,9 +24,12 @@ export interface Applicant {
 export interface Instructor {
   name: string;
   course: string;
+  specialization?: string;
   model: string;
   amount: number;
   status: string;
+  phone?: string;
+  email?: string;
 }
 
 export interface ToastItem {
@@ -50,12 +53,46 @@ export interface SharedLecture {
   status: 'live' | 'upcoming' | 'completed';
 }
 
+export interface GroupStudent {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  code: string;
+  joinedDate: string;
+  guardianName?: string;
+  guardianPhone?: string;
+  address?: string;
+}
+
+export interface StudentNote {
+  id: string;
+  studentId: string;
+  groupId: string;
+  instructorName: string;
+  content: string;
+  category?: 'academic' | 'behavioral' | 'general';
+  createdAt: string;
+}
+
+export interface GroupTask {
+  id: string;
+  groupId: string;
+  instructorName: string;
+  title: string;
+  description: string;
+  dueDate: string;
+  createdAt: string;
+  status?: 'active' | 'completed';
+}
+
 export interface SharedGroup {
   id: string;
   groupName: string;
   courseName: string;
   instructorName: string;
   studentsCount: number;
+  students: GroupStudent[];
   schedule: string;
   location: string;
   type: 'online' | 'in_person';
@@ -66,3 +103,4 @@ export interface AppState {
   currentRole: Role;
   currentLang: Lang;
 }
+

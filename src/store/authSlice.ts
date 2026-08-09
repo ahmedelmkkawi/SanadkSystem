@@ -124,7 +124,6 @@ const defaultUsers: Array<User & { password?: string }> = [
   { id: 'u9', name: 'شركة النور (Client)', email: 'client@company.com', role: 'Client', permissions: rolePermissions['Client'], password: 'Password@123', status: 'Active', department: 'Client' },
   { id: 'u10', name: 'أمل سامي (Training Mgr)', email: 'training.manager@company.com', role: 'Training Manager', permissions: rolePermissions['Training Manager'], password: 'Password@123', status: 'Active', department: 'Training' },
   { id: 'u11', name: 'كريم محمود (Instructor)', email: 'instructor@company.com', role: 'Instructor', permissions: rolePermissions['Instructor'], password: 'Password@123', status: 'Active', department: 'Training' },
-  { id: 'u12', name: 'زياد علي (Student)', email: 'student@company.com', role: 'Student', permissions: rolePermissions['Student'], password: 'Password@123', status: 'Active', department: 'Training' },
   { id: 'u13', name: 'أنس العمري (Tech Lead)', email: 'techlead@company.com', role: 'Tech Lead', permissions: rolePermissions['Tech Lead'], password: 'Password@123', status: 'Active', department: 'Software Development' },
   { id: 'u14', name: 'زياد عمرو (Developer)', email: 'developer@company.com', role: 'Developer', permissions: rolePermissions['Developer'], password: 'Password@123', status: 'Active', department: 'Software Development' }
 ];

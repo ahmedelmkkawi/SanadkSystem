@@ -184,8 +184,7 @@ export const Login: React.FC = () => {
       'employee@company.com',
       'client@company.com',
       'training.manager@company.com',
-      'instructor@company.com',
-      'student@company.com'
+      'instructor@company.com'
     ].includes(u.email.toLowerCase())
   );
 

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type DevRole = 'CEO' | 'Tech Lead' | 'Team Manager' | 'Developer' | 'Client' | 'Sales Manager' | 'Sales Employee' | 'Training Manager' | 'Instructor' | 'Student';
+export type DevRole = 'CEO' | 'Tech Lead' | 'Team Manager' | 'Developer' | 'Client' | 'Sales Manager' | 'Sales Employee' | 'Training Manager' | 'Instructor';
 
 export interface ProjectStage {
   name: string;

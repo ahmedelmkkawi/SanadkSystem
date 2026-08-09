@@ -2,11 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useAppSelector } from '../../store';
 import { useApp } from './context/AppContext';
 import InstructorDashboard from './components/views/InstructorDashboard';
-import StudentDashboard from './components/views/StudentDashboard';
 import AdminDashboard from './components/views/AdminDashboard';
 import ApplicationModal from './components/modals/ApplicationModal';
 import ScheduleModal from './components/modals/ScheduleModal';
-import SessionRatingModal from './components/modals/SessionRatingModal';
 import ToastContainer from './components/ui/ToastContainer';
 
 export const TrainingDashboard: React.FC = () => {
@@ -16,8 +14,6 @@ export const TrainingDashboard: React.FC = () => {
   // Modals state
   const [isAppModalOpen, setIsAppModalOpen] = useState(false);
   const [scheduleModalData, setScheduleModalData] = useState({ isOpen: false, name: '' });
-  const [ratingModalData, setRatingModalData] = useState({ isOpen: false, sessionName: '', rowId: '' });
-  const [sessionRatings, setSessionRatings] = useState<Record<string, number>>({});
 
   // Sync logged in user role/sandbox role to the training app context role
   const activeUserRole = user?.role;
@@ -25,11 +21,8 @@ export const TrainingDashboard: React.FC = () => {
   useEffect(() => {
     if (activeUserRole === 'Instructor') {
       switchRole('instructor');
-    } else if (activeUserRole === 'Student') {
-      switchRole('student');
     } else if (activeUserRole === 'Training Manager') {
-      // Default to instructor schedule for Training Manager
-      switchRole('instructor');
+      switchRole('recruiter');
     }
   }, [activeUserRole, switchRole]);
 
@@ -37,18 +30,12 @@ export const TrainingDashboard: React.FC = () => {
   const renderDashboard = () => {
     const targetRole = (activeUserRole === 'CEO' || activeUserRole === 'Training Manager') 
       ? ctxRole 
-      : (activeUserRole === 'Instructor' ? 'instructor' : (activeUserRole === 'Student' ? 'student' : 'instructor'));
+      : (activeUserRole === 'Instructor' ? 'instructor' : 'recruiter');
 
     switch (targetRole) {
+      case 'recruiter':
       case 'instructor':
         return <InstructorDashboard />;
-      case 'student':
-        return (
-          <StudentDashboard
-            sessionRatings={sessionRatings}
-            onOpenRatingModal={(sessionName, rowId) => setRatingModalData({ isOpen: true, sessionName, rowId })}
-          />
-        );
       case 'admin':
         return <AdminDashboard />;
       default:
@@ -72,9 +59,9 @@ export const TrainingDashboard: React.FC = () => {
           </div>
           <div className="flex flex-wrap gap-2">
             {[
-              { role: 'instructor', labelKey: 'instructorWorkspace' },
-              { role: 'student', labelKey: 'studentPortal' },
-              { role: 'admin', labelKey: 'financeStats' }
+              { role: 'recruiter', label: 'مسؤول التدريب (Training Manager)' },
+              { role: 'instructor', label: 'المحاضر (Instructor)' },
+              { role: 'admin', label: 'الرواتب والإحصائيات' }
             ].map((p) => (
               <button
                 key={p.role}
@@ -85,7 +72,7 @@ export const TrainingDashboard: React.FC = () => {
                     : 'bg-gray-100 hover:bg-gray-200 text-gray-600 border border-gray-200'
                 }`}
               >
-                {t(p.labelKey)}
+                {p.label}
               </button>
             ))}
           </div>
@@ -110,15 +97,6 @@ export const TrainingDashboard: React.FC = () => {
         isOpen={scheduleModalData.isOpen}
         applicantName={scheduleModalData.name}
         onClose={() => setScheduleModalData({ isOpen: false, name: '' })}
-      />
-
-      <SessionRatingModal
-        isOpen={ratingModalData.isOpen}
-        sessionName={ratingModalData.sessionName}
-        onClose={() => setRatingModalData({ isOpen: false, sessionName: '', rowId: '' })}
-        onRated={(stars) => {
-          setSessionRatings(prev => ({ ...prev, [ratingModalData.rowId]: stars }));
-        }}
       />
     </div>
   );
