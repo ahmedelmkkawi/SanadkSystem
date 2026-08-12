@@ -230,6 +230,23 @@ export default function StudentDetailsModal({ isOpen, onClose, student, group }:
                         {t.description}
                       </p>
                     )}
+                    {t.attachments && t.attachments.length > 0 && (
+                      <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-gray-100">
+                        <span className="font-bold text-gray-500 text-[10px]">📎 {lang === 'ar' ? 'المرفقات:' : 'Files:'}</span>
+                        {t.attachments.map((att, attIdx) => (
+                          <a
+                            key={attIdx}
+                            href={att.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-blue-100 text-blue-800 hover:bg-blue-200 border border-blue-200 px-2 py-0.5 rounded-md text-[10px] font-bold transition-all flex items-center gap-1"
+                          >
+                            <span>📄</span>
+                            <span className="truncate max-w-[120px]">{att.name}</span>
+                          </a>
+                        ))}
+                      </div>
+                    )}
                     <div className="flex items-center justify-between text-[11px] text-gray-500 font-semibold pt-1">
                       <span>{lang === 'ar' ? 'المحاضر الناشر:' : 'Assigned by:'} <strong className="text-gray-800">{t.instructorName}</strong></span>
                       <span className="text-gray-400 font-mono">{lang === 'ar' ? 'تاريخ النشر:' : 'Published:'} {t.createdAt}</span>

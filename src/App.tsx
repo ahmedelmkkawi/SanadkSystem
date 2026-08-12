@@ -19,6 +19,7 @@ import { KPIDashboard } from './pages/KPIDashboard';
 import { FinanceRevenues } from './pages/FinanceRevenues';
 import { FinanceExpenses } from './pages/FinanceExpenses';
 import { FinanceReports } from './pages/FinanceReports';
+import { FinanceStaffAssignments } from './pages/FinanceStaffAssignments';
 import { MarketingCampaigns } from './pages/MarketingCampaigns';
 import { CampaignDetails } from './pages/CampaignDetails';
 import { MarketingResults } from './pages/MarketingResults';
@@ -261,6 +262,14 @@ const router = createBrowserRouter([
         )
       },
       {
+        path: '/finance/staff-assignments',
+        element: (
+          <ProtectedRoute requiredPermission="VIEW_FINANCE">
+            <FinanceStaffAssignments />
+          </ProtectedRoute>
+        )
+      },
+      {
         path: '/marketing/campaigns',
         element: (
           <ProtectedRoute requiredPermission="VIEW_MARKETING">
@@ -292,7 +301,15 @@ const router = createBrowserRouter([
         path: '/training',
         element: (
           <AppProvider>
-            <TrainingDashboard />
+            <TrainingDashboard defaultView="main" />
+          </AppProvider>
+        )
+      },
+      {
+        path: '/training/salaries',
+        element: (
+          <AppProvider>
+            <TrainingDashboard defaultView="salaries" />
           </AppProvider>
         )
       },

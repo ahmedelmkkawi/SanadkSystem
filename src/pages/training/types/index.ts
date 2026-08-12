@@ -84,6 +84,7 @@ export interface GroupTask {
   dueDate: string;
   createdAt: string;
   status?: 'active' | 'completed';
+  attachments?: Array<{ name: string; url: string; size?: string }>;
 }
 
 export interface SharedGroup {

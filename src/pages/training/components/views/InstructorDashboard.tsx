@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import AddStudentsModal from '../modals/AddStudentsModal';
 import AddGroupTaskModal from '../modals/AddGroupTaskModal';
+import EditGroupTaskModal from '../modals/EditGroupTaskModal';
 import AddStudentNoteModal from '../modals/AddStudentNoteModal';
 import StudentDetailsModal from '../modals/StudentDetailsModal';
 import InstructorDetailsModal from '../modals/InstructorDetailsModal';
-import type { GroupStudent, SharedGroup, Instructor } from '../../types';
+import type { GroupStudent, SharedGroup, Instructor, GroupTask } from '../../types';
 
 export default function InstructorDashboard() {
-  const { showToast, lang, t, role, setSharedLectures, sharedGroups, setSharedGroups, instructors } = useApp();
+  const { showToast, lang, t, role, setSharedLectures, sharedGroups, setSharedGroups, instructors, groupTasks, deleteGroupTask } = useApp();
 
   const isManager = role === 'recruiter' || role === 'admin';
   const isInstructor = role === 'instructor' || role === 'admin';
@@ -16,6 +17,8 @@ export default function InstructorDashboard() {
   // New Modals State
   const [addStudentsModalData, setAddStudentsModalData] = useState<{ isOpen: boolean; groupId: string; groupName: string; initialTab?: 'form' | 'excel' }>({ isOpen: false, groupId: '', groupName: '', initialTab: 'form' });
   const [addTaskModalData, setAddTaskModalData] = useState<{ isOpen: boolean; groupId: string; groupName: string; instructorName: string }>({ isOpen: false, groupId: '', groupName: '', instructorName: '' });
+  const [editTaskModalData, setEditTaskModalData] = useState<{ isOpen: boolean; task: GroupTask | null; groupName: string }>({ isOpen: false, task: null, groupName: '' });
+  const [deletingTask, setDeletingTask] = useState<GroupTask | null>(null);
   const [addNoteModalData, setAddNoteModalData] = useState<{ isOpen: boolean; studentId: string; studentName: string; groupId: string; groupName: string; instructorName: string }>({ isOpen: false, studentId: '', studentName: '', groupId: '', groupName: '', instructorName: '' });
   const [studentDetailsData, setStudentDetailsData] = useState<{ isOpen: boolean; student: GroupStudent | null; group: SharedGroup | null }>({ isOpen: false, student: null, group: null });
   const [instructorDetailsModalData, setInstructorDetailsModalData] = useState<{ isOpen: boolean; instructor: Instructor | null }>({ isOpen: false, instructor: null });
@@ -533,6 +536,105 @@ export default function InstructorDashboard() {
                       </div>
                     )}
                   </div>
+
+                  {/* Group Tasks Section (Displayed directly under group) */}
+                  <div className="bg-amber-50/40 rounded-xl border border-amber-200/60 p-3 space-y-2">
+                    <div className="flex items-center justify-between text-xs border-b border-amber-200/50 pb-1.5">
+                      <span className="font-extrabold text-amber-900 flex items-center gap-1.5">
+                        <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                        <span>{lang === 'ar' ? 'تاسكات وتكليفات المجموعة:' : 'Group Tasks:'}</span>
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-bold text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-full">
+                          {groupTasks.filter(t => t.groupId === grp.id).length} {lang === 'ar' ? 'تاسك' : 'Tasks'}
+                        </span>
+                        {isInstructor && (
+                          <button
+                            onClick={() => setAddTaskModalData({ isOpen: true, groupId: grp.id, groupName: grp.groupName, instructorName: grp.instructorName })}
+                            className="text-[10px] bg-brand-600 hover:bg-brand-700 text-white font-extrabold px-2 py-0.5 rounded-lg shadow-2xs transition-all flex items-center gap-1"
+                          >
+                            <span>+ {lang === 'ar' ? 'إضافة تاسك' : 'Add Task'}</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {groupTasks.filter(t => t.groupId === grp.id).length === 0 ? (
+                      <p className="text-[11px] text-gray-400 font-medium text-center py-2">
+                        {lang === 'ar' ? 'لا توجد تاسكات مسندة لهذه المجموعة بعد' : 'No tasks assigned to this group yet'}
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {groupTasks.filter(t => t.groupId === grp.id).map((tsk) => (
+                          <div key={tsk.id} className="bg-white p-3 rounded-xl border border-amber-150 shadow-2xs space-y-2">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <h5 className="font-extrabold text-gray-900 text-xs">{tsk.title}</h5>
+                                  <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full border ${tsk.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
+                                    {tsk.status === 'completed' ? (lang === 'ar' ? 'مكتمل' : 'Completed') : (lang === 'ar' ? 'نشط' : 'Active')}
+                                  </span>
+                                </div>
+                                {tsk.description && (
+                                  <p className="text-[11px] text-gray-500 font-semibold mt-1 line-clamp-2">{tsk.description}</p>
+                                )}
+                              </div>
+
+                              {/* Instructor Task Actions: Edit & Delete */}
+                              {isInstructor && (
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <button
+                                    onClick={() => setEditTaskModalData({ isOpen: true, task: tsk, groupName: grp.groupName })}
+                                    className="p-1 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors"
+                                    title={lang === 'ar' ? 'تعديل التاسك والملفات المرفقة' : 'Edit Task'}
+                                  >
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                  </button>
+                                  <button
+                                    onClick={() => setDeletingTask(tsk)}
+                                    className="p-1 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
+                                    title={lang === 'ar' ? 'حذف التاسك' : 'Delete Task'}
+                                  >
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Meta & Attachments Bar */}
+                            <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-gray-100 text-[10px] text-gray-500">
+                              <span className="font-mono flex items-center gap-1 font-bold text-gray-600">
+                                <span>📅 {lang === 'ar' ? 'التسليم:' : 'Due:'}</span>
+                                <span className="text-red-600 font-extrabold">{tsk.dueDate}</span>
+                              </span>
+
+                              {/* Attachments List */}
+                              {tsk.attachments && tsk.attachments.length > 0 && (
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-bold text-gray-500">📎 {lang === 'ar' ? 'المرفقات:' : 'Files:'}</span>
+                                  {tsk.attachments.map((att, attIdx) => (
+                                    <a
+                                      key={attIdx}
+                                      href={att.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-md font-bold transition-all flex items-center gap-1"
+                                      title={att.name}
+                                    >
+                                      <span>📄</span>
+                                      <span className="truncate max-w-[120px]">{att.name}</span>
+                                    </a>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {isManager && (
@@ -922,6 +1024,55 @@ export default function InstructorDashboard() {
         groupName={addTaskModalData.groupName}
         instructorName={addTaskModalData.instructorName}
       />
+
+      <EditGroupTaskModal
+        isOpen={editTaskModalData.isOpen}
+        onClose={() => setEditTaskModalData({ isOpen: false, task: null, groupName: '' })}
+        task={editTaskModalData.task}
+        groupName={editTaskModalData.groupName}
+      />
+
+      {/* Delete Task Confirmation Modal */}
+      {deletingTask && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setDeletingTask(null)} />
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 z-10 shadow-2xl border border-gray-100 text-center space-y-4 animate-fade-in" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+            <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-100 text-red-600 flex items-center justify-center mx-auto text-xl font-bold">
+              🗑️
+            </div>
+            <div>
+              <h3 className="font-black text-gray-900 text-base">
+                {lang === 'ar' ? 'تأكيد حذف التاسك' : 'Confirm Task Deletion'}
+              </h3>
+              <p className="text-xs text-gray-500 font-semibold mt-1">
+                {lang === 'ar'
+                  ? `هل أنت تأكد من رغبتك في حذف تاسك "${deletingTask.title}"؟ لا يمكن التراجع بعد الحذف.`
+                  : `Are you sure you want to delete "${deletingTask.title}"?`}
+              </p>
+            </div>
+            <div className="flex gap-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  deleteGroupTask(deletingTask.id);
+                  showToast(lang === 'ar' ? `✓ تم حذف تاسك (${deletingTask.title}) بنجاح` : `✓ Task deleted`, 'success');
+                  setDeletingTask(null);
+                }}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-xs font-bold shadow-md shadow-red-600/20 transition-all"
+              >
+                {lang === 'ar' ? 'نعم، احذف' : 'Yes, Delete'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeletingTask(null)}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl text-xs font-bold transition-all"
+              >
+                {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <AddStudentNoteModal
         isOpen={addNoteModalData.isOpen}

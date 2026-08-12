@@ -5,6 +5,7 @@ export type UserRole =
   | 'General Manager'
   | 'HR Manager'
   | 'Finance Manager'
+  | 'Finance Employee'
   | 'Marketing Manager'
   | 'Sales Manager'
   | 'Team Leader'
@@ -78,6 +79,9 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
   'Finance Manager': [
     'VIEW_FINANCE', 'VIEW_FINANCE_SENSITIVE', 'VIEW_REPORTS'
   ],
+  'Finance Employee': [
+    'VIEW_FINANCE'
+  ],
   'Marketing Manager': [
     'VIEW_LEADS', 'MANAGE_LEADS', 'VIEW_MARKETING', 'MANAGE_MARKETING',
     'VIEW_REPORTS', 'VIEW_TASKS', 'MANAGE_TASKS'
@@ -116,7 +120,10 @@ const defaultUsers: Array<User & { password?: string }> = [
   { id: 'u1', name: 'أحمد علي (CEO)', email: 'ceo@company.com', role: 'CEO', permissions: rolePermissions['CEO'], password: 'Password@123', status: 'Active', department: 'Management' },
   { id: 'u2', name: 'ياسر جلال (GM)', email: 'gm@company.com', role: 'General Manager', permissions: rolePermissions['General Manager'], password: 'Password@123', status: 'Active', department: 'Management' },
   { id: 'u3', name: 'سارة خالد (HR)', email: 'hr@company.com', role: 'HR Manager', permissions: rolePermissions['HR Manager'], password: 'Password@123', status: 'Active', department: 'HR' },
-  { id: 'u4', name: 'ماجد سليمان (Finance)', email: 'finance@company.com', role: 'Finance Manager', permissions: rolePermissions['Finance Manager'], password: 'Password@123', status: 'Active', department: 'Finance' },
+  { id: 'u4', name: 'ماجد سليمان (Finance Manager)', email: 'finance@company.com', role: 'Finance Manager', permissions: rolePermissions['Finance Manager'], password: 'Password@123', status: 'Active', department: 'Finance' },
+  { id: 'u-fe-dev', name: 'أحمد محمود (Finance - البرمجة)', email: 'finance.dev@company.com', role: 'Finance Employee', permissions: rolePermissions['Finance Employee'], password: 'Password@123', status: 'Active', department: 'SoftwareDevelopment' },
+  { id: 'u-fe-trn', name: 'سمير خالد (Finance - التدريب)', email: 'finance.training@company.com', role: 'Finance Employee', permissions: rolePermissions['Finance Employee'], password: 'Password@123', status: 'Active', department: 'Training' },
+  { id: 'u-fe-mkt', name: 'مريم علي (Finance - التسويق)', email: 'finance.mkt@company.com', role: 'Finance Employee', permissions: rolePermissions['Finance Employee'], password: 'Password@123', status: 'Active', department: 'Marketing' },
   { id: 'u5', name: 'دينا الشافعي (Marketing)', email: 'marketing@company.com', role: 'Marketing Manager', permissions: rolePermissions['Marketing Manager'], password: 'Password@123', status: 'Active', department: 'Marketing' },
   { id: 'u6', name: 'محمود عبد السلام (Sales)', email: 'sales.manager@company.com', role: 'Sales Manager', permissions: rolePermissions['Sales Manager'], password: 'Password@123', status: 'Active', department: 'Sales' },
   { id: 'u7', name: 'كريم نادر (Team Leader)', email: 'teamleader@company.com', role: 'Team Leader', permissions: rolePermissions['Team Leader'], password: 'Password@123', status: 'Active', department: 'Software Development' },
@@ -228,6 +235,16 @@ const authSlice = createSlice({
         localStorage.setItem('auth_user', JSON.stringify(state.user));
       }
     },
+    updateUserDepartment(state, action: PayloadAction<{ id: string; department: string }>) {
+      const uIdx = state.registeredUsers.findIndex(u => u.id === action.payload.id);
+      if (uIdx !== -1) {
+        state.registeredUsers[uIdx].department = action.payload.department;
+      }
+      if (state.user && state.user.id === action.payload.id) {
+        state.user.department = action.payload.department;
+        localStorage.setItem('auth_user', JSON.stringify(state.user));
+      }
+    },
     resetUserPassword(state, action: PayloadAction<{ id: string; tempPassword: string }>) {
       const uIdx = state.registeredUsers.findIndex(u => u.id === action.payload.id);
       if (uIdx !== -1) {
@@ -252,6 +269,7 @@ export const {
   changePasswordAndActivate,
   updateUserStatus,
   updateUserRoleAndPermissions,
+  updateUserDepartment,
   resetUserPassword
 } = authSlice.actions;
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAppSelector } from '../store';
 import { useAppStore, type FinancialRecord } from '../store/useAppStore';
 import { useDevModuleStore } from '../store/devModuleStore';
 import {
@@ -16,13 +17,18 @@ import {
   Eye,
   CreditCard,
   UploadCloud,
-  FileCheck
+  FileCheck,
+  ShieldAlert
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const FinanceRevenues: React.FC = () => {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
+
+  const { user } = useAppSelector((state) => state.auth);
+  const isFinanceEmployee = user?.role === 'Finance Employee';
+  const userDept = user?.department || 'SoftwareDevelopment';
 
   const { financeRecords, addFinancialRecord, updateFinancialRecord, deleteFinancialRecord } = useAppStore();
   const { projects } = useDevModuleStore();
@@ -40,7 +46,7 @@ export const FinanceRevenues: React.FC = () => {
     remainingAmount: 0,
     dueDate: '',
     customerName: '',
-    department: 'SoftwareDevelopment',
+    department: isFinanceEmployee ? userDept : 'SoftwareDevelopment',
     projectId: '',
     contractNumber: '',
     paymentMethod: 'Bank Transfer' as 'Cash' | 'InstaPay' | 'Bank Transfer' | 'E-Wallet' | 'Check',
@@ -63,8 +69,8 @@ export const FinanceRevenues: React.FC = () => {
   // View Details Modal State
   const [viewingRecord, setViewingRecord] = useState<FinancialRecord | null>(null);
 
-  // Revenue Records List
-  const revenues = financeRecords.filter(r => r.type === 'Revenue');
+  // Revenue Records List (Filtered by Department if Finance Employee)
+  const revenues = financeRecords.filter(r => r.type === 'Revenue' && (!isFinanceEmployee || r.department === userDept));
   const totalRevenue = revenues.reduce((acc, curr) => acc + curr.amount, 0);
   const totalReceivables = revenues.reduce((acc, curr) => acc + (curr.remainingAmount || 0), 0);
 
@@ -158,6 +164,30 @@ export const FinanceRevenues: React.FC = () => {
 
   return (
     <div className="space-y-6 font-outfit pb-12">
+      {/* Finance Employee Scope Notice Banner */}
+      {isFinanceEmployee && (
+        <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center justify-between gap-3 text-xs font-extrabold text-amber-900 shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0" />
+            <div>
+              <span>
+                {isRtl
+                  ? `أنت مسجل بحساب (Finance Employee) مخصص لقسم: `
+                  : `Logged in as Finance Employee scoped to department: `}
+              </span>
+              <span className="bg-amber-200/80 px-2 py-0.5 rounded text-amber-950 underline font-black">
+                {userDept === 'SoftwareDevelopment' ? (isRtl ? 'قسم البرمجة والتطوير' : 'Software Development') :
+                 userDept === 'Training' ? (isRtl ? 'قسم التدريب والتعليم' : 'Training') :
+                 userDept === 'Marketing' ? (isRtl ? 'قسم التسويق' : 'Marketing') : userDept}
+              </span>
+              <p className="text-[10px] text-amber-700 font-semibold mt-0.5">
+                {isRtl ? 'يتم عرض وتثبيت إيرادات هذا القسم فقط وفقاً لتكليف مدير المالية.' : 'Viewing and recording revenues strictly restricted to your assigned department.'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Title & Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-gray-150 shadow-sm">
         <div>

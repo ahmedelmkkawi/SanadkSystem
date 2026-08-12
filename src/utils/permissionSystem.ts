@@ -17,6 +17,7 @@ export type UserRole =
   | 'General Manager'
   | 'HR Manager'
   | 'Finance Manager'
+  | 'Finance Employee'
   | 'Marketing Manager'
   | 'Team Leader'
   | 'Employee'
@@ -64,7 +65,7 @@ export const DEPARTMENTS: Record<DepartmentName, DepartmentConfig> = {
   },
   Finance: {
     name: 'Finance',
-    roles: ['CEO', 'Finance Manager'],
+    roles: ['CEO', 'Finance Manager', 'Finance Employee'],
     allowedModules: ['Finance', 'Files', 'Reports']
   },
   Support: {

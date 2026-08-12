@@ -133,7 +133,9 @@ export const Login: React.FC = () => {
         if (match.status === 'Pending First Login') {
           navigate('/auth/force-change-password');
         } else {
-          if (match.department === 'Software Development') {
+          if (match.role === 'Finance Employee') {
+            navigate('/finance/revenues');
+          } else if (match.department === 'Software Development' || match.department === 'SoftwareDevelopment') {
             navigate('/dev/dashboard');
           } else if (match.department === 'Sales') {
             navigate('/crm/dashboard');
@@ -176,6 +178,9 @@ export const Login: React.FC = () => {
       'gm@company.com',
       'hr@company.com',
       'finance@company.com',
+      'finance.dev@company.com',
+      'finance.training@company.com',
+      'finance.mkt@company.com',
       'marketing@company.com',
       'sales.manager@company.com',
       'teamleader@company.com',
@@ -185,7 +190,7 @@ export const Login: React.FC = () => {
       'client@company.com',
       'training.manager@company.com',
       'instructor@company.com'
-    ].includes(u.email.toLowerCase())
+    ].includes(u.email.toLowerCase()) || u.role === 'Finance Employee'
   );
 
   const isDev = import.meta.env.DEV;
@@ -347,7 +352,9 @@ export const Login: React.FC = () => {
                           </span>
                           {acc.department && (
                             <span className="bg-red-500/10 text-red-300 text-[9px] px-1.5 py-0.5 rounded border border-red-500/20 font-bold">
-                              {acc.department === 'Software Development' ? (isRtl ? 'تطوير البرمجيات' : 'Software Development') : acc.department}
+                              {acc.department === 'Software Development' || acc.department === 'SoftwareDevelopment' ? (isRtl ? 'تطوير البرمجيات' : 'Software Development') :
+                               acc.department === 'Training' ? (isRtl ? 'التدريب' : 'Training') :
+                               acc.department === 'Marketing' ? (isRtl ? 'التسويق' : 'Marketing') : acc.department}
                             </span>
                           )}
                           <Tooltip title={acc.permissions.join(', ')} placement="top">

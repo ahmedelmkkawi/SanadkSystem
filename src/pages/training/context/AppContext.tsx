@@ -203,6 +203,8 @@ interface AppContextType {
   changeStudentGroup: (studentId: string, fromGroupId: string, toGroupId: string) => void;
   addStudentNote: (note: StudentNote) => void;
   addGroupTask: (task: GroupTask) => void;
+  updateGroupTask: (task: GroupTask) => void;
+  deleteGroupTask: (taskId: string) => void;
   showToast: (message: string, type: ToastItem['type'], hasUndo?: boolean) => void;
   removeToast: (id: number) => void;
   pushToUndoStack: (restore: () => void) => void;
@@ -329,6 +331,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setGroupTasks(prev => [task, ...prev]);
   }, []);
 
+  const updateGroupTask = useCallback((updatedTask: GroupTask) => {
+    setGroupTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
+  }, []);
+
+  const deleteGroupTask = useCallback((taskId: string) => {
+    setGroupTasks(prev => prev.filter(t => t.id !== taskId));
+  }, []);
+
   const showToast = useCallback((message: string, type: ToastItem['type'] = 'info', hasUndo = false) => {
     const id = ++toastIdRef.current;
     const cleanMessage = message.split(' • ')[0];
@@ -362,7 +372,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       undoStack: undoStackRef.current,
       t, switchRole, toggleLang,
       setApplicants, setInstructors, setSharedLectures, setSharedGroups, setStudentNotes, setGroupTasks,
-      addStudentsToGroup, changeStudentGroup, addStudentNote, addGroupTask,
+      addStudentsToGroup, changeStudentGroup, addStudentNote, addGroupTask, updateGroupTask, deleteGroupTask,
       showToast, removeToast,
       pushToUndoStack, triggerUndo,
     }}>

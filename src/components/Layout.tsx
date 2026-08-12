@@ -76,6 +76,8 @@ export const Layout: React.FC = () => {
 
   const activePermissions = (user && rolePermissions[mappedRole as AuthUserRole]) || [];
 
+  const isCeo = activeRole === 'CEO' || mappedRole === 'CEO' || user?.role === 'CEO';
+
   // Navigation Items defined dynamically based on user permissions
   const navItems = [];
 
@@ -140,12 +142,23 @@ export const Layout: React.FC = () => {
     });
   }
 
-  // Finance Module (requires VIEW_FINANCE permission)
-  if (isModuleAllowed(activeRole, 'Finance') && activePermissions.includes('VIEW_FINANCE')) {
+  // Finance Module
+  if (isCeo) {
+    navItems.push({
+      label: t('finance'),
+      icon: DollarSign,
+      subItems: [
+        { path: '/finance/reports', label: t('financialReports') }
+      ]
+    });
+  } else if (isModuleAllowed(activeRole, 'Finance') && activePermissions.includes('VIEW_FINANCE')) {
     const financeSub = [];
     financeSub.push({ path: '/finance/revenues', label: t('revenues') });
     financeSub.push({ path: '/finance/expenses', label: t('expenses') });
     financeSub.push({ path: '/finance/reports', label: t('financialReports') });
+    if ((activeRole as string) === 'Finance Manager' || (activeRole as string) === 'General Manager') {
+      financeSub.push({ path: '/finance/staff-assignments', label: i18n.language === 'ar' ? 'إدارة موظفي المالية' : 'Finance Staff Assignments' });
+    }
 
     navItems.push({
       label: t('finance'),
@@ -168,12 +181,33 @@ export const Layout: React.FC = () => {
 
 
   // Training Module
+  const isInstructorRole = (activeRole as string) === 'Instructor' || (mappedRole as string) === 'Instructor' || user?.role === 'Instructor';
+
   if (isModuleAllowed(activeRole, 'Training')) {
-    navItems.push({ path: '/training', label: t('trainingNav'), icon: BookOpen });
+    if (isCeo || isInstructorRole) {
+      navItems.push({ path: '/training', label: t('trainingNav'), icon: BookOpen });
+    } else {
+      navItems.push({
+        label: t('trainingNav'),
+        icon: BookOpen,
+        subItems: [
+          { path: '/training', label: i18n.language === 'ar' ? 'إدارة التدريب' : 'Training Management' },
+          { path: '/training/salaries', label: i18n.language === 'ar' ? 'الرواتب والإحصائيات' : 'Salaries & Statistics' }
+        ]
+      });
+    }
   }
 
   // Software Development Module
-  if (isModuleAllowed(activeRole, 'SoftwareDevelopment')) {
+  if (isCeo) {
+    navItems.push({
+      label: t('devDeptNav'),
+      icon: Briefcase,
+      subItems: [
+        { path: '/dev/dashboard', label: t('devDashboard') }
+      ]
+    });
+  } else if (isModuleAllowed(activeRole, 'SoftwareDevelopment')) {
     if (mappedRole !== 'Client') {
       navItems.push({
         label: t('devDeptNav'),
