@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '../store';
 import { type UserRole } from '../store/authSlice';
 import { useAppStore } from '../store/useAppStore';
-import { useLocation, Navigate } from 'react-router-dom';
+import { useLocation, Navigate, Link } from 'react-router-dom';
 import { useDashboardStats } from '../hooks/useDashboardStats';
 import { useDevModuleStore } from '../store/devModuleStore';
 import toast from 'react-hot-toast';
@@ -35,7 +35,11 @@ import {
   Clock,
   AlertCircle,
   TrendingUp,
-  Activity
+  Activity,
+  Code,
+  ArrowUpRight,
+  GraduationCap,
+  Users
 } from 'lucide-react';
 
 // Sales Manager Inbox Component (Lead Intake & Distribution Layer)
@@ -498,9 +502,134 @@ export const Dashboard: React.FC = () => {
                 <KPICard key={metric.id} metric={metric} />
               ))}
           </div>
+          {/* EXECUTIVE DEPARTMENTAL CONTROL HUB (CEO ONLY) */}
+          {isCEO && (
+            <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-red-950 p-6 rounded-2xl text-white shadow-xl space-y-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-gray-700/60 pb-4">
+                <div>
+                  <h3 className="font-extrabold text-base flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-red-500 animate-pulse" />
+                    <span>{isRtl ? 'مركز التحكم الشامل للأقسام (CEO Executive Hub)' : 'Executive Departmental Control Hub'}</span>
+                  </h3>
+                  <p className="text-xs text-gray-300 mt-1">
+                    {isRtl ? 'متابعة لحظية ومباشرة لكافة بيانات وإحصائيات أقسام الشركة الرئيسية' : 'Real-time overview & instant access to key operational departments'}
+                  </p>
+                </div>
+                <span className="bg-red-600/30 text-red-300 border border-red-500/40 text-xs font-mono font-bold px-3 py-1 rounded-xl">
+                  {isRtl ? 'صلاحيات المدير العام Full Access' : 'CEO Full Access'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
+                {/* 1. Sales & CRM Department Card */}
+                <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/10 hover:border-red-500/50 transition-all duration-300 flex flex-col justify-between group">
+                  <div>
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-xl group-hover:scale-110 transition-transform">
+                        <Users className="w-6 h-6" />
+                      </div>
+                      <Link
+                        to="/crm/leads"
+                        className="text-xs font-bold bg-white/10 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+                      >
+                        <span>{isRtl ? 'عرض القسم' : 'Open'}</span>
+                        <ArrowUpRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                    <h4 className="font-extrabold text-sm text-white">{isRtl ? 'قسم المبيعات والعملاء' : 'Sales & CRM'}</h4>
+                    <p className="text-[11px] text-gray-300 mt-1 leading-relaxed">
+                      {isRtl ? 'متابعة العملاء المحتملين، توزيع الفرص، خط سير المبيعات وإتاحة صفقات البيع.' : 'Leads pipeline, sales opportunities, assignment & deals.'}
+                    </p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-gray-300">
+                    <span>{isRtl ? '48 عميل محتمل' : '48 Active Leads'}</span>
+                    <span className="text-emerald-300 font-bold">{isRtl ? 'نسبة إغلاق 78%' : '78% Win Rate'}</span>
+                  </div>
+                </div>
+
+                {/* 2. Training Department Card */}
+                <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/10 hover:border-red-500/50 transition-all duration-300 flex flex-col justify-between group">
+                  <div>
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="p-2.5 bg-red-500/20 text-red-400 rounded-xl group-hover:scale-110 transition-transform">
+                        <GraduationCap className="w-6 h-6" />
+                      </div>
+                      <Link
+                        to="/training"
+                        className="text-xs font-bold bg-white/10 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+                      >
+                        <span>{isRtl ? 'عرض القسم' : 'Open'}</span>
+                        <ArrowUpRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                    <h4 className="font-extrabold text-sm text-white">{isRtl ? 'قسم التدريب والتعليم' : 'Training Department'}</h4>
+                    <p className="text-[11px] text-gray-300 mt-1 leading-relaxed">
+                      {isRtl ? 'إدارة البرامج التدريبية، جدول المحاضرات، تقييم المحاضرين والطلاب.' : 'Courses, lecture schedules, trainer stats and student records.'}
+                    </p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-gray-300">
+                    <span>{isRtl ? '12 دورة تدريبية' : '12 Active Courses'}</span>
+                    <span className="text-emerald-400 font-bold">{isRtl ? 'محتوى مكتمل 94%' : '94% On Track'}</span>
+                  </div>
+                </div>
+
+                {/* 3. Software Development Card */}
+                <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/10 hover:border-red-500/50 transition-all duration-300 flex flex-col justify-between group">
+                  <div>
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="p-2.5 bg-blue-500/20 text-blue-400 rounded-xl group-hover:scale-110 transition-transform">
+                        <Code className="w-6 h-6" />
+                      </div>
+                      <Link
+                        to="/dev/dashboard"
+                        className="text-xs font-bold bg-white/10 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+                      >
+                        <span>{isRtl ? 'عرض القسم' : 'Open'}</span>
+                        <ArrowUpRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                    <h4 className="font-extrabold text-sm text-white">{isRtl ? 'قسم البرمجة والتطوير' : 'Software Development'}</h4>
+                    <p className="text-[11px] text-gray-300 mt-1 leading-relaxed">
+                      {isRtl ? 'لوحة تحكم المشاريع البرمجية، توزيع المهام، أحمال المطورين والأخطاء.' : 'Project status, workload distribution, dev tasks and bug fixes.'}
+                    </p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-gray-300">
+                    <span>{isRtl ? '6 مشاريع برمجية' : '6 Active Projects'}</span>
+                    <span className="text-blue-400 font-bold">{isRtl ? '24 مهمة نشطة' : '24 In Progress'}</span>
+                  </div>
+                </div>
+
+                {/* 4. Marketing Department Card */}
+                <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/10 hover:border-red-500/50 transition-all duration-300 flex flex-col justify-between group">
+                  <div>
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="p-2.5 bg-amber-500/20 text-amber-400 rounded-xl group-hover:scale-110 transition-transform">
+                        <Megaphone className="w-6 h-6" />
+                      </div>
+                      <Link
+                        to="/marketing/campaigns"
+                        className="text-xs font-bold bg-white/10 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+                      >
+                        <span>{isRtl ? 'عرض القسم' : 'Open'}</span>
+                        <ArrowUpRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                    <h4 className="font-extrabold text-sm text-white">{isRtl ? 'قسم التسويق والإعلانات' : 'Marketing Department'}</h4>
+                    <p className="text-[11px] text-gray-300 mt-1 leading-relaxed">
+                      {isRtl ? 'متابعة الحملات الإعلانية، عائد الاستثمار ROI، وتحليلات القنوات.' : 'Ad campaigns, channel attribution, spend and return on investment.'}
+                    </p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-gray-300">
+                    <span>{isRtl ? '4 حملات ممولة' : '4 Active Campaigns'}</span>
+                    <span className="text-amber-300 font-bold">{isRtl ? 'عائد ROI 285%' : 'ROI 285%'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* DYNAMIC LEAD DISTRIBUTION LAYER (SALES MANAGER & CEO ONLY) */}
-          {isSalesManager && (
+          {(isSalesManager || isCEO) && (
             <div className="grid grid-cols-1 gap-6">
               <SalesManagerInbox isRtl={isRtl} />
             </div>

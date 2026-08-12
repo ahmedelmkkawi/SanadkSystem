@@ -21,7 +21,7 @@ export const TrainingDashboard: React.FC = () => {
   useEffect(() => {
     if (activeUserRole === 'Instructor') {
       switchRole('instructor');
-    } else if (activeUserRole === 'Training Manager') {
+    } else if (activeUserRole === 'Training Manager' || activeUserRole === 'CEO') {
       switchRole('recruiter');
     }
   }, [activeUserRole, switchRole]);

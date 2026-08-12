@@ -2,11 +2,36 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 export interface FinancialRecord {
   id: string;
-  type: 'Revenue' | 'Expense';
-  category: 'Contract' | 'Payment' | 'Subscription' | 'Salary' | 'Ads' | 'Tools' | 'Operations' | 'Bills';
+  type: 'Revenue' | 'Expense' | 'Receipt' | 'Payment' | 'Transfer';
+  category: string;
   title: string;
   amount: number;
   date: string;
+  department?: string;
+  account?: string;
+  paymentMethod?: 'Cash' | 'InstaPay' | 'Bank Transfer' | 'E-Wallet' | 'Check' | string;
+  transactionRef?: string;
+  bankName?: string;
+  walletType?: string;
+  senderDetails?: string;
+  projectId?: string;
+  projectName?: string;
+  customerName?: string;
+  supplierName?: string;
+  contractNumber?: string;
+  invoiceId?: string;
+  status?: 'Completed' | 'Pending' | 'Overdue' | 'Cancelled';
+  totalInvoicedAmount?: number;
+  paidAmount?: number;
+  remainingAmount?: number;
+  dueDate?: string;
+  collectionStatus?: 'Full' | 'Partial' | 'Credit' | string;
+  attachments?: string[];
+  recordedBy?: string;
+  createdAt?: string;
+  debit?: number;
+  credit?: number;
+  balance?: number;
 }
 
 interface FinanceState {
@@ -38,9 +63,18 @@ const financeSlice = createSlice({
         id: 'fin' + (state.financeRecords.length + 1)
       };
       state.financeRecords.unshift(newRec);
+    },
+    updateFinancialRecord(state, action: PayloadAction<FinancialRecord>) {
+      const index = state.financeRecords.findIndex((r) => r.id === action.payload.id);
+      if (index !== -1) {
+        state.financeRecords[index] = action.payload;
+      }
+    },
+    deleteFinancialRecord(state, action: PayloadAction<string>) {
+      state.financeRecords = state.financeRecords.filter((r) => r.id !== action.payload);
     }
   }
 });
 
-export const { addFinancialRecord } = financeSlice.actions;
+export const { addFinancialRecord, updateFinancialRecord, deleteFinancialRecord } = financeSlice.actions;
 export default financeSlice.reducer;

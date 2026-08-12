@@ -118,198 +118,213 @@ export default function InstructorDashboard() {
 
   return (
     <div className={`space-y-6 animate-fade-in ${lang === 'ar' ? 'text-right' : 'text-left'}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-      {/* Full Weekly Schedule Table (Instructor / Student View Only - Hidden for Training Manager) */}
+      {/* Full Weekly Schedule Table (Instructor View - Matches exact screenshot design) */}
       {role !== 'recruiter' && (
-        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-          <div className="p-5 border-b border-gray-100 flex items-center justify-between">
-          <div>
-            <h3 className="font-bold text-gray-900 flex items-center gap-2">
-              <span>📅</span>
-              <span>{t('الجدول الأسبوعي الكامل')}</span>
-            </h3>
-            <p className="text-xs text-gray-400 mt-1">{t('جميع المحاضرات والأنشطة مرتبة حسب أيام الأسبوع')}</p>
+        <div className="bg-white border border-gray-200/90 rounded-2xl overflow-hidden shadow-sm">
+          <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🗓️</span>
+              <h3 className="font-extrabold text-gray-900 text-sm sm:text-base">
+                Full Weekly Schedule
+              </h3>
+            </div>
+            <span className="text-xs font-bold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg border border-red-100/70">
+              Current Week
+            </span>
           </div>
-          <span className="text-xs font-bold text-brand-600 bg-brand-50 px-3 py-1.5 rounded-lg border border-brand-100">{t('الأسبوع الحالي')}</span>
+
+          <div className="overflow-x-auto p-4 sm:p-5">
+            <table className="w-full min-w-[1250px] border-collapse border border-gray-200/80 text-left bg-white text-xs table-fixed">
+              <colgroup>
+                <col style={{ width: '130px' }} />
+                <col style={{ width: '124px' }} />
+                <col style={{ width: '124px' }} />
+                <col style={{ width: '124px' }} />
+                <col style={{ width: '124px' }} />
+                <col style={{ width: '124px' }} />
+                <col style={{ width: '124px' }} />
+                <col style={{ width: '124px' }} />
+                <col style={{ width: '124px' }} />
+                <col style={{ width: '124px' }} />
+              </colgroup>
+              <thead>
+                <tr className="bg-gray-50/70 border-b border-gray-200/80">
+                  <th className="border border-gray-200/80 p-3 text-left font-extrabold text-[11px] text-[#7A2E35] uppercase tracking-wider">
+                    DAY / TIME
+                  </th>
+                  {['07:00-09:00', '09:00-11:00', '11:00-13:00', '13:00-15:00', '15:00-17:00', '17:00-19:00', '19:00-21:00', '21:00-23:00', '23:00-00:00'].map(slot => (
+                    <th key={slot} className="border border-gray-200/80 p-3 text-center text-[11px] font-extrabold text-[#7A2E35]">
+                      {slot}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200/80 text-xs">
+                {/* Sunday */}
+                <tr className="hover:bg-gray-50/30 transition-colors">
+                  <td className="border border-gray-200/80 p-3.5 text-left bg-white">
+                    <span className="font-bold text-gray-900 block text-xs">Sunday</span>
+                    <span className="text-[10px] text-gray-400 font-medium block mt-0.5">29 June</span>
+                  </td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-1.5 align-middle">
+                    <div className="bg-[#E8F1FE] border border-blue-200/80 rounded-xl p-2 text-left space-y-1 shadow-2xs">
+                      <div className="font-bold text-indigo-950 text-[11px] flex items-center gap-1.5">
+                        <span className="text-xs">👥</span>
+                        <span>React Group #4</span>
+                      </div>
+                      <div className="text-[10px] font-semibold text-blue-600 flex items-center gap-1">
+                        <span className="text-[9px]">🌐</span>
+                        <span>Online</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                </tr>
+
+                {/* Monday */}
+                <tr className="hover:bg-gray-50/30 transition-colors">
+                  <td className="border border-gray-200/80 p-3.5 text-left bg-white">
+                    <span className="font-bold text-gray-900 block text-xs">Monday</span>
+                    <span className="text-[10px] text-gray-400 font-medium block mt-0.5">30 June</span>
+                  </td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-1.5 align-middle">
+                    <div className="bg-[#E2F7ED] border border-emerald-200/80 rounded-xl p-2 text-left space-y-1 shadow-2xs">
+                      <div className="font-bold text-emerald-950 text-[11px] flex items-center gap-1.5 truncate">
+                        <span className="text-xs">👥</span>
+                        <span className="truncate">Frontend Group ...</span>
+                      </div>
+                      <div className="text-[10px] font-semibold text-emerald-700 flex items-center gap-1">
+                        <span className="text-[9px]">🏛️</span>
+                        <span>Hall 101</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                </tr>
+
+                {/* Tuesday */}
+                <tr className="hover:bg-gray-50/30 transition-colors">
+                  <td className="border border-gray-200/80 p-3.5 text-left bg-white">
+                    <span className="font-bold text-gray-900 block text-xs">Tuesday</span>
+                    <span className="text-[10px] text-gray-400 font-medium block mt-0.5">1 July</span>
+                  </td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-1.5 align-middle">
+                    <div className="bg-[#E8F1FE] border border-blue-200/80 rounded-xl p-2 text-left space-y-1 shadow-2xs">
+                      <div className="font-bold text-indigo-950 text-[11px] flex items-center gap-1.5">
+                        <span className="text-xs">👥</span>
+                        <span>React Group #4</span>
+                      </div>
+                      <div className="text-[10px] font-semibold text-blue-600 flex items-center gap-1">
+                        <span className="text-[9px]">🌐</span>
+                        <span>Online</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                </tr>
+
+                {/* Wednesday */}
+                <tr className="hover:bg-gray-50/30 transition-colors">
+                  <td className="border border-gray-200/80 p-3.5 text-left bg-white">
+                    <span className="font-bold text-gray-400 block text-xs">Wednesday</span>
+                    <span className="text-[10px] text-gray-400 font-medium block mt-0.5">2 July</span>
+                  </td>
+                  <td className="border border-gray-200/80 p-3.5 text-center text-gray-400 font-semibold text-xs" colSpan={9}>
+                    — No Lectures Scheduled —
+                  </td>
+                </tr>
+
+                {/* Thursday */}
+                <tr className="hover:bg-gray-50/30 transition-colors">
+                  <td className="border border-gray-200/80 p-3.5 text-left bg-white">
+                    <span className="font-bold text-gray-900 block text-xs">Thursday</span>
+                    <span className="text-[10px] text-gray-400 font-medium block mt-0.5">3 July</span>
+                  </td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-1.5 align-middle">
+                    <div className="bg-[#E8F1FE] border border-blue-200/80 rounded-xl p-2 text-left space-y-1 shadow-2xs">
+                      <div className="font-bold text-indigo-950 text-[11px] flex items-center gap-1.5">
+                        <span className="text-xs">👥</span>
+                        <span>React Group #4</span>
+                      </div>
+                      <div className="text-[10px] font-semibold text-blue-600 flex items-center gap-1">
+                        <span className="text-[9px]">🌐</span>
+                        <span>Online</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                </tr>
+
+                {/* Friday */}
+                <tr className="hover:bg-gray-50/30 transition-colors">
+                  <td className="border border-gray-200/80 p-3.5 text-left bg-white">
+                    <span className="font-bold text-gray-400 block text-xs">Friday</span>
+                    <span className="text-[10px] text-gray-400 font-medium block mt-0.5">4 July</span>
+                  </td>
+                  <td className="border border-gray-200/80 p-3.5 text-center text-gray-400 font-semibold text-xs" colSpan={9}>
+                    — Weekend Break —
+                  </td>
+                </tr>
+
+                {/* Saturday */}
+                <tr className="hover:bg-gray-50/30 transition-colors">
+                  <td className="border border-gray-200/80 p-3.5 text-left bg-white">
+                    <span className="font-bold text-gray-900 block text-xs">Saturday</span>
+                    <span className="text-[10px] text-gray-400 font-medium block mt-0.5">5 July</span>
+                  </td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-1.5 align-middle">
+                    <div className="bg-[#F5E8FF] border border-purple-200/80 rounded-xl p-2 text-left space-y-1 shadow-2xs">
+                      <div className="font-bold text-purple-950 text-[11px] flex items-center gap-1.5">
+                        <span className="text-xs">👥</span>
+                        <span>Career Group #1</span>
+                      </div>
+                      <div className="text-[10px] font-semibold text-purple-700 flex items-center gap-1">
+                        <span className="text-[9px]">🏛️</span>
+                        <span>Main Hall</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                  <td className="border border-gray-200/80 p-2"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div className="overflow-x-auto p-5">
-          <table className={`w-full min-w-[1250px] border-collapse border border-gray-200 ${lang === 'ar' ? 'text-right' : 'text-left'} bg-white rounded-xl overflow-hidden shadow-sm table-fixed`}>
-            <colgroup>
-              <col style={{ width: '140px' }} />
-              <col style={{ width: '123px' }} />
-              <col style={{ width: '123px' }} />
-              <col style={{ width: '123px' }} />
-              <col style={{ width: '123px' }} />
-              <col style={{ width: '123px' }} />
-              <col style={{ width: '123px' }} />
-              <col style={{ width: '123px' }} />
-              <col style={{ width: '123px' }} />
-              <col style={{ width: '123px' }} />
-            </colgroup>
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 text-xs font-bold uppercase tracking-wider">
-                <th className="border border-gray-200 p-4 text-center bg-gray-100/50">{t('اليوم / الوقت')}</th>
-                {['07:00 - 09:00', '09:00 - 11:00', '11:00 - 13:00', '13:00 - 15:00', '15:00 - 17:00', '17:00 - 19:00', '19:00 - 21:00', '21:00 - 23:00', '23:00 - 00:00'].map(slot => (
-                  <th key={slot} className="border border-gray-200 p-2 text-center text-[11px] font-extrabold text-brand-900">{slot}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 text-xs">
-              {/* Sunday */}
-              <tr className="hover:bg-gray-50/20 transition-colors">
-                <td className="border border-gray-200 p-4 text-center bg-gray-50/50">
-                  <span className="text-sm font-black text-gray-800">{t('الأحد')}</span>
-                  <div className="text-[10px] text-gray-400 mt-1">29 {t('يونيو')}</div>
-                </td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-emerald-50/30" colSpan={2}>
-                  <div className="bg-emerald-100 text-emerald-950 border border-emerald-300 rounded-lg p-2.5 text-start text-xs leading-relaxed font-semibold shadow-sm hover:shadow transition-shadow">
-                    <div className="font-bold text-emerald-800 mb-1 flex flex-col gap-1 items-start">
-                      <span className="text-[9px] bg-emerald-200 px-1.5 py-0.5 rounded text-emerald-900 border border-emerald-300 w-fit">{t('تم الحضور ✓')}</span>
-                      <span className="font-black text-[11px] leading-tight block mt-0.5">📚 React State Management</span>
-                    </div>
-                    <p className="text-[10px] mt-1 text-emerald-900/80">⏰ 20:00 - 22:00</p>
-                    <p className="text-[10px] text-emerald-900/80">🏷️ {t('الوحدة الثانية')} — {t('تطبيقات عملية')}</p>
-                    <p className="text-[10px] text-emerald-900/80">🏛️ 🌐 {t('أونلاين')} | {t('أ. خالد')}</p>
-                  </div>
-                </td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-              </tr>
-
-              {/* Monday */}
-              <tr className="hover:bg-gray-50/20 transition-colors">
-                <td className="border border-gray-200 p-4 text-center bg-gray-50/50">
-                  <span className="text-sm font-black text-gray-800">{t('الاثنين')}</span>
-                  <div className="text-[10px] text-gray-400 mt-1">30 {t('يونيو')}</div>
-                </td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-emerald-50/30" colSpan={1}>
-                  <div className="bg-emerald-100 text-emerald-950 border border-emerald-300 rounded-lg p-2.5 text-start text-xs leading-relaxed font-semibold shadow-sm hover:shadow transition-shadow">
-                    <div className="font-bold text-emerald-800 mb-1 flex flex-col gap-1 items-start">
-                      <span className="text-[9px] bg-emerald-200 px-1.5 py-0.5 rounded text-emerald-900 border border-emerald-300 w-fit">{t('تم الحضور ✓')}</span>
-                      <span className="font-black text-[11px] leading-tight block mt-0.5">📚 {t('مراجعة وتمارين عملية')}</span>
-                    </div>
-                    <p className="text-[10px] mt-1 text-emerald-900/80">⏰ 19:00 - 21:00</p>
-                    <p className="text-[10px] text-emerald-900/80">🏷️ {t('تمارين تفاعلية Hooks')}</p>
-                    <p className="text-[10px] text-emerald-900/80">🏛️ 🏛 {t('حضوري')} | {t('أ. خالد')}</p>
-                  </div>
-                </td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-              </tr>
-
-              {/* Tuesday */}
-              <tr className="hover:bg-gray-50/20 transition-colors">
-                <td className="border border-gray-200 p-4 text-center bg-gray-50/50">
-                  <span className="text-sm font-black text-gray-800">{t('الثلاثاء')}</span>
-                  <div className="text-[10px] text-gray-400 mt-1">1 {t('يوليو')}</div>
-                </td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-amber-50/30" colSpan={2}>
-                  <div className="bg-amber-100 text-amber-950 border border-amber-300 rounded-lg p-2.5 text-start text-xs leading-relaxed font-black shadow-md hover:shadow-lg transition-all ring-2 ring-amber-400/30 animate-pulse">
-                    <div className="font-black text-amber-900 mb-1 flex flex-col gap-1 items-start">
-                      <span className="text-[9px] bg-amber-200 px-1.5 py-0.5 rounded text-amber-900 border border-amber-400 w-fit">{t('اليوم ●')}</span>
-                      <span className="font-black text-[11px] leading-tight block mt-0.5">📚 API Integration & Fetch</span>
-                    </div>
-                    <p className="text-[10px] mt-1 text-amber-900/80">⏰ 20:00 - 22:00</p>
-                    <p className="text-[10px] text-amber-900/80">🏷️ {t('الثالثة')} — Axios & Fetch</p>
-                    <p className="text-[10px] text-amber-900/80">🏛️ 🌐 {t('أونلاين')} | {t('أ. خالد')}</p>
-                  </div>
-                </td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-              </tr>
-
-              {/* Wednesday */}
-              <tr className="hover:bg-gray-50/20 transition-colors bg-gray-50/30">
-                <td className="border border-gray-200 p-4 text-center bg-gray-50/50">
-                  <span className="text-sm font-black text-gray-400">{t('الأربعاء')}</span>
-                  <div className="text-[10px] text-gray-400 mt-1">2 {t('يوليو')}</div>
-                </td>
-                <td className="border border-gray-200 p-4 text-center text-gray-400 font-bold bg-zinc-50/50" colSpan={9}>
-                  {t('— لا توجد محاضرات —')}
-                </td>
-              </tr>
-
-              {/* Thursday */}
-              <tr className="hover:bg-gray-50/20 transition-colors">
-                <td className="border border-gray-200 p-4 text-center bg-gray-50/50">
-                  <span className="text-sm font-black text-gray-800">{t('الخميس')}</span>
-                  <div className="text-[10px] text-gray-400 mt-1">3 {t('يوليو')}</div>
-                </td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-red-50/30" colSpan={2}>
-                  <div className="bg-red-100 text-red-950 border border-red-300 rounded-lg p-2.5 text-start text-xs leading-relaxed font-semibold shadow-sm hover:shadow transition-shadow">
-                    <div className="font-bold text-red-900 mb-1 flex flex-col gap-1 items-start">
-                      <span className="text-[9px] bg-red-200 px-1.5 py-0.5 rounded text-red-900 border border-red-300 w-fit">{t('قريباً')}</span>
-                      <span className="font-black text-[11px] leading-tight block mt-0.5">📚 React Router & Navigation</span>
-                    </div>
-                    <p className="text-[10px] mt-1 text-red-900/80">⏰ 20:00 - 22:00</p>
-                    <p className="text-[10px] text-red-900/80">🏷️ {t('الثالثة')} — {t('التنقل بين الصفحات')}</p>
-                    <p className="text-[10px] text-red-900/80">🏛️ 🌐 {t('أونلاين')} | {t('أ. خالد')}</p>
-                  </div>
-                </td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-              </tr>
-
-              {/* Friday */}
-              <tr className="hover:bg-gray-50/20 transition-colors bg-gray-50/30">
-                <td className="border border-gray-200 p-4 text-center bg-gray-50/50">
-                  <span className="text-sm font-black text-gray-400">{t('الجمعة')}</span>
-                  <div className="text-[10px] text-gray-400 mt-1">4 {t('يوليو')}</div>
-                </td>
-                <td className="border border-gray-200 p-4 text-center text-gray-400 font-bold bg-zinc-50/50" colSpan={9}>
-                  {t('— إجازة أسبوعية —')}
-                </td>
-              </tr>
-
-              {/* Saturday */}
-              <tr className="hover:bg-gray-50/20 transition-colors">
-                <td className="border border-gray-200 p-4 text-center bg-gray-50/50">
-                  <span className="text-sm font-black text-gray-800">{t('السبت')}</span>
-                  <div className="text-[10px] text-gray-400 mt-1">5 {t('يوليو')}</div>
-                </td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-red-50/30" colSpan={2}>
-                  <div className="bg-red-100 text-red-950 border border-red-300 rounded-lg p-2.5 text-start text-xs leading-relaxed font-semibold shadow-sm hover:shadow transition-shadow">
-                    <div className="font-bold text-red-900 mb-1 flex flex-col gap-1 items-start">
-                      <span className="text-[9px] bg-red-200 px-1.5 py-0.5 rounded text-red-900 border border-red-300 w-fit">{t('قريباً')}</span>
-                      <span className="font-black text-[11px] leading-tight block mt-0.5">📚 {t('جلسة محاكاة (Mock Interview)')}</span>
-                    </div>
-                    <p className="text-[10px] mt-1 text-red-900/80">⏰ 18:00 - 20:00</p>
-                    <p className="text-[10px] text-red-900/80">🏷️ {t('تدريب على المقابلات')}</p>
-                    <p className="text-[10px] text-red-900/80">🏛️ 🌐 {t('أونلاين')} | {t('أ. مريم')}</p>
-                  </div>
-                </td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-                <td className="border border-gray-200 p-2 bg-gray-50/5"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
       )}
 
       {/* Stats */}

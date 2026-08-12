@@ -54,7 +54,7 @@ export const DEPARTMENTS: Record<DepartmentName, DepartmentConfig> = {
   },
   SoftwareDevelopment: {
     name: 'SoftwareDevelopment',
-    roles: ['Tech Lead', 'Team Manager', 'Developer', 'Team Leader'],
+    roles: ['CEO', 'Tech Lead', 'Team Manager', 'Developer', 'Team Leader'],
     allowedModules: ['SoftwareDevelopment']
   },
   HR: {
@@ -79,7 +79,7 @@ export const DEPARTMENTS: Record<DepartmentName, DepartmentConfig> = {
   },
   Training: {
     name: 'Training',
-    roles: ['Training Manager', 'Instructor', 'Student'],
+    roles: ['CEO', 'Training Manager', 'Instructor', 'Student'],
     allowedModules: ['Training', 'Tasks', 'Files']
   }
 };
@@ -101,9 +101,8 @@ export function getDepartmentsForRole(role: UserRole): DepartmentName[] {
  * Check if a role can access a module
  */
 export function isModuleAllowed(role: UserRole, moduleName: SystemModule): boolean {
-  // CEO has access to everything EXCEPT SoftwareDevelopment and Training
+  // CEO has access to all modules without exception
   if (role === 'CEO') {
-    if (moduleName === 'SoftwareDevelopment' || moduleName === 'Training') return false;
     return true;
   }
   
@@ -115,9 +114,14 @@ export function isModuleAllowed(role: UserRole, moduleName: SystemModule): boole
  * Check if a role can access a path
  */
 export function canAccessPath(role: UserRole, path: string): boolean {
+  // CEO has full access to all paths except specific client-only pages if needed
+  if (role === 'CEO') {
+    return true;
+  }
+
   // Protect Training routes
   if (path.startsWith('/training')) {
-    const trainingRoles: UserRole[] = ['Training Manager', 'Instructor', 'Student'];
+    const trainingRoles: UserRole[] = ['CEO', 'Training Manager', 'Instructor', 'Student'];
     return trainingRoles.includes(role);
   }
 
@@ -127,12 +131,10 @@ export function canAccessPath(role: UserRole, path: string): boolean {
     if (path.startsWith('/dev/client-portal')) {
       return role === 'Client';
     }
-    // Only Software Development department roles can access
-    const devRoles: UserRole[] = ['Tech Lead', 'Team Manager', 'Developer', 'Team Leader'];
+    // Software Development department roles can access
+    const devRoles: UserRole[] = ['CEO', 'Tech Lead', 'Team Manager', 'Developer', 'Team Leader'];
     return devRoles.includes(role);
   }
-
-  if (role === 'CEO') return true;
 
   // Protect CEO-only system logs
   if (path.startsWith('/ceo/')) {

@@ -88,11 +88,36 @@ export interface KPITemplate {
 
 export interface FinancialRecord {
   id: string;
-  type: 'Revenue' | 'Expense';
-  category: 'Contract' | 'Payment' | 'Subscription' | 'Salary' | 'Ads' | 'Tools' | 'Operations' | 'Bills';
+  type: 'Revenue' | 'Expense' | 'Receipt' | 'Payment' | 'Transfer';
+  category: string;
   title: string;
   amount: number;
   date: string;
+  department?: string;
+  account?: string;
+  paymentMethod?: 'Cash' | 'InstaPay' | 'Bank Transfer' | 'E-Wallet' | 'Check' | string;
+  transactionRef?: string;
+  bankName?: string;
+  walletType?: string;
+  senderDetails?: string;
+  projectId?: string;
+  projectName?: string;
+  customerName?: string;
+  supplierName?: string;
+  contractNumber?: string;
+  invoiceId?: string;
+  status?: 'Completed' | 'Pending' | 'Overdue' | 'Cancelled';
+  totalInvoicedAmount?: number;
+  paidAmount?: number;
+  remainingAmount?: number;
+  dueDate?: string;
+  collectionStatus?: 'Full' | 'Partial' | 'Credit' | string;
+  attachments?: string[];
+  recordedBy?: string;
+  createdAt?: string;
+  debit?: number;
+  credit?: number;
+  balance?: number;
 }
 
 export interface Campaign {
@@ -211,6 +236,8 @@ interface AppState {
   addKpiTemplate: (template: KPITemplate) => void;
   updateKpiItemScore: (templateId: string, itemId: string, scores: Partial<Pick<KPIItem, 'selfScore' | 'managerScore' | 'finalScore'>>) => void;
   addFinancialRecord: (record: Omit<FinancialRecord, 'id'>) => void;
+  updateFinancialRecord: (record: FinancialRecord) => void;
+  deleteFinancialRecord: (id: string) => void;
   addCampaign: (campaign: Omit<Campaign, 'id' | 'reach' | 'clicks' | 'leads' | 'revenueGenerated'>, byUser?: string) => void;
   updateCampaign: (campaign: Campaign, byUser?: string) => void;
   addFile: (file: Omit<SystemFile, 'id' | 'uploadDate'>) => void;
@@ -323,14 +350,259 @@ const mockKpiTemplates: KPITemplate[] = [
 ];
 
 const mockFinanceRecords: FinancialRecord[] = [
-  { id: 'fin1', type: 'Revenue', category: 'Contract', title: 'عقد توريد برمجيات شركة النور', amount: 45000, date: '2026-06-01' },
-  { id: 'fin2', type: 'Revenue', category: 'Subscription', title: 'اشتراك شهري نظام CRM سحابي - ريد للمقاولات', amount: 3500, date: '2026-06-05' },
-  { id: 'fin3', type: 'Revenue', category: 'Payment', title: 'دفعة ثانية استشارات تسويقية - شركة ستار فودز', amount: 12000, date: '2026-06-10' },
-  { id: 'fin4', type: 'Expense', category: 'Salary', title: 'مرتبات الموظفين لشهر مايو', amount: 31500, date: '2026-05-30' },
-  { id: 'fin5', type: 'Expense', category: 'Ads', title: 'تمويل إعلانات فيسبوك وجوجل - مبيعات الربع الثاني', amount: 8000, date: '2026-06-03' },
-  { id: 'fin6', type: 'Expense', category: 'Tools', title: 'اشتراكات برامج Zoom / Slack / Figma', amount: 1500, date: '2026-06-07' },
-  { id: 'fin7', type: 'Expense', category: 'Operations', title: 'إيجار المقر الإداري الشهري للشركة', amount: 10000, date: '2026-06-01' },
-  { id: 'fin8', type: 'Expense', category: 'Bills', title: 'فاتورة الكهرباء والإنترنت للمقر', amount: 2200, date: '2026-06-08' }
+  {
+    id: 'fin1',
+    type: 'Revenue',
+    category: 'Contract',
+    title: 'عقد توريد برمجيات وتطبيقات - النور للاستيراد',
+    amount: 45000,
+    date: '2026-06-01',
+    department: 'SoftwareDevelopment',
+    account: 'الحساب البنكي الرئيسي - CIB',
+    projectId: 'proj-2',
+    projectName: 'الموقع الإلكتروني والمنصة التعليمية',
+    customerName: 'النور للاستيراد والتصدير',
+    status: 'Completed',
+    debit: 0,
+    credit: 45000,
+    balance: 145000,
+    invoiceId: 'INV-2026-001',
+    dueDate: '2026-06-01',
+    paidAmount: 45000,
+    remainingAmount: 0
+  },
+  {
+    id: 'fin2',
+    type: 'Revenue',
+    category: 'Subscription',
+    title: 'اشتراك شهري نظام CRM سحابي - ريد للمقاولات',
+    amount: 3500,
+    date: '2026-06-05',
+    department: 'Sales',
+    account: 'محفظة فودافون كاش التجارية',
+    customerName: 'ريد للمقاولات والهندسة',
+    status: 'Completed',
+    debit: 0,
+    credit: 3500,
+    balance: 148500,
+    invoiceId: 'INV-2026-002',
+    dueDate: '2026-06-05',
+    paidAmount: 3500,
+    remainingAmount: 0
+  },
+  {
+    id: 'fin3',
+    type: 'Revenue',
+    category: 'Payment',
+    title: 'دفعة ثانية استشارات تسويقية - شركة ستار فودز',
+    amount: 12000,
+    date: '2026-06-10',
+    department: 'Marketing',
+    account: 'الحساب البنكي الرئيسي - CIB',
+    customerName: 'شركة ستار فودز',
+    status: 'Completed',
+    debit: 0,
+    credit: 12000,
+    balance: 160500,
+    invoiceId: 'INV-2026-003',
+    dueDate: '2026-06-10',
+    paidAmount: 12000,
+    remainingAmount: 0
+  },
+  {
+    id: 'fin4',
+    type: 'Expense',
+    category: 'Salary',
+    title: 'مرتبات الموظفين والمطورين لشهر مايو',
+    amount: 31500,
+    date: '2026-05-30',
+    department: 'HR',
+    account: 'الحساب البنكي الرئيسي - CIB',
+    supplierName: 'إدارة الموارد البشرية والرواتب',
+    status: 'Completed',
+    debit: 31500,
+    credit: 0,
+    balance: 129000,
+    invoiceId: 'PAY-2026-010',
+    dueDate: '2026-05-30',
+    paidAmount: 31500,
+    remainingAmount: 0
+  },
+  {
+    id: 'fin5',
+    type: 'Expense',
+    category: 'Ads',
+    title: 'تمويل إعلانات فيسبوك وجوجل - مبيعات الربع الثاني',
+    amount: 8000,
+    date: '2026-06-03',
+    department: 'Marketing',
+    account: 'بطاقة ائتمان الشركة المباشرة',
+    supplierName: 'Google Ads & Meta Inc',
+    status: 'Completed',
+    debit: 8000,
+    credit: 0,
+    balance: 121000,
+    invoiceId: 'PAY-2026-011',
+    dueDate: '2026-06-03',
+    paidAmount: 8000,
+    remainingAmount: 0
+  },
+  {
+    id: 'fin6',
+    type: 'Expense',
+    category: 'Tools',
+    title: 'اشتراكات سحابية وبرامج Zoom / Slack / Figma',
+    amount: 1500,
+    date: '2026-06-07',
+    department: 'SoftwareDevelopment',
+    account: 'بطاقة ائتمان الشركة المباشرة',
+    projectId: 'proj-1',
+    projectName: 'تطبيق الهواتف الذكية - سندك كاش',
+    supplierName: 'Slack & Figma Inc',
+    status: 'Completed',
+    debit: 1500,
+    credit: 0,
+    balance: 119500,
+    invoiceId: 'PAY-2026-012',
+    dueDate: '2026-06-07',
+    paidAmount: 1500,
+    remainingAmount: 0
+  },
+  {
+    id: 'fin7',
+    type: 'Expense',
+    category: 'Operations',
+    title: 'إيجار المقر الإداري الشهري للشركة',
+    amount: 10000,
+    date: '2026-06-01',
+    department: 'Administration',
+    account: 'شيك بنكي مقبول الدفع',
+    supplierName: 'شركة القاهرة للاستثمار العقاري',
+    status: 'Completed',
+    debit: 10000,
+    credit: 0,
+    balance: 109500,
+    invoiceId: 'PAY-2026-013',
+    dueDate: '2026-06-01',
+    paidAmount: 10000,
+    remainingAmount: 0
+  },
+  {
+    id: 'fin8',
+    type: 'Expense',
+    category: 'Bills',
+    title: 'فاتورة الكهرباء والإنترنت للمقر الإداري',
+    amount: 2200,
+    date: '2026-06-08',
+    department: 'Administration',
+    account: 'الخزينة النقدية الرئيسية',
+    supplierName: 'شركة الكهرباء والمصرية للاتصالات',
+    status: 'Completed',
+    debit: 2200,
+    credit: 0,
+    balance: 107300,
+    invoiceId: 'PAY-2026-014',
+    dueDate: '2026-06-08',
+    paidAmount: 2200,
+    remainingAmount: 0
+  },
+  {
+    id: 'fin9',
+    type: 'Revenue',
+    category: 'Contract',
+    title: 'دفعة مقدمة - تطبيق الهواتف الذكية (سندك كاش)',
+    amount: 42500,
+    date: '2026-05-15',
+    department: 'SoftwareDevelopment',
+    account: 'الحساب البنكي الرئيسي - CIB',
+    projectId: 'proj-1',
+    projectName: 'تطبيق الهواتف الذكية - سندك كاش',
+    customerName: 'مجموعة الصاوي العقارية',
+    status: 'Completed',
+    debit: 0,
+    credit: 42500,
+    balance: 149800,
+    invoiceId: 'INV-2026-004',
+    dueDate: '2026-05-15',
+    paidAmount: 42500,
+    remainingAmount: 52500
+  },
+  {
+    id: 'fin10',
+    type: 'Revenue',
+    category: 'Subscription',
+    title: 'رسوم التحاق الدفعة الصيفية - برنامج الدبلوم البرمجي',
+    amount: 18500,
+    date: '2026-06-12',
+    department: 'Training',
+    account: 'الخزينة النقدية الرئيسية',
+    customerName: 'طلاب الدفعة الصيفية المتدربين',
+    status: 'Completed',
+    debit: 0,
+    credit: 18500,
+    balance: 168300,
+    invoiceId: 'INV-2026-005',
+    dueDate: '2026-06-12',
+    paidAmount: 18500,
+    remainingAmount: 0
+  },
+  {
+    id: 'fin11',
+    type: 'Expense',
+    category: 'Salary',
+    title: 'مكافآت وتكاليف المحاضرين الخارجيين - قسم التدريب',
+    amount: 6500,
+    date: '2026-06-14',
+    department: 'Training',
+    account: 'محفظة فودافون كاش التجارية',
+    supplierName: 'محاضري الدورة التدريبية',
+    status: 'Completed',
+    debit: 6500,
+    credit: 0,
+    balance: 161800,
+    invoiceId: 'PAY-2026-015',
+    dueDate: '2026-06-14',
+    paidAmount: 6500,
+    remainingAmount: 0
+  },
+  {
+    id: 'fin12',
+    type: 'Receipt',
+    category: 'Payment',
+    title: 'مستحق آجل متأخر - توريد معدات وحلول برمجية',
+    amount: 25000,
+    date: '2026-05-20',
+    department: 'SoftwareDevelopment',
+    account: 'الحساب البنكي الرئيسي - CIB',
+    customerName: 'مؤسسة الشروق الهندسية',
+    status: 'Overdue',
+    debit: 0,
+    credit: 25000,
+    balance: 161800,
+    invoiceId: 'INV-2026-006',
+    dueDate: '2026-06-01',
+    paidAmount: 5000,
+    remainingAmount: 20000
+  },
+  {
+    id: 'fin13',
+    type: 'Payment',
+    category: 'Tools',
+    title: 'مستحق للمورد - شراء أجهزة سيرفرات وتجهيزات قاعات التدريب',
+    amount: 14000,
+    date: '2026-05-25',
+    department: 'Training',
+    account: 'شيك بنكي مقبول الدفع',
+    supplierName: 'شركة التكنولوجيا الرقمية للمعدات',
+    status: 'Pending',
+    debit: 14000,
+    credit: 0,
+    balance: 161800,
+    invoiceId: 'PAY-2026-016',
+    dueDate: '2026-06-25',
+    paidAmount: 4000,
+    remainingAmount: 10000
+  }
 ];
 
 const mockCampaigns: Campaign[] = [
@@ -802,6 +1074,14 @@ export const useAppStore = create<AppState>((set) => ({
       },
       ...state.financeRecords
     ]
+  })),
+  
+  updateFinancialRecord: (record) => set((state) => ({
+    financeRecords: state.financeRecords.map((r) => (r.id === record.id ? record : r))
+  })),
+  
+  deleteFinancialRecord: (id) => set((state) => ({
+    financeRecords: state.financeRecords.filter((r) => r.id !== id)
   })),
   
   addCampaign: (campaign, byUser) => set((state) => {
