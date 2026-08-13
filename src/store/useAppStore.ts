@@ -120,6 +120,19 @@ export interface FinancialRecord {
   balance?: number;
 }
 
+export interface BonusRecord {
+  id: string;
+  employeeName: string;
+  employeeRole: string;
+  department: string;
+  amount: number;
+  bonusType: 'حافز أداء ممتاز' | 'مكافأة تميز' | 'عمولة مبيعات' | 'بدل إضافي واجتهاد' | string;
+  date: string;
+  reason: string;
+  approvedBy: string;
+  status: 'Approved' | 'Disbursed' | 'Pending';
+}
+
 export interface Campaign {
   id: string;
   name: string;
@@ -209,6 +222,7 @@ interface AppState {
   employees: Employee[];
   kpiTemplates: KPITemplate[];
   financeRecords: FinancialRecord[];
+  bonusRecords: BonusRecord[];
   campaigns: Campaign[];
   files: SystemFile[];
   notifications: Notification[];
@@ -238,6 +252,10 @@ interface AppState {
   addFinancialRecord: (record: Omit<FinancialRecord, 'id'>) => void;
   updateFinancialRecord: (record: FinancialRecord) => void;
   deleteFinancialRecord: (id: string) => void;
+  addBonusRecord: (bonus: Omit<BonusRecord, 'id'>) => void;
+  updateBonusRecord: (bonus: BonusRecord) => void;
+  disburseBonusRecord: (id: string) => void;
+  deleteBonusRecord: (id: string) => void;
   addCampaign: (campaign: Omit<Campaign, 'id' | 'reach' | 'clicks' | 'leads' | 'revenueGenerated'>, byUser?: string) => void;
   updateCampaign: (campaign: Campaign, byUser?: string) => void;
   addFile: (file: Omit<SystemFile, 'id' | 'uploadDate'>) => void;
@@ -710,6 +728,69 @@ const mockActivityLogs: ActivityLog[] = [
   }
 ];
 
+const mockBonusRecords: BonusRecord[] = [
+  {
+    id: 'bns-1',
+    employeeName: 'م. إسلام عادل',
+    employeeRole: 'Web Team Leader',
+    department: 'SoftwareDevelopment',
+    amount: 3500,
+    bonusType: 'حافز أداء ممتاز',
+    date: '2026-06-01',
+    reason: 'إنجاز تسليمات مشروع سندك وتطوير المعمارية البرمجية قبل الموعد',
+    approvedBy: 'Finance Manager',
+    status: 'Disbursed'
+  },
+  {
+    id: 'bns-2',
+    employeeName: 'رانيا مجدي',
+    employeeRole: 'Account Manager',
+    department: 'SoftwareDevelopment',
+    amount: 2500,
+    bonusType: 'عمولة مبيعات',
+    date: '2026-06-05',
+    reason: 'إغلاق اتفاقية التعاقد الفني والتنسيق الممتاز مع مجموعة الصاوي',
+    approvedBy: 'Finance Manager',
+    status: 'Disbursed'
+  },
+  {
+    id: 'bns-3',
+    employeeName: 'د. طارق مراد',
+    employeeRole: 'كبير مدربي الأمن السيبراني',
+    department: 'Training',
+    amount: 4000,
+    bonusType: 'مكافأة تميز',
+    date: '2026-06-08',
+    reason: 'تقييم 99% في دورة الحوسبة السحابية وتدريب 45 متدرب بنجاح',
+    approvedBy: 'Finance Manager',
+    status: 'Approved'
+  },
+  {
+    id: 'bns-4',
+    employeeName: 'محمود عبد السلام',
+    employeeRole: 'أخصائي مبيعات كبار العملاء',
+    department: 'Sales',
+    amount: 5000,
+    bonusType: 'عمولة مبيعات',
+    date: '2026-06-10',
+    reason: 'تحقيق 150% من التارقت الشهري وتوقيع 3 عقود برمجية جديدة',
+    approvedBy: 'Finance Manager',
+    status: 'Disbursed'
+  },
+  {
+    id: 'bns-5',
+    employeeName: 'سارة خالد',
+    employeeRole: 'أخصائي موارد بشرية',
+    department: 'HR',
+    amount: 1800,
+    bonusType: 'بدل إضافي واجتهاد',
+    date: '2026-06-11',
+    reason: 'مجهود استثنائي في تنظيم المقابلات وتحديث لائحة التقييمات',
+    approvedBy: 'Finance Manager',
+    status: 'Pending'
+  }
+];
+
 export const useAppStore = create<AppState>((set) => ({
   currentRole: 'CEO',
   leads: mockLeads,
@@ -717,6 +798,7 @@ export const useAppStore = create<AppState>((set) => ({
   employees: mockEmployees,
   kpiTemplates: mockKpiTemplates,
   financeRecords: mockFinanceRecords,
+  bonusRecords: mockBonusRecords,
   campaigns: mockCampaigns,
   files: mockFiles,
   notifications: mockNotifications,
@@ -1082,6 +1164,65 @@ export const useAppStore = create<AppState>((set) => ({
   
   deleteFinancialRecord: (id) => set((state) => ({
     financeRecords: state.financeRecords.filter((r) => r.id !== id)
+  })),
+
+  addBonusRecord: (bonus) => set((state) => {
+    const newBonus: BonusRecord = {
+      ...bonus,
+      id: 'bns-' + (state.bonusRecords.length + 1)
+    };
+    let newFinRecords = state.financeRecords;
+    if (bonus.status === 'Disbursed') {
+      const finExpense: FinancialRecord = {
+        id: 'fin-bns-' + (state.financeRecords.length + 1),
+        type: 'Expense',
+        category: 'Salary',
+        title: `صرف حافز ومكافأة: ${bonus.employeeName} (${bonus.bonusType})`,
+        amount: bonus.amount,
+        date: bonus.date,
+        department: bonus.department,
+        account: 'الحساب البنكي الرئيسي - CIB',
+        status: 'Completed',
+        paidAmount: bonus.amount,
+        remainingAmount: 0
+      };
+      newFinRecords = [finExpense, ...state.financeRecords];
+    }
+    return {
+      bonusRecords: [newBonus, ...state.bonusRecords],
+      financeRecords: newFinRecords
+    };
+  }),
+
+  updateBonusRecord: (bonus) => set((state) => ({
+    bonusRecords: state.bonusRecords.map((b) => (b.id === bonus.id ? bonus : b))
+  })),
+
+  disburseBonusRecord: (id) => set((state) => {
+    const target = state.bonusRecords.find((b) => b.id === id);
+    if (!target) return state;
+    const updatedBonus: BonusRecord = { ...target, status: 'Disbursed' };
+    const finExpense: FinancialRecord = {
+      id: 'fin-bns-' + (state.financeRecords.length + 1),
+      type: 'Expense',
+      category: 'Salary',
+      title: `صرف حافز ومكافأة: ${target.employeeName} (${target.bonusType})`,
+      amount: target.amount,
+      date: new Date().toISOString().split('T')[0],
+      department: target.department,
+      account: 'الحساب البنكي الرئيسي - CIB',
+      status: 'Completed',
+      paidAmount: target.amount,
+      remainingAmount: 0
+    };
+    return {
+      bonusRecords: state.bonusRecords.map((b) => (b.id === id ? updatedBonus : b)),
+      financeRecords: [finExpense, ...state.financeRecords]
+    };
+  }),
+
+  deleteBonusRecord: (id) => set((state) => ({
+    bonusRecords: state.bonusRecords.filter((b) => b.id !== id)
   })),
   
   addCampaign: (campaign, byUser) => set((state) => {

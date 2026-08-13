@@ -133,9 +133,7 @@ export const Login: React.FC = () => {
         if (match.status === 'Pending First Login') {
           navigate('/auth/force-change-password');
         } else {
-          if (match.role === 'Finance Employee') {
-            navigate('/finance/revenues');
-          } else if (match.department === 'Software Development' || match.department === 'SoftwareDevelopment') {
+          if (match.department === 'Software Development' || match.department === 'SoftwareDevelopment') {
             navigate('/dev/dashboard');
           } else if (match.department === 'Sales') {
             navigate('/crm/dashboard');
@@ -177,20 +175,22 @@ export const Login: React.FC = () => {
       'ceo@company.com',
       'gm@company.com',
       'hr@company.com',
+      'techlead@company.com',
+      'dev.manager@company.com',
+      'account.manager@company.com',
+      'tl.web@company.com',
+      'tl.mobile@company.com',
+      'tl.automation@company.com',
       'finance@company.com',
-      'finance.dev@company.com',
-      'finance.training@company.com',
-      'finance.mkt@company.com',
       'marketing@company.com',
       'sales.manager@company.com',
       'teamleader@company.com',
       'developer@company.com',
-      'techlead@company.com',
       'employee@company.com',
       'client@company.com',
       'training.manager@company.com',
       'instructor@company.com'
-    ].includes(u.email.toLowerCase()) || u.role === 'Finance Employee'
+    ].includes(u.email.toLowerCase())
   );
 
   const isDev = import.meta.env.DEV;

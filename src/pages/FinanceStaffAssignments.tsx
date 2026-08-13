@@ -23,7 +23,7 @@ export const FinanceStaffAssignments: React.FC = () => {
   const { registeredUsers } = useAppSelector((state) => state.auth);
   const { financeRecords } = useAppStore();
 
-  const financeEmployees = registeredUsers.filter((u) => u.role === 'Finance Employee');
+  const financeEmployees = registeredUsers.filter((u) => u.role === 'Finance Manager');
 
   const departmentOptions = [
     { value: 'SoftwareDevelopment', labelAr: 'قسم البرمجة والتطوير', labelEn: 'Software Development', icon: Code, color: 'text-indigo-600 bg-indigo-50 border-indigo-200' },

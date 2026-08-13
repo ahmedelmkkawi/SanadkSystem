@@ -1,6 +1,92 @@
 import { create } from 'zustand';
 
-export type DevRole = 'CEO' | 'Tech Lead' | 'Team Manager' | 'Developer' | 'Client' | 'Sales Manager' | 'Sales Employee' | 'Training Manager' | 'Instructor';
+export type DevRole = 
+  | 'CEO' 
+  | 'Tech Lead' 
+  | 'Department Manager' 
+  | 'Account Manager' 
+  | 'Web Team Leader' 
+  | 'Mobile Team Leader' 
+  | 'Automation Team Leader' 
+  | 'Team Manager' 
+  | 'Developer' 
+  | 'Client' 
+  | 'Sales Manager' 
+  | 'Sales Employee' 
+  | 'Training Manager' 
+  | 'Instructor';
+
+export interface DevInterview {
+  id: string;
+  candidateName: string;
+  candidateRole: string;
+  interviewStage: '1st Interview' | '2nd Interview';
+  conductedBy: string;
+  interviewDate: string;
+  notes: string;
+  rating: number;
+  status: 'Passed' | 'Rejected' | 'Pending Decision';
+  sentToTechLead: boolean;
+}
+
+export interface DevClientData {
+  id: string;
+  clientName: string;
+  companyName: string;
+  phone: string;
+  email: string;
+  projectTitle: string;
+  requirements: string;
+  submittedBy: string;
+  submittedTo: string;
+  submissionDate: string;
+  status: 'Pending Review' | 'Accepted' | 'In Progress';
+  attachedFiles: Array<{
+    name: string;
+    type: 'word' | 'excel' | 'pdf';
+    size: string;
+  }>;
+}
+
+export interface DevAttendance {
+  id: string;
+  employeeName: string;
+  date: string;
+  status: 'Present' | 'Absent' | 'Late' | 'On Leave';
+  checkInTime?: string;
+  checkOutTime?: string;
+  notes?: string;
+  takenBy: string;
+  syncedToTechLead: boolean;
+}
+
+export interface DevTeamSubmission {
+  id: string;
+  teamType: 'Web' | 'Mobile Application' | 'Automation & Data Analysis' | 'Department Management' | 'Client Success';
+  teamLeaderName: string;
+  uploaderRole?: string;
+  taskTitle: string;
+  description: string;
+  fileName: string;
+  fileType: 'word' | 'excel' | 'pdf';
+  fileSize: string;
+  submissionDate: string;
+  submittedTo: string;
+  forwardedToTechLead?: boolean;
+  forwardedDate?: string;
+}
+
+export interface DevDepartmentMember {
+  id: string;
+  name: string;
+  roleTitle: string;
+  team: 'Web' | 'Mobile Application' | 'Automation & Data Analysis' | 'Management' | 'Client Success';
+  workNature: string;
+  rating: number;
+  performanceNote?: string;
+  attendanceRate: number;
+  activeTasks: number;
+}
 
 export interface ProjectStage {
   name: string;
@@ -185,8 +271,23 @@ interface DevModuleState {
   technicalLogs: TechnicalLog[];
   notifications: DevNotification[];
   
+  // New Programming Department Data
+  interviews: DevInterview[];
+  clientSubmissions: DevClientData[];
+  attendanceRecords: DevAttendance[];
+  teamSubmissions: DevTeamSubmission[];
+  departmentMembers: DevDepartmentMember[];
+
   // Actions
   setRole: (role: DevRole) => void;
+  
+  // Department Actions
+  addInterview: (interview: Omit<DevInterview, 'id' | 'sentToTechLead'>) => void;
+  addClientData: (data: Omit<DevClientData, 'id' | 'submissionDate' | 'status'>) => void;
+  takeAttendance: (records: Array<Omit<DevAttendance, 'id' | 'syncedToTechLead'>>) => void;
+  submitTeamDeliverable: (submission: Omit<DevTeamSubmission, 'id' | 'submissionDate'> & { forwardedToTechLead?: boolean }) => void;
+  forwardDeliverableToTechLead: (id: string) => void;
+  evaluateMember: (id: string, rating: number, note: string) => void;
   
   // Projects
   addProject: (project: Omit<DevProject, 'id' | 'stages' | 'progress' | 'status'>) => void;
@@ -543,6 +644,305 @@ const initialNotifications: DevNotification[] = [
   }
 ];
 
+const initialInterviews: DevInterview[] = [
+  {
+    id: 'int-1',
+    candidateName: 'أ. خالد التميمي (مجموعة الصاوي العقارية)',
+    candidateRole: 'منصة سندك العقارية وبوابة الحجز الفوري',
+    interviewStage: '1st Interview',
+    conductedBy: 'رانيا مجدي (Account Manager)',
+    interviewDate: '2026-08-10',
+    notes: 'تم عقد الاجتماع الأول مع العميل وفهم الرؤية العامة للمشروع. العميل يرغب في منصة ويب سريعة جداً تدعم الدفع بالفيزا والمحافظ الإلكترونية، مع إمكانية التوسع لاحقاً لتطبيق موبايل.',
+    rating: 5,
+    status: 'Passed',
+    sentToTechLead: true
+  },
+  {
+    id: 'int-2',
+    candidateName: 'د. طارق مراد (شركة تكنو سوفت الشرق الأوسط)',
+    candidateRole: 'تطبيق محفظة الدفع الذكية والولاء للمستخدمين',
+    interviewStage: '2nd Interview',
+    conductedBy: 'د. حاتم الشريف (Department Manager)',
+    interviewDate: '2026-08-12',
+    notes: 'تم إجراء الاجتماع التقني المعمق الثاني مع العميل والاتفاق على معمارية Clean Architecture وتأمين المعاملات بسيرفرات PostgreSQL مشفرة وتوفير APIs سريعة للاستجابة.',
+    rating: 4.8,
+    status: 'Passed',
+    sentToTechLead: true
+  },
+  {
+    id: 'int-3',
+    candidateName: 'م. عمرو حسني (شركة النور للاستيراد)',
+    candidateRole: 'سيستم إدارة علاقات العملاء والمبيعات (CRM)',
+    interviewStage: '1st Interview',
+    conductedBy: 'رانيا مجدي (Account Manager)',
+    interviewDate: '2026-08-13',
+    notes: 'اجتماع مبدئي لاستكشاف متطلبات الربط مع المخازن وفواتير المبيعات. تم تسجيل الرغبة في نظام تقارير تفاعلي.',
+    rating: 4,
+    status: 'Pending Decision',
+    sentToTechLead: true
+  }
+];
+
+const initialClientSubmissions: DevClientData[] = [
+  {
+    id: 'cli-sub-1',
+    clientName: 'أ. خالد التميمي',
+    companyName: 'مجموعة الصاوي العقارية',
+    phone: '+20 100 234 5678',
+    email: 'khaled@alsawy.com',
+    projectTitle: 'منصة سندك العقارية وبوابة الحجز الفوري',
+    requirements: 'مطلوب لوحة تحكم ذكية للعملاء مع دعم بوابات الدفع الإلكتروني وتكامل مع سيستم CRM.',
+    submittedBy: 'رانيا مجدي (Account Manager)',
+    submittedTo: 'د. حاتم الشريف (Department Manager)',
+    submissionDate: '2026-08-11',
+    status: 'In Progress',
+    attachedFiles: [
+      { name: 'Sawy_RealEstate_Specs.docx', type: 'word', size: '2.4 MB' },
+      { name: 'Financial_Projections_Budget.xlsx', type: 'excel', size: '1.1 MB' }
+    ]
+  },
+  {
+    id: 'cli-sub-2',
+    clientName: 'د. طارق مراد',
+    companyName: 'شركة تكنو سوفت الشرق الأوسط',
+    phone: '+20 111 888 9900',
+    email: 'tarek@technosoft.io',
+    projectTitle: 'تطبيق محفظة الدفع الذكية والولاء للمستخدمين',
+    requirements: 'تطبيق موحد للآيفون والأندرويد للتحويلات المالية الفورية وإرسال إشعارات PUSH.',
+    submittedBy: 'رانيا مجدي (Account Manager)',
+    submittedTo: 'د. حاتم الشريف (Department Manager)',
+    submissionDate: '2026-08-12',
+    status: 'Pending Review',
+    attachedFiles: [
+      { name: 'Payment_App_Scope_Doc.pdf', type: 'pdf', size: '4.8 MB' }
+    ]
+  }
+];
+
+const initialAttendance: DevAttendance[] = [
+  {
+    id: 'att-1',
+    employeeName: 'م. إسلام عادل (Web Team Leader)',
+    date: '2026-08-13',
+    status: 'Present',
+    checkInTime: '08:55 AM',
+    checkOutTime: '05:00 PM',
+    notes: 'حضور منتظم ومباشرة سبرنت الويب',
+    takenBy: 'د. حاتم الشريف (Department Manager)',
+    syncedToTechLead: true
+  },
+  {
+    id: 'att-2',
+    employeeName: 'م. حسام السيد (Mobile Team Leader)',
+    date: '2026-08-13',
+    status: 'Present',
+    checkInTime: '09:05 AM',
+    checkOutTime: '05:30 PM',
+    notes: 'حضور ومباشرة بناء النسخة التجريبية للموبايل',
+    takenBy: 'د. حاتم الشريف (Department Manager)',
+    syncedToTechLead: true
+  },
+  {
+    id: 'att-3',
+    employeeName: 'م. دينا فتحي (Automation TL)',
+    date: '2026-08-13',
+    status: 'Present',
+    checkInTime: '09:00 AM',
+    checkOutTime: '05:15 PM',
+    notes: 'حضور وتنسيق اختبارات الضغط والأوتوميشن',
+    takenBy: 'د. حاتم الشريف (Department Manager)',
+    syncedToTechLead: true
+  },
+  {
+    id: 'att-4',
+    employeeName: 'زياد عمرو (Senior Backend Developer)',
+    date: '2026-08-13',
+    status: 'Late',
+    checkInTime: '09:40 AM',
+    notes: 'تأخير بعلم المدير لتسليم شفت مسائي سابق',
+    takenBy: 'د. حاتم الشريف (Department Manager)',
+    syncedToTechLead: true
+  },
+  {
+    id: 'att-5',
+    employeeName: 'ليلى مراد (UI/UX Designer)',
+    date: '2026-08-13',
+    status: 'Present',
+    checkInTime: '08:50 AM',
+    notes: 'حضور مبكر',
+    takenBy: 'د. حاتم الشريف (Department Manager)',
+    syncedToTechLead: true
+  }
+];
+
+const initialTeamSubmissions: DevTeamSubmission[] = [
+  {
+    id: 'sub-dept-1',
+    teamType: 'Department Management',
+    teamLeaderName: 'د. حاتم الشريف (Department Manager)',
+    uploaderRole: 'Department Manager',
+    taskTitle: 'مستند مراجعة هيكلة سيرفرات وسعة استضافة قسم البرمجة Q3',
+    description: 'ملف تقييم احتياجات السيرفرات والبنية التحتية، وتحديد متطلبات توسعة قواعد البيانات والـ Load Balancers.',
+    fileName: 'DeptManager_Infrastructure_Review_Q3.pdf',
+    fileType: 'pdf',
+    fileSize: '4.8 MB',
+    submissionDate: '2026-08-13 12:30',
+    submittedTo: 'أنس العمري (Tech Lead)',
+    forwardedToTechLead: true,
+    forwardedDate: '2026-08-13 12:30'
+  },
+  {
+    id: 'sub-acc-1',
+    teamType: 'Client Success',
+    teamLeaderName: 'رانيا مجدي (Account Manager)',
+    uploaderRole: 'Account Manager',
+    taskTitle: 'مستند الشروط الفنية والميزانية المقترحة لمشروع مجموعة الصاوي',
+    description: 'تفاصيل جدول التسليم المعتمد مع العميل وميزانية مرحلة تطوير منصة الويب وتطبيق الهاتف.',
+    fileName: 'Sawy_RealEstate_Specs.docx',
+    fileType: 'word',
+    fileSize: '2.4 MB',
+    submissionDate: '2026-08-13 13:15',
+    submittedTo: 'أنس العمري (Tech Lead)',
+    forwardedToTechLead: true,
+    forwardedDate: '2026-08-13 13:15'
+  },
+  {
+    id: 'sub-web-1',
+    teamType: 'Web',
+    teamLeaderName: 'م. إسلام عادل (Web Team Leader)',
+    uploaderRole: 'Web Team Leader',
+    taskTitle: 'تسليم وثيقة معمارية الموقع الإلكتروني ولوحة الإدارة',
+    description: 'تم الانتهاء من تخطيط الواجهات الأمامية والربط مع خدمات REST API وتجهيز ملف الشروط.',
+    fileName: 'Web_Architecture_Specification.docx',
+    fileType: 'word',
+    fileSize: '3.5 MB',
+    submissionDate: '2026-08-12 14:00',
+    submittedTo: 'د. حاتم الشريف (Department Manager)',
+    forwardedToTechLead: true,
+    forwardedDate: '2026-08-12 15:30'
+  },
+  {
+    id: 'sub-mob-1',
+    teamType: 'Mobile Application',
+    teamLeaderName: 'م. حسام السيد (Mobile Team Leader)',
+    uploaderRole: 'Mobile Team Leader',
+    taskTitle: 'تقرير نتائج اختبار أداء تطبيق سندك كاش الموبايل',
+    description: 'تقرير شامل باستجابة التطبيق على أجهزة iOS وأندرويد المختلفة واستغلال الذاكرة.',
+    fileName: 'Mobile_Performance_Audit_Report.xlsx',
+    fileType: 'excel',
+    fileSize: '2.1 MB',
+    submissionDate: '2026-08-13 10:15',
+    submittedTo: 'د. حاتم الشريف (Department Manager)',
+    forwardedToTechLead: true,
+    forwardedDate: '2026-08-13 11:00'
+  },
+  {
+    id: 'sub-auto-1',
+    teamType: 'Automation & Data Analysis',
+    teamLeaderName: 'م. دينا فتحي (Automation TL)',
+    uploaderRole: 'Automation Team Leader',
+    taskTitle: 'سيناريوهات الاختبارات الآلية وتحليلات الأداء',
+    description: 'ملف يحتوي على كود وسيناريوهات الفحص التلقائي ونسب النجاح والفشل للـ Endpoints.',
+    fileName: 'Automation_Test_Execution_Results.pdf',
+    fileType: 'pdf',
+    fileSize: '5.2 MB',
+    submissionDate: '2026-08-13 11:45',
+    submittedTo: 'د. حاتم الشريف (Department Manager)',
+    forwardedToTechLead: false
+  }
+];
+
+const initialDepartmentMembers: DevDepartmentMember[] = [
+  {
+    id: 'mem-1',
+    name: 'أنس العمري',
+    roleTitle: 'Tech Lead (الرئيس التقني والقائد العام للبرمجة)',
+    team: 'Management',
+    workNature: 'الإشراف العام على جميع تفاصيل الموقع، تحديد المعمارية التقنية للأنظمة، مراجعة الكود، واعتماد تسليمات مدير القسم وتيم ليدرز الفرق.',
+    rating: 5,
+    performanceNote: 'قيادة تقنية ممتازة ورؤية معمارية ثاقبة.',
+    attendanceRate: 98,
+    activeTasks: 4
+  },
+  {
+    id: 'mem-2',
+    name: 'د. حاتم الشريف',
+    roleTitle: 'Department Manager (مدير قسم البرمجة)',
+    team: 'Management',
+    workNature: 'متابعة الشغل وتوزيع المهام، أخذ غياب وحضور أعضاء القسم يومياً، إجراء المقابلة الثانية للمتقدمين، وتقييم أداء الأعضاء وتسليم التقارير للـ Tech Lead.',
+    rating: 4.9,
+    performanceNote: 'متابعة حثيثة وإدارة دقيقة لكافة فرق القسم.',
+    attendanceRate: 99,
+    activeTasks: 6
+  },
+  {
+    id: 'mem-3',
+    name: 'رانيا مجدي',
+    roleTitle: 'Account Manager (مدير الحسابات والتواصل مع العملاء)',
+    team: 'Client Success',
+    workNature: 'متابعة متطلبات العملاء، إعداد ملفات الشروط وتسليم داتا العملاء لمدير القسم، وإجراء المقابلة الأولى المبدئية وتسليم نتائجها للـ Tech Lead.',
+    rating: 4.7,
+    performanceNote: 'تواصل راقٍ مع العملاء وانتقاء ممتاز للكوادر.',
+    attendanceRate: 95,
+    activeTasks: 5
+  },
+  {
+    id: 'mem-4',
+    name: 'م. إسلام عادل',
+    roleTitle: 'Web Team Leader (قائد فريق تطوير الويب)',
+    team: 'Web',
+    workNature: 'مسؤول عن تيم الويب الكامل (Frontend React/Next.js & Backend Serverless)، مراجعة كود التيم، وإرسال المرفقات والتاسكات لمدير القسم.',
+    rating: 4.8,
+    performanceNote: 'التزام تام بالمواعيد وجودة برمجية عالية.',
+    attendanceRate: 97,
+    activeTasks: 8
+  },
+  {
+    id: 'mem-5',
+    name: 'م. حسام السيد',
+    roleTitle: 'Mobile Application Team Leader (قائد فريق الموبايل)',
+    team: 'Mobile Application',
+    workNature: 'مسؤول عن تيم تطبيقات الهواتف الذكية (Flutter, iOS Native, Android)، متابعة المتاجر وتحديثات التطبيق وتسليم الملفات لمدير القسم.',
+    rating: 4.7,
+    performanceNote: 'سرعة استجابة متميزة وأداء عالي للتطبيقات.',
+    attendanceRate: 96,
+    activeTasks: 7
+  },
+  {
+    id: 'mem-6',
+    name: 'م. دينا فتحي',
+    roleTitle: 'Automation & Data Analysis Team Leader (قائد فريق الأوتوميشن وتحليل البيانات)',
+    team: 'Automation & Data Analysis',
+    workNature: 'مسؤولة عن كود الأوتوميشن، برامج الاختبارات التلقائية، تحليل داتا السيرفرات، وإعداد تقارير الأداء وتصدير ملفات PDF/Excel لمدير القسم.',
+    rating: 4.9,
+    performanceNote: 'دقة عالية جداً في سيناريوهات الأوتوميشن وتحليل البيانات.',
+    attendanceRate: 98,
+    activeTasks: 6
+  },
+  {
+    id: 'mem-7',
+    name: 'زياد عمرو',
+    roleTitle: 'Senior Backend Developer (مطور قواعد بيانات وسيرفرات)',
+    team: 'Web',
+    workNature: 'بناء الـ APIs وتصميم قواعد البيانات الضخمة (PostgreSQL & Node.js)، وحل المشاكل التقنية والمعقدة.',
+    rating: 4.6,
+    performanceNote: 'خبرة قوية في الـ Backend وتأمين البيانات.',
+    attendanceRate: 92,
+    activeTasks: 5
+  },
+  {
+    id: 'mem-8',
+    name: 'ليلى مراد',
+    roleTitle: 'UI/UX & Frontend Designer (مصممة مطورة واجهات)',
+    team: 'Web',
+    workNature: 'تصميم تجربة واجهة المستخدم وإعداد الفيجما وتحويلها إلى عناصر برمجية تفاعلية بـ React و Tailwind.',
+    rating: 4.8,
+    performanceNote: 'تصاميم جذابة وعصرية تمنح تجربة فخمة للمستخدم.',
+    attendanceRate: 96,
+    activeTasks: 4
+  }
+];
+
 const getInitialRole = (): DevRole => {
   const userJson = localStorage.getItem('auth_user');
   if (userJson) {
@@ -571,8 +971,121 @@ export const useDevModuleStore = create<DevModuleState>((set) => ({
   changeRequests: initialChangeRequests,
   technicalLogs: initialLogs,
   notifications: initialNotifications,
+  
+  // Department Data State
+  interviews: initialInterviews,
+  clientSubmissions: initialClientSubmissions,
+  attendanceRecords: initialAttendance,
+  teamSubmissions: initialTeamSubmissions,
+  departmentMembers: initialDepartmentMembers,
 
   setRole: (role) => set({ currentRole: role }),
+
+  // Department Actions
+  addInterview: (interviewData) => set((state) => {
+    const newInterview: DevInterview = {
+      ...interviewData,
+      id: `int-${Date.now()}`,
+      sentToTechLead: true
+    };
+    const newLog: TechnicalLog = {
+      id: `log-${Date.now()}`,
+      user: interviewData.conductedBy,
+      dateTime: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      action: 'Interview Recorded',
+      entityType: 'Project',
+      entityName: interviewData.candidateName,
+      oldValue: interviewData.interviewStage,
+      newValue: `Status: ${interviewData.status}, Rating: ${interviewData.rating}`
+    };
+    return {
+      interviews: [newInterview, ...state.interviews],
+      technicalLogs: [newLog, ...state.technicalLogs]
+    };
+  }),
+
+  addClientData: (data) => set((state) => {
+    const newClientData: DevClientData = {
+      ...data,
+      id: `cli-sub-${Date.now()}`,
+      submissionDate: new Date().toISOString().split('T')[0],
+      status: 'Pending Review'
+    };
+    const newLog: TechnicalLog = {
+      id: `log-${Date.now()}`,
+      user: data.submittedBy,
+      dateTime: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      action: 'Client Data Handed Over',
+      entityType: 'Project',
+      entityName: data.clientName,
+      oldValue: '',
+      newValue: `Project: ${data.projectTitle}`
+    };
+    return {
+      clientSubmissions: [newClientData, ...state.clientSubmissions],
+      technicalLogs: [newLog, ...state.technicalLogs]
+    };
+  }),
+
+  takeAttendance: (records) => set((state) => {
+    const today = new Date().toISOString().split('T')[0];
+    const newRecords: DevAttendance[] = records.map(r => ({
+      ...r,
+      id: `att-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      date: r.date || today,
+      syncedToTechLead: true
+    }));
+
+    // Filter out existing records for today for these employees and append new ones
+    const filteredExisting = state.attendanceRecords.filter(
+      existing => !(existing.date === today && records.some(r => r.employeeName === existing.employeeName))
+    );
+
+    return {
+      attendanceRecords: [...newRecords, ...filteredExisting]
+    };
+  }),
+
+  submitTeamDeliverable: (submission) => set((state) => {
+    const isForwarded = submission.forwardedToTechLead ?? false;
+    const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const newSub: DevTeamSubmission = {
+      ...submission,
+      id: `sub-${submission.teamType.toLowerCase().substring(0, 3)}-${Date.now()}`,
+      submissionDate: nowStr,
+      forwardedToTechLead: isForwarded,
+      forwardedDate: isForwarded ? nowStr : undefined
+    };
+    const newLog: TechnicalLog = {
+      id: `log-${Date.now()}`,
+      user: submission.teamLeaderName,
+      dateTime: nowStr,
+      action: 'Deliverable File Uploaded',
+      entityType: 'File',
+      entityName: submission.fileName,
+      oldValue: submission.teamType,
+      newValue: submission.taskTitle
+    };
+    return {
+      teamSubmissions: [newSub, ...state.teamSubmissions],
+      technicalLogs: [newLog, ...state.technicalLogs]
+    };
+  }),
+
+  forwardDeliverableToTechLead: (id) => set((state) => {
+    const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    return {
+      teamSubmissions: state.teamSubmissions.map(s => 
+        s.id === id ? { ...s, forwardedToTechLead: true, forwardedDate: nowStr } : s
+      )
+    };
+  }),
+
+  evaluateMember: (id, rating, note) => set((state) => ({
+    departmentMembers: state.departmentMembers.map(m => 
+      m.id === id ? { ...m, rating, performanceNote: note } : m
+    )
+  })),
 
   addProject: (proj) => set((state) => {
     // Generate default stages and tasks based on template selection

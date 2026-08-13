@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAppSelector } from '../store';
 import { useAppStore, type FinancialRecord } from '../store/useAppStore';
 import { useDevModuleStore } from '../store/devModuleStore';
 import {
@@ -17,8 +16,7 @@ import {
   Building2,
   UploadCloud,
   FileCheck,
-  Receipt,
-  ShieldAlert
+  Receipt
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -26,12 +24,11 @@ export const FinanceExpenses: React.FC = () => {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
 
-  const { user } = useAppSelector((state) => state.auth);
-  const isFinanceEmployee = user?.role === 'Finance Employee';
-  const userDept = user?.department || 'SoftwareDevelopment';
-
   const { financeRecords, addFinancialRecord, updateFinancialRecord, deleteFinancialRecord } = useAppStore();
   const { projects } = useDevModuleStore();
+
+  // Active Department Filter State
+  const [selectedDept, setSelectedDept] = useState<string>('ALL');
 
   // Create Modal State
   const [formOpen, setFormOpen] = useState(false);
@@ -42,7 +39,7 @@ export const FinanceExpenses: React.FC = () => {
     category: 'أدوات ومستلزمات',
     date: new Date().toISOString().split('T')[0],
     amount: 1500,
-    department: isFinanceEmployee ? userDept : 'SoftwareDevelopment',
+    department: 'SoftwareDevelopment',
     projectId: '',
     supplierName: '',
     invoiceId: '',
@@ -65,8 +62,8 @@ export const FinanceExpenses: React.FC = () => {
   // View Details Modal State
   const [viewingRecord, setViewingRecord] = useState<FinancialRecord | null>(null);
 
-  // Expense Records List (Filtered by Department if Finance Employee)
-  const expenses = financeRecords.filter(r => r.type === 'Expense' && (!isFinanceEmployee || r.department === userDept));
+  // Expense Records List (Filtered by Department)
+  const expenses = financeRecords.filter(r => r.type === 'Expense' && (selectedDept === 'ALL' || r.department === selectedDept));
   const totalExpense = expenses.reduce((acc, curr) => acc + curr.amount, 0);
 
   // Simulated Attachment Handler
@@ -138,41 +135,17 @@ export const FinanceExpenses: React.FC = () => {
 
   return (
     <div className="space-y-6 font-outfit pb-12">
-      {/* Finance Employee Scope Notice Banner */}
-      {isFinanceEmployee && (
-        <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center justify-between gap-3 text-xs font-extrabold text-amber-900 shadow-2xs">
-          <div className="flex items-center gap-2.5">
-            <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0" />
-            <div>
-              <span>
-                {isRtl
-                  ? `أنت مسجل بحساب (Finance Employee) مخصص لقسم: `
-                  : `Logged in as Finance Employee scoped to department: `}
-              </span>
-              <span className="bg-amber-200/80 px-2 py-0.5 rounded text-amber-950 underline font-black">
-                {userDept === 'SoftwareDevelopment' ? (isRtl ? 'قسم البرمجة والتطوير' : 'Software Development') :
-                 userDept === 'Training' ? (isRtl ? 'قسم التدريب والتعليم' : 'Training') :
-                 userDept === 'Marketing' ? (isRtl ? 'قسم التسويق' : 'Marketing') : userDept}
-              </span>
-              <p className="text-[10px] text-amber-700 font-semibold mt-0.5">
-                {isRtl ? 'يتم عرض وتثبيت مصروفات هذا القسم فقط وفقاً لتكليف مدير المالية.' : 'Viewing and recording expenses strictly restricted to your assigned department.'}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Title & Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-gray-155 shadow-sm">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-black text-gray-950 tracking-tight m-0">{t('expenses')}</h1>
             <span className="bg-red-50 text-red-700 text-[10px] font-mono font-extrabold px-2.5 py-0.5 rounded-full border border-red-150">
-              {isRtl ? 'تسجيل وإثبات النفقات' : 'Expense Disbursements Module'}
+              {isRtl ? 'تسجيل ونفقات الأقسام' : 'Department Expenses'}
             </span>
           </div>
           <p className="text-xs text-gray-500 mt-1">
-            {isRtl ? 'رصد المصاريف التشغيلية، الرواتب، اشتراكات البرامج، وإرفاق صور الفواتير والإيصالات الرسمية.' : 'Log operational costs, supplier invoices, software subscriptions and proof documents.'}
+            {isRtl ? 'متابعة ورصد المصاريف التشغيلية، الرواتب والعمولات بكافة أقسام الشركة.' : 'Log operational costs, supplier invoices, software subscriptions and proof documents.'}
           </p>
         </div>
 
@@ -218,6 +191,31 @@ export const FinanceExpenses: React.FC = () => {
             <Building2 className="w-6 h-6" />
           </div>
         </div>
+      </div>
+
+      {/* Department Filter Tabs for Finance Manager */}
+      <div className="bg-white p-3 rounded-2xl border border-gray-150 shadow-sm flex items-center gap-1.5 overflow-x-auto">
+        <span className="text-xs font-bold text-gray-500 px-2 whitespace-nowrap">تصفية حسب القسم:</span>
+        {[
+          { key: 'ALL', label: '🏢 كافة الأقسام' },
+          { key: 'SoftwareDevelopment', label: '💻 قسم البرمجة وتطوير الأنظمة' },
+          { key: 'Training', label: '🎓 قسم التدريب والتعليم' },
+          { key: 'Sales', label: '📢 قسم المبيعات والتسويق' },
+          { key: 'HR', label: '👥 قسم الموارد البشرية' },
+          { key: 'Operations', label: '⚙️ قسم العمليات والإدارة' }
+        ].map((dept) => (
+          <button
+            key={dept.key}
+            onClick={() => setSelectedDept(dept.key)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+              selectedDept === dept.key
+                ? 'bg-red-600 text-white shadow-md font-black'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            {dept.label}
+          </button>
+        ))}
       </div>
 
       {/* Expenses Ledger Table */}

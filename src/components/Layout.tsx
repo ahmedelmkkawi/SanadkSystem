@@ -155,10 +155,7 @@ export const Layout: React.FC = () => {
     const financeSub = [];
     financeSub.push({ path: '/finance/revenues', label: t('revenues') });
     financeSub.push({ path: '/finance/expenses', label: t('expenses') });
-    financeSub.push({ path: '/finance/reports', label: t('financialReports') });
-    if ((activeRole as string) === 'Finance Manager' || (activeRole as string) === 'General Manager') {
-      financeSub.push({ path: '/finance/staff-assignments', label: i18n.language === 'ar' ? 'إدارة موظفي المالية' : 'Finance Staff Assignments' });
-    }
+    financeSub.push({ path: '/finance/bonuses', label: i18n.language === 'ar' ? '🎁 الحوافز والمكافآت' : 'Incentives & Bonuses' });
 
     navItems.push({
       label: t('finance'),
@@ -209,20 +206,48 @@ export const Layout: React.FC = () => {
     });
   } else if (isModuleAllowed(activeRole, 'SoftwareDevelopment')) {
     if (mappedRole !== 'Client') {
+      const devSubItems = [];
+
+      if (activeRole === 'Tech Lead') {
+        devSubItems.push({ path: '/dev/dashboard?tab=overview', label: '🌐 تفاصيل الموقع والأنظمة' });
+        devSubItems.push({ path: '/dev/dashboard?tab=files', label: '📁 المرفقات المستلمة (Word/Excel/PDF)' });
+        devSubItems.push({ path: '/dev/dashboard?tab=members', label: '👥 أشخاص القسم وطبيعة شغل كل شخص' });
+        devSubItems.push({ path: '/dev/dashboard?tab=interviews', label: '📝 سجل اجتماعات العملاء (1st & 2nd)' });
+        devSubItems.push({ path: '/dev/dashboard?tab=attendance', label: '⏱️ الغياب والحضور المتزامن' });
+        devSubItems.push({ path: '/dev/projects', label: t('devProjects') });
+        devSubItems.push({ path: '/dev/tasks', label: t('devTasks') });
+      } else if (activeRole === 'Department Manager') {
+        devSubItems.push({ path: '/dev/dashboard?tab=attendance_take', label: '🕒 أخذ الغياب والحضور اليومي' });
+        devSubItems.push({ path: '/dev/dashboard?tab=forward_tasks', label: '📤 تسليم التاسكات للـ Tech Lead' });
+        devSubItems.push({ path: '/dev/dashboard?tab=interview2', label: '🤝 المقابلة التقنية الثانية مع العميل' });
+        devSubItems.push({ path: '/dev/dashboard?tab=evaluation', label: '📊 متابعة الشغل وتقييم الأعضاء' });
+        devSubItems.push({ path: '/dev/dashboard?tab=team_submissions', label: '📥 تسليمات تيم ليدرز الفرق' });
+        devSubItems.push({ path: '/dev/dashboard?tab=client_data', label: '💼 داتا العملاء الواردة' });
+        devSubItems.push({ path: '/dev/projects', label: t('devProjects') });
+      } else if (activeRole === 'Account Manager') {
+        devSubItems.push({ path: '/dev/dashboard?tab=clients', label: '🤝 متابعة العملاء والطلبات' });
+        devSubItems.push({ path: '/dev/dashboard?tab=handover', label: '📩 تسليم داتا العميل لمدير القسم' });
+        devSubItems.push({ path: '/dev/dashboard?tab=interview1', label: '🎙️ المقابلة الأولى مع العميل' });
+        devSubItems.push({ path: '/dev/projects', label: t('devProjects') });
+      } else if (activeRole === 'Web Team Leader' || activeRole === 'Mobile Team Leader' || activeRole === 'Automation Team Leader') {
+        devSubItems.push({ path: '/dev/dashboard?tab=submit_deliverable', label: '📝 إرسال تاسك ومرفق (Word/Excel/PDF)' });
+        devSubItems.push({ path: '/dev/tasks', label: '🎯 مهام الفريق الخاصة' });
+        devSubItems.push({ path: '/dev/projects', label: t('devProjects') });
+      } else {
+        devSubItems.push({ path: '/dev/dashboard', label: t('devDashboard') });
+        devSubItems.push({ path: '/dev/projects', label: t('devProjects') });
+        devSubItems.push({ path: '/dev/tasks', label: t('devTasks') });
+        devSubItems.push({ path: '/dev/teams', label: t('devTeams') });
+        devSubItems.push({ path: '/dev/workload', label: t('devWorkload') });
+        devSubItems.push({ path: '/dev/bugs', label: t('devBugs') });
+        devSubItems.push({ path: '/dev/change-requests', label: t('devChangeRequests') });
+        devSubItems.push({ path: '/dev/reports', label: t('devReports') });
+      }
+
       navItems.push({
         label: t('devDeptNav'),
         icon: Briefcase,
-        subItems: [
-          { path: '/dev/dashboard', label: t('devDashboard') },
-          { path: '/dev/projects', label: t('devProjects') },
-          { path: '/dev/tasks', label: t('devTasks') },
-          { path: '/dev/teams', label: t('devTeams') },
-          { path: '/dev/workload', label: t('devWorkload') },
-          { path: '/dev/bugs', label: t('devBugs') },
-          { path: '/dev/change-requests', label: t('devChangeRequests') },
-          { path: '/dev/reports', label: t('devReports') },
-          { path: '/dev/developer-dashboard', label: t('devDeveloperDashboard') }
-        ]
+        subItems: devSubItems
       });
     } else {
       // Client Portal

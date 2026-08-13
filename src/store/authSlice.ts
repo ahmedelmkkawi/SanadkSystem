@@ -5,7 +5,6 @@ export type UserRole =
   | 'General Manager'
   | 'HR Manager'
   | 'Finance Manager'
-  | 'Finance Employee'
   | 'Marketing Manager'
   | 'Sales Manager'
   | 'Team Leader'
@@ -16,7 +15,12 @@ export type UserRole =
   | 'Student'
   | 'Tech Lead'
   | 'Developer'
-  | 'Team Manager';
+  | 'Team Manager'
+  | 'Department Manager'
+  | 'Account Manager'
+  | 'Web Team Leader'
+  | 'Mobile Team Leader'
+  | 'Automation Team Leader';
 
 export type Permission =
   | 'VIEW_LEADS'
@@ -77,10 +81,7 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     'VIEW_REPORTS', 'VIEW_TASKS', 'MANAGE_TASKS'
   ],
   'Finance Manager': [
-    'VIEW_FINANCE', 'VIEW_FINANCE_SENSITIVE', 'VIEW_REPORTS'
-  ],
-  'Finance Employee': [
-    'VIEW_FINANCE'
+    'VIEW_FINANCE', 'VIEW_FINANCE_SENSITIVE'
   ],
   'Marketing Manager': [
     'VIEW_LEADS', 'MANAGE_LEADS', 'VIEW_MARKETING', 'MANAGE_MARKETING',
@@ -106,12 +107,27 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     'VIEW_TASKS'
   ],
   'Tech Lead': [
-    'VIEW_TASKS', 'MANAGE_TASKS', 'VIEW_REPORTS'
+    'VIEW_TASKS', 'MANAGE_TASKS', 'VIEW_REPORTS', 'VIEW_EMPLOYEES', 'MANAGE_EMPLOYEES'
   ],
   'Developer': [
     'VIEW_TASKS'
   ],
   'Team Manager': [
+    'VIEW_TASKS', 'MANAGE_TASKS', 'VIEW_REPORTS'
+  ],
+  'Department Manager': [
+    'VIEW_TASKS', 'MANAGE_TASKS', 'VIEW_REPORTS', 'VIEW_EMPLOYEES', 'MANAGE_EMPLOYEES'
+  ],
+  'Account Manager': [
+    'VIEW_LEADS', 'MANAGE_LEADS', 'VIEW_TASKS', 'MANAGE_TASKS', 'VIEW_REPORTS'
+  ],
+  'Web Team Leader': [
+    'VIEW_TASKS', 'MANAGE_TASKS', 'VIEW_REPORTS'
+  ],
+  'Mobile Team Leader': [
+    'VIEW_TASKS', 'MANAGE_TASKS', 'VIEW_REPORTS'
+  ],
+  'Automation Team Leader': [
     'VIEW_TASKS', 'MANAGE_TASKS', 'VIEW_REPORTS'
   ]
 };
@@ -121,9 +137,6 @@ const defaultUsers: Array<User & { password?: string }> = [
   { id: 'u2', name: 'ياسر جلال (GM)', email: 'gm@company.com', role: 'General Manager', permissions: rolePermissions['General Manager'], password: 'Password@123', status: 'Active', department: 'Management' },
   { id: 'u3', name: 'سارة خالد (HR)', email: 'hr@company.com', role: 'HR Manager', permissions: rolePermissions['HR Manager'], password: 'Password@123', status: 'Active', department: 'HR' },
   { id: 'u4', name: 'ماجد سليمان (Finance Manager)', email: 'finance@company.com', role: 'Finance Manager', permissions: rolePermissions['Finance Manager'], password: 'Password@123', status: 'Active', department: 'Finance' },
-  { id: 'u-fe-dev', name: 'أحمد محمود (Finance - البرمجة)', email: 'finance.dev@company.com', role: 'Finance Employee', permissions: rolePermissions['Finance Employee'], password: 'Password@123', status: 'Active', department: 'SoftwareDevelopment' },
-  { id: 'u-fe-trn', name: 'سمير خالد (Finance - التدريب)', email: 'finance.training@company.com', role: 'Finance Employee', permissions: rolePermissions['Finance Employee'], password: 'Password@123', status: 'Active', department: 'Training' },
-  { id: 'u-fe-mkt', name: 'مريم علي (Finance - التسويق)', email: 'finance.mkt@company.com', role: 'Finance Employee', permissions: rolePermissions['Finance Employee'], password: 'Password@123', status: 'Active', department: 'Marketing' },
   { id: 'u5', name: 'دينا الشافعي (Marketing)', email: 'marketing@company.com', role: 'Marketing Manager', permissions: rolePermissions['Marketing Manager'], password: 'Password@123', status: 'Active', department: 'Marketing' },
   { id: 'u6', name: 'محمود عبد السلام (Sales)', email: 'sales.manager@company.com', role: 'Sales Manager', permissions: rolePermissions['Sales Manager'], password: 'Password@123', status: 'Active', department: 'Sales' },
   { id: 'u7', name: 'كريم نادر (Team Leader)', email: 'teamleader@company.com', role: 'Team Leader', permissions: rolePermissions['Team Leader'], password: 'Password@123', status: 'Active', department: 'Software Development' },
@@ -132,7 +145,12 @@ const defaultUsers: Array<User & { password?: string }> = [
   { id: 'u10', name: 'أمل سامي (Training Mgr)', email: 'training.manager@company.com', role: 'Training Manager', permissions: rolePermissions['Training Manager'], password: 'Password@123', status: 'Active', department: 'Training' },
   { id: 'u11', name: 'كريم محمود (Instructor)', email: 'instructor@company.com', role: 'Instructor', permissions: rolePermissions['Instructor'], password: 'Password@123', status: 'Active', department: 'Training' },
   { id: 'u13', name: 'أنس العمري (Tech Lead)', email: 'techlead@company.com', role: 'Tech Lead', permissions: rolePermissions['Tech Lead'], password: 'Password@123', status: 'Active', department: 'Software Development' },
-  { id: 'u14', name: 'زياد عمرو (Developer)', email: 'developer@company.com', role: 'Developer', permissions: rolePermissions['Developer'], password: 'Password@123', status: 'Active', department: 'Software Development' }
+  { id: 'u14', name: 'زياد عمرو (Developer)', email: 'developer@company.com', role: 'Developer', permissions: rolePermissions['Developer'], password: 'Password@123', status: 'Active', department: 'Software Development' },
+  { id: 'u15', name: 'د. حاتم الشريف (Dept Manager)', email: 'dev.manager@company.com', role: 'Department Manager', permissions: rolePermissions['Department Manager'], password: 'Password@123', status: 'Active', department: 'Software Development' },
+  { id: 'u16', name: 'رانيا مجدي (Account Manager)', email: 'account.manager@company.com', role: 'Account Manager', permissions: rolePermissions['Account Manager'], password: 'Password@123', status: 'Active', department: 'Software Development' },
+  { id: 'u17', name: 'م. إسلام عادل (Web Team Leader)', email: 'tl.web@company.com', role: 'Web Team Leader', permissions: rolePermissions['Web Team Leader'], password: 'Password@123', status: 'Active', department: 'Software Development' },
+  { id: 'u18', name: 'م. حسام السيد (Mobile Team Leader)', email: 'tl.mobile@company.com', role: 'Mobile Team Leader', permissions: rolePermissions['Mobile Team Leader'], password: 'Password@123', status: 'Active', department: 'Software Development' },
+  { id: 'u19', name: 'م. دينا فتحي (Automation TL)', email: 'tl.automation@company.com', role: 'Automation Team Leader', permissions: rolePermissions['Automation Team Leader'], password: 'Password@123', status: 'Active', department: 'Software Development' }
 ];
 
 const getStoredAuth = () => {

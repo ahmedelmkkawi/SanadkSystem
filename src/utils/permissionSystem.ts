@@ -12,12 +12,16 @@ export type UserRole =
   | 'Tech Lead'
   | 'Team Manager'
   | 'Developer'
+  | 'Department Manager'
+  | 'Account Manager'
+  | 'Web Team Leader'
+  | 'Mobile Team Leader'
+  | 'Automation Team Leader'
   | 'Sales Manager'
   | 'Sales Employee'
   | 'General Manager'
   | 'HR Manager'
   | 'Finance Manager'
-  | 'Finance Employee'
   | 'Marketing Manager'
   | 'Team Leader'
   | 'Employee'
@@ -55,7 +59,7 @@ export const DEPARTMENTS: Record<DepartmentName, DepartmentConfig> = {
   },
   SoftwareDevelopment: {
     name: 'SoftwareDevelopment',
-    roles: ['CEO', 'Tech Lead', 'Team Manager', 'Developer', 'Team Leader'],
+    roles: ['CEO', 'Tech Lead', 'Team Manager', 'Developer', 'Team Leader', 'Department Manager', 'Account Manager', 'Web Team Leader', 'Mobile Team Leader', 'Automation Team Leader'],
     allowedModules: ['SoftwareDevelopment']
   },
   HR: {
@@ -65,8 +69,8 @@ export const DEPARTMENTS: Record<DepartmentName, DepartmentConfig> = {
   },
   Finance: {
     name: 'Finance',
-    roles: ['CEO', 'Finance Manager', 'Finance Employee'],
-    allowedModules: ['Finance', 'Files', 'Reports']
+    roles: ['CEO', 'Finance Manager'],
+    allowedModules: ['Finance', 'Files']
   },
   Support: {
     name: 'Support',
@@ -133,7 +137,18 @@ export function canAccessPath(role: UserRole, path: string): boolean {
       return role === 'Client';
     }
     // Software Development department roles can access
-    const devRoles: UserRole[] = ['CEO', 'Tech Lead', 'Team Manager', 'Developer', 'Team Leader'];
+    const devRoles: UserRole[] = [
+      'CEO',
+      'Tech Lead',
+      'Team Manager',
+      'Developer',
+      'Team Leader',
+      'Department Manager',
+      'Account Manager',
+      'Web Team Leader',
+      'Mobile Team Leader',
+      'Automation Team Leader'
+    ];
     return devRoles.includes(role);
   }
 

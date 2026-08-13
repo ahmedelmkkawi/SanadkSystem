@@ -12,6 +12,14 @@ export const devTranslations: Record<DevLang, Record<string, string>> = {
     devDashboard: "Software Development & QA Dashboard",
     ceoSubtitle: "Monitor resource performance, utilization, and in-progress projects",
     devSubtitle: "Software project management, sprints, tickets, and tasks",
+
+    // Roles
+    "Tech Lead": "Tech Lead",
+    "Department Manager": "Department Manager",
+    "Account Manager": "Account Manager",
+    "Web Team Leader": "Web Team Leader",
+    "Mobile Team Leader": "Mobile Application Team Leader",
+    "Automation Team Leader": "Automation & Data Analysis TL",
     
     // Stats
     completedProjects: "Completed Projects",
@@ -298,6 +306,14 @@ export const devTranslations: Record<DevLang, Record<string, string>> = {
     devDashboard: "لوحة تحكم قسم البرمجيات والتطوير",
     ceoSubtitle: "متابعة أداء الموارد، استغلال القدرات البرمجية، والمشروعات قيد التنفيذ",
     devSubtitle: "نظام إدارة المشاريع البرمجية، السبرنتات، البلاغات والمهمات",
+
+    // Roles
+    "Tech Lead": "الرئيس التقني (Tech Lead)",
+    "Department Manager": "مدير قسم البرمجة (Dept Manager)",
+    "Account Manager": "مدير الحسابات والعملاء (Account Manager)",
+    "Web Team Leader": "قائد فريق الويب (Web TL)",
+    "Mobile Team Leader": "قائد فريق الموبايل (Mobile TL)",
+    "Automation Team Leader": "قائد الأوتوميشن والداتا (Automation TL)",
     
     // Stats
     completedProjects: "المشاريع المكتملة",

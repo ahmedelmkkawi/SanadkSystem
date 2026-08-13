@@ -15,8 +15,8 @@ export const FinanceEmployeeManagerCard: React.FC = () => {
   // Check if current user is Finance Manager or CEO or GM
   const canManage = currentUser?.role === 'Finance Manager' || currentUser?.role === 'CEO' || currentUser?.role === 'General Manager';
 
-  // Filter finance employees
-  const financeEmployees = registeredUsers.filter((u) => u.role === 'Finance Employee');
+  // Filter finance managers
+  const financeEmployees = registeredUsers.filter((u) => u.role === 'Finance Manager');
 
   const departmentOptions = [
     { value: 'SoftwareDevelopment', labelAr: 'قسم البرمجة والتطوير', labelEn: 'Software Development' },
